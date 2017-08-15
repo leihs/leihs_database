@@ -1418,6 +1418,13 @@ CREATE UNIQUE INDEX case_insensitive_inventory_code_for_items ON items USING btr
 
 
 --
+-- Name: case_insensitive_inventory_code_for_options; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX case_insensitive_inventory_code_for_options ON options USING btree (lower((inventory_code)::text));
+
+
+--
 -- Name: idx_procurement_group_inspectors_uc; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2621,6 +2628,8 @@ INSERT INTO schema_migrations (version) VALUES ('11');
 INSERT INTO schema_migrations (version) VALUES ('110');
 
 INSERT INTO schema_migrations (version) VALUES ('111');
+
+INSERT INTO schema_migrations (version) VALUES ('112');
 
 INSERT INTO schema_migrations (version) VALUES ('12');
 
