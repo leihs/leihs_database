@@ -1,7 +1,7 @@
 class FieldsDeleteCheckTrigger < ActiveRecord::Migration[5.0]
   def up
     execute <<-SQL.strip_heredoc
-      CREATE OR REPLACE FUNCTION field_delete_check_function()
+      CREATE OR REPLACE FUNCTION fields_delete_check_function()
       RETURNS TRIGGER AS $$
       BEGIN
 
@@ -30,18 +30,18 @@ class FieldsDeleteCheckTrigger < ActiveRecord::Migration[5.0]
       END;
       $$ LANGUAGE 'plpgsql';
 
-      CREATE TRIGGER trigger_field_delete_check_function
+      CREATE TRIGGER trigger_fields_delete_check_function
       BEFORE DELETE
       ON fields
       FOR EACH ROW
-      EXECUTE PROCEDURE field_delete_check_function();
+      EXECUTE PROCEDURE fields_delete_check_function();
     SQL
   end
 
   def down
     execute <<-SQL.strip_heredoc
-      DROP TRIGGER IF EXISTS trigger_field_delete_check_function ON fields;
-      DROP FUNCTION IF EXISTS field_delete_check_function();
+      DROP TRIGGER IF EXISTS trigger_fields_delete_check_function ON fields;
+      DROP FUNCTION IF EXISTS fields_delete_check_function();
     SQL
   end
 end
