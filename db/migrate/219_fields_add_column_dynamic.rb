@@ -10,6 +10,10 @@ class FieldsAddColumnDynamic < ActiveRecord::Migration[5.0]
       where
       	json_typeof(fields.data::json->'attribute') = 'array'
       	and fields.data::json#>>'{attribute,0}' = 'properties'
+        and (
+      		fields.data::json->>'required' <> 'true'
+      		or fields.data::json->>'required' is null
+      	)
     SQL
   end
 end
