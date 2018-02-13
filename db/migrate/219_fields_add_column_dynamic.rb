@@ -54,7 +54,7 @@ class FieldsAddColumnDynamic < ActiveRecord::Migration[5.0]
 
       			and
 
-      			array['default', 'forPackage']
+      			array['forPackage']
       			@>
       			array((
       				select * from json_object_keys(fields.data::json) as keys where keys not in ('attribute', 'group', 'label', 'permissions', 'target_type', 'type', 'values')
