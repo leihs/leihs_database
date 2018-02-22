@@ -2,12 +2,11 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.5
--- Dumped by pg_dump version 9.6.1
+-- Dumped from database version 9.5.5
+-- Dumped by pg_dump version 9.5.5
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SET check_function_bodies = false;
@@ -432,6 +431,598 @@ CREATE FUNCTION ensure_general_room_cannot_be_deleted() RETURNS trigger
 
 
 --
+-- Name: fields_delete_check_function(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION fields_delete_check_function() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+
+  IF (
+    NOT OLD.dynamic
+  )
+  THEN
+    RAISE EXCEPTION 'Cannot delete field which is not dynamic.';
+    RETURN OLD;
+  END IF;
+
+
+  IF (
+    -- Check if there is an item which uses the field.
+    EXISTS (
+      SELECT 1
+      FROM items
+      WHERE items.properties::jsonb ? (OLD.data::json#>>'{attribute,1}')
+    )
+  )
+  THEN
+    RAISE EXCEPTION 'Cannot delete field which is still in use.';
+    RETURN OLD;
+  END IF;
+
+  RETURN OLD;
+END;
+$$;
+
+
+--
+-- Name: fields_insert_check_function(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION fields_insert_check_function() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+      BEGIN
+
+        IF (
+          not NEW.dynamic
+        )
+        THEN
+          RAISE EXCEPTION 'New fields must always be dynamic.';
+          RETURN NEW;
+        END IF;
+
+              IF (NEW.dynamic and not -- At least one character after underline.
+(
+  NEW.id like 'properties\__%'
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_properties_id_format !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not (
+  (
+    -- No other attributes in data than these ones.
+    array['attribute', 'default', 'forPackage', 'group', 'label', 'permissions', 'target_type', 'type', 'values']
+    @>
+    array(select json_object_keys(NEW.data::json))
+  )
+  and
+  (
+    -- These keys are always mandatory (some can be null, check further checks, but the keys must exist).
+    NEW.data::jsonb ?& array['type', 'group', 'label', 'attribute', 'permissions']
+  )
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_data_json_keys !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not -- The attribute must have the right format.
+(
+  NEW.data::json->'attribute' is not null
+  and json_typeof(NEW.data::json->'attribute') = 'array'
+  and json_array_length(NEW.data::json->'attribute') = 2
+  and (NEW.data::json#>>'{attribute,0}') = 'properties'
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_attributes_format !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not -- The attribute name must match the id.
+(
+  NEW.id = 'properties_' || (NEW.data::json#>>'{attribute,1}')
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_attribute_name !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not (
+  (NEW.data::json->'permissions') is not null
+  and (NEW.data::json->'permissions'->>'role') is not null
+  and (NEW.data::json->'permissions'->>'owner') is not null
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_permissions !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not (
+  (NEW.data::json->>'type') is not null
+  and (NEW.data::json->>'type') in ('text', 'date', 'select', 'textarea', 'radio', 'checkbox')
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_type !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not (
+  (NEW.data::json->>'label') is not null
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_label !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not (
+  (NEW.data::json->>'target_type') is null
+  or (NEW.data::json->>'target_type') in ('item', 'license')
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_target_type !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not (
+  (NEW.data::json->>'required') is null
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_required !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not (
+  (
+    not (NEW.data::json->>'type') in ('radio', 'select', 'checkbox')
+    and NEW.data::json->'values' is null
+
+  )
+  or
+  (
+
+    (NEW.data::json->>'type') in ('radio', 'select', 'checkbox')
+
+
+    and json_typeof(NEW.data::json->'values') = 'array'
+
+    -- There should not exist values which do not match the expected properties.
+    and not exists (
+
+      -- The values as a json row list.
+      with vs as (
+      	select jsonb_array_elements(NEW.data::jsonb->'values') as v
+      ),
+
+      -- The values as an array row list.
+      arr as (
+      	select
+      		array_to_json(array(
+      			select jsonb_object_keys(v::jsonb)
+      		)) as arr
+      	from
+      		vs
+      )
+
+      -- Find the ones which have not 2 keys or not the expected properties.
+      select
+      	*
+      from
+      	arr
+      where
+      	json_array_length(arr) <> 2
+      	or not (arr::jsonb @> '["label","value"]'::jsonb)
+    )
+
+  )
+
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_values !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not (
+
+  not (NEW.data::json->>'type') in ('radio', 'select', 'checkbox')
+
+  or (
+    (NEW.data::json->>'type') in ('radio', 'select', 'checkbox')
+
+    and (
+
+      with vs as (
+        select jsonb_array_elements(NEW.data::jsonb->'values') as v
+      )
+
+      select
+      (
+
+        -- We need to wrap it otherwise count will not count null values.
+        select count(*) from (
+          select
+              distinct v::json->>'value'
+          from
+              vs v
+        ) as sub
+      )
+
+      =
+
+      (
+        -- We need to wrap it otherwise count will not count null values.
+        select count(*) from (
+          select
+              v::json->>'value'
+          from
+              vs v
+        ) as sub
+      )
+
+    )
+  )
+
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_distinct_values !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not (
+  -- Check default only for radio and select.
+  (
+    not (NEW.data::json->>'type') in ('radio', 'select')
+    and NEW.data::json->'default' is null
+  )
+  or
+  (
+    (NEW.data::json->>'type') in ('radio', 'select')
+
+    and
+
+    (
+      (NEW.data::json->'values' is null)
+      and
+      (NEW.data::json->'default' is null)
+
+      or
+
+      (NEW.data::json->'values' is not null)
+      and
+      (NEW.data::json->'default' is not null)
+      and 1 = (
+
+        with vs as (
+          select jsonb_array_elements(NEW.data::jsonb->'values') as v
+        )
+
+        -- Check that there exists a value equal to the default value or both are null.
+        select
+          count(*)
+        from
+          vs v
+        where
+          (v::json->>'value') = (NEW.data::jsonb->>'default')
+          or (v::json->>'value') is null and (NEW.data::jsonb->>'default') is null
+
+      )
+    )
+  )
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_default !!!!!'; RETURN NEW;
+      END IF;
+
+
+        RETURN NEW;
+      END;
+      $$;
+
+
+--
+-- Name: fields_update_check_function(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION fields_update_check_function() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+      BEGIN
+
+        IF (
+          not NEW.dynamic
+          and not (
+            -- Id may not change.
+            NEW.id = OLD.id
+
+            and
+            -- Data must be same as before except the label, permissions.role and permission.owner.
+            jsonb_pretty(NEW.data::jsonb)
+            =
+            jsonb_pretty(
+              jsonb_set(
+                jsonb_set(
+                  jsonb_set(
+                    OLD.data::jsonb,
+                    '{label}',
+                    (NEW.data::jsonb->'label'),
+                    false
+                  ),
+                  '{permissions,role}',
+                  (NEW.data::jsonb->'permissions'->'role'),
+                  false
+                ),
+                '{permissions,owner}',
+                (NEW.data::jsonb->'permissions'->'owner'),
+                false
+              )
+            )
+          )
+        )
+        THEN
+          RAISE EXCEPTION 'None dynamic fields only allow to change the attributes active, position, data.label, data.permissions.role and data.permissions.owner.';
+          RETURN NEW;
+        END IF;
+
+              IF (NEW.dynamic and not -- At least one character after underline.
+(
+  NEW.id like 'properties\__%'
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_properties_id_format !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not (
+  (
+    -- No other attributes in data than these ones.
+    array['attribute', 'default', 'forPackage', 'group', 'label', 'permissions', 'target_type', 'type', 'values']
+    @>
+    array(select json_object_keys(NEW.data::json))
+  )
+  and
+  (
+    -- These keys are always mandatory (some can be null, check further checks, but the keys must exist).
+    NEW.data::jsonb ?& array['type', 'group', 'label', 'attribute', 'permissions']
+  )
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_data_json_keys !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not -- The attribute must have the right format.
+(
+  NEW.data::json->'attribute' is not null
+  and json_typeof(NEW.data::json->'attribute') = 'array'
+  and json_array_length(NEW.data::json->'attribute') = 2
+  and (NEW.data::json#>>'{attribute,0}') = 'properties'
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_attributes_format !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not -- The attribute name must match the id.
+(
+  NEW.id = 'properties_' || (NEW.data::json#>>'{attribute,1}')
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_attribute_name !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not (
+  (NEW.data::json->'permissions') is not null
+  and (NEW.data::json->'permissions'->>'role') is not null
+  and (NEW.data::json->'permissions'->>'owner') is not null
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_permissions !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not (
+  (NEW.data::json->>'type') is not null
+  and (NEW.data::json->>'type') in ('text', 'date', 'select', 'textarea', 'radio', 'checkbox')
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_type !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not (
+  (NEW.data::json->>'label') is not null
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_label !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not (
+  (NEW.data::json->>'target_type') is null
+  or (NEW.data::json->>'target_type') in ('item', 'license')
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_target_type !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not (
+  (NEW.data::json->>'required') is null
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_required !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not (
+  (
+    not (NEW.data::json->>'type') in ('radio', 'select', 'checkbox')
+    and NEW.data::json->'values' is null
+
+  )
+  or
+  (
+
+    (NEW.data::json->>'type') in ('radio', 'select', 'checkbox')
+
+
+    and json_typeof(NEW.data::json->'values') = 'array'
+
+    -- There should not exist values which do not match the expected properties.
+    and not exists (
+
+      -- The values as a json row list.
+      with vs as (
+      	select jsonb_array_elements(NEW.data::jsonb->'values') as v
+      ),
+
+      -- The values as an array row list.
+      arr as (
+      	select
+      		array_to_json(array(
+      			select jsonb_object_keys(v::jsonb)
+      		)) as arr
+      	from
+      		vs
+      )
+
+      -- Find the ones which have not 2 keys or not the expected properties.
+      select
+      	*
+      from
+      	arr
+      where
+      	json_array_length(arr) <> 2
+      	or not (arr::jsonb @> '["label","value"]'::jsonb)
+    )
+
+  )
+
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_values !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not (
+
+  not (NEW.data::json->>'type') in ('radio', 'select', 'checkbox')
+
+  or (
+    (NEW.data::json->>'type') in ('radio', 'select', 'checkbox')
+
+    and (
+
+      with vs as (
+        select jsonb_array_elements(NEW.data::jsonb->'values') as v
+      )
+
+      select
+      (
+
+        -- We need to wrap it otherwise count will not count null values.
+        select count(*) from (
+          select
+              distinct v::json->>'value'
+          from
+              vs v
+        ) as sub
+      )
+
+      =
+
+      (
+        -- We need to wrap it otherwise count will not count null values.
+        select count(*) from (
+          select
+              v::json->>'value'
+          from
+              vs v
+        ) as sub
+      )
+
+    )
+  )
+
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_distinct_values !!!!!'; RETURN NEW;
+      END IF;
+
+      IF (NEW.dynamic and not (
+  -- Check default only for radio and select.
+  (
+    not (NEW.data::json->>'type') in ('radio', 'select')
+    and NEW.data::json->'default' is null
+  )
+  or
+  (
+    (NEW.data::json->>'type') in ('radio', 'select')
+
+    and
+
+    (
+      (NEW.data::json->'values' is null)
+      and
+      (NEW.data::json->'default' is null)
+
+      or
+
+      (NEW.data::json->'values' is not null)
+      and
+      (NEW.data::json->'default' is not null)
+      and 1 = (
+
+        with vs as (
+          select jsonb_array_elements(NEW.data::jsonb->'values') as v
+        )
+
+        -- Check that there exists a value equal to the default value or both are null.
+        select
+          count(*)
+        from
+          vs v
+        where
+          (v::json->>'value') = (NEW.data::jsonb->>'default')
+          or (v::json->>'value') is null and (NEW.data::jsonb->>'default') is null
+
+      )
+    )
+  )
+)
+)
+      THEN RAISE EXCEPTION '!!!!! CHECK TRIGGER check_default !!!!!'; RETURN NEW;
+      END IF;
+
+
+
+        IF (
+          NEW.dynamic
+          and not (
+
+            (
+
+              -- We do not check the values, if no item uses this field. Otherwise if the field is already used, existing values must not change.
+              not EXISTS (
+                SELECT 1
+                FROM items
+                WHERE items.properties::jsonb ? (NEW.data::json#>>'{attribute,1}')
+              )
+
+              -- If the values were null, the values will have to be null again.
+              or (
+                (NEW.data::json->'values') is null
+                and
+                (OLD.data::json->'values') is null
+              )
+
+              -- If there were values, we will need the same count of values again or more.
+              -- The old values must be contained in the new values.
+              or (
+                json_array_length(NEW.data::json->'values') >= json_array_length(OLD.data::json->'values')
+                and
+                (select array_agg(v::jsonb->'value') from (select jsonb_array_elements(NEW.data::jsonb->'values') as v) as vs)
+                @>
+                (select array_agg(v::jsonb->'value') from (select jsonb_array_elements(OLD.data::jsonb->'values') as v) as vs)
+              )
+
+            )
+          )
+        )
+        THEN
+          RAISE EXCEPTION 'New field is not valid.';
+          RETURN NEW;
+        END IF;
+
+        RETURN NEW;
+      END;
+      $$;
+
+
+--
 -- Name: hex_to_int(character varying); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -445,20 +1036,6 @@ CREATE FUNCTION hex_to_int(hexval character varying) RETURNS bigint
         RETURN result;
       END;
       $$;
-
-
---
--- Name: restrict_operations_on_fields_function(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION restrict_operations_on_fields_function() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-  RAISE EXCEPTION 'The fields table does not allow INSERT or DELETE or TRUNCATE!';
-  RETURN NULL;
-END;
-$$;
 
 
 SET default_tablespace = '';
@@ -479,7 +1056,7 @@ CREATE TABLE access_rights (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     role character varying NOT NULL,
-    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY ((ARRAY['customer'::character varying, 'group_manager'::character varying, 'lending_manager'::character varying, 'inventory_manager'::character varying, 'admin'::character varying])::text[])))
+    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY (ARRAY[('customer'::character varying)::text, ('group_manager'::character varying)::text, ('lending_manager'::character varying)::text, ('inventory_manager'::character varying)::text, ('admin'::character varying)::text])))
 );
 
 
@@ -682,9 +1259,10 @@ CREATE TABLE entitlements (
 
 CREATE TABLE fields (
     id character varying(50) NOT NULL,
-    active boolean DEFAULT true,
-    "position" integer,
-    data jsonb DEFAULT '{}'::jsonb
+    active boolean DEFAULT true NOT NULL,
+    "position" integer NOT NULL,
+    data jsonb DEFAULT '{}'::jsonb NOT NULL,
+    dynamic boolean DEFAULT false NOT NULL
 );
 
 
@@ -1071,7 +1649,11 @@ CREATE TABLE procurement_images (
 
 CREATE TABLE procurement_main_categories (
     id uuid DEFAULT uuid_generate_v4() NOT NULL,
-    name character varying
+    name character varying,
+    image_file_name character varying,
+    image_content_type character varying,
+    image_file_size integer,
+    image_updated_at timestamp without time zone
 );
 
 
@@ -1120,8 +1702,8 @@ CREATE TABLE procurement_requests (
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     accounting_type character varying DEFAULT 'aquisition'::character varying NOT NULL,
     internal_order_number character varying,
-    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY ((ARRAY['normal'::character varying, 'high'::character varying])::text[]))),
-    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'mandatory'::character varying])::text[]))),
+    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
+    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY (ARRAY[('low'::character varying)::text, ('medium'::character varying)::text, ('high'::character varying)::text, ('mandatory'::character varying)::text]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
     CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[])))
 );
@@ -1393,7 +1975,7 @@ CREATE TABLE workdays (
 
 
 --
--- Name: access_rights access_rights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: access_rights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY access_rights
@@ -1401,7 +1983,7 @@ ALTER TABLE ONLY access_rights
 
 
 --
--- Name: accessories accessories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: accessories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY accessories
@@ -1409,7 +1991,7 @@ ALTER TABLE ONLY accessories
 
 
 --
--- Name: addresses addresses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: addresses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY addresses
@@ -1417,7 +1999,7 @@ ALTER TABLE ONLY addresses
 
 
 --
--- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ar_internal_metadata
@@ -1425,7 +2007,7 @@ ALTER TABLE ONLY ar_internal_metadata
 
 
 --
--- Name: attachments attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY attachments
@@ -1433,7 +2015,7 @@ ALTER TABLE ONLY attachments
 
 
 --
--- Name: audits audits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: audits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY audits
@@ -1441,7 +2023,7 @@ ALTER TABLE ONLY audits
 
 
 --
--- Name: authentication_systems authentication_systems_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: authentication_systems_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY authentication_systems
@@ -1449,7 +2031,7 @@ ALTER TABLE ONLY authentication_systems
 
 
 --
--- Name: buildings buildings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: buildings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY buildings
@@ -1457,7 +2039,7 @@ ALTER TABLE ONLY buildings
 
 
 --
--- Name: contracts contracts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: contracts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY contracts
@@ -1465,7 +2047,7 @@ ALTER TABLE ONLY contracts
 
 
 --
--- Name: database_authentications database_authentications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: database_authentications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY database_authentications
@@ -1473,7 +2055,7 @@ ALTER TABLE ONLY database_authentications
 
 
 --
--- Name: fields fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY fields
@@ -1481,7 +2063,7 @@ ALTER TABLE ONLY fields
 
 
 --
--- Name: entitlement_groups groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY entitlement_groups
@@ -1489,7 +2071,7 @@ ALTER TABLE ONLY entitlement_groups
 
 
 --
--- Name: hidden_fields hidden_fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: hidden_fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY hidden_fields
@@ -1497,7 +2079,7 @@ ALTER TABLE ONLY hidden_fields
 
 
 --
--- Name: holidays holidays_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: holidays_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY holidays
@@ -1505,7 +2087,7 @@ ALTER TABLE ONLY holidays
 
 
 --
--- Name: images images_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: images_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY images
@@ -1513,7 +2095,7 @@ ALTER TABLE ONLY images
 
 
 --
--- Name: inventory_pools inventory_pools_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: inventory_pools_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY inventory_pools
@@ -1521,7 +2103,7 @@ ALTER TABLE ONLY inventory_pools
 
 
 --
--- Name: items items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY items
@@ -1529,7 +2111,7 @@ ALTER TABLE ONLY items
 
 
 --
--- Name: languages languages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: languages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY languages
@@ -1537,7 +2119,7 @@ ALTER TABLE ONLY languages
 
 
 --
--- Name: mail_templates mail_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: mail_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY mail_templates
@@ -1545,7 +2127,7 @@ ALTER TABLE ONLY mail_templates
 
 
 --
--- Name: model_group_links model_group_links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: model_group_links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY model_group_links
@@ -1553,7 +2135,7 @@ ALTER TABLE ONLY model_group_links
 
 
 --
--- Name: model_groups model_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: model_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY model_groups
@@ -1561,7 +2143,7 @@ ALTER TABLE ONLY model_groups
 
 
 --
--- Name: model_links model_links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: model_links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY model_links
@@ -1569,7 +2151,7 @@ ALTER TABLE ONLY model_links
 
 
 --
--- Name: models models_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: models_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY models
@@ -1577,7 +2159,7 @@ ALTER TABLE ONLY models
 
 
 --
--- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY notifications
@@ -1585,7 +2167,7 @@ ALTER TABLE ONLY notifications
 
 
 --
--- Name: numerators numerators_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: numerators_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY numerators
@@ -1593,7 +2175,7 @@ ALTER TABLE ONLY numerators
 
 
 --
--- Name: old_empty_contracts old_empty_contracts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: old_empty_contracts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY old_empty_contracts
@@ -1601,7 +2183,7 @@ ALTER TABLE ONLY old_empty_contracts
 
 
 --
--- Name: options options_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: options_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY options
@@ -1609,7 +2191,7 @@ ALTER TABLE ONLY options
 
 
 --
--- Name: orders orders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: orders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY orders
@@ -1617,7 +2199,7 @@ ALTER TABLE ONLY orders
 
 
 --
--- Name: entitlements partitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: partitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY entitlements
@@ -1625,7 +2207,7 @@ ALTER TABLE ONLY entitlements
 
 
 --
--- Name: procurement_accesses procurement_accesses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_accesses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_accesses
@@ -1633,7 +2215,7 @@ ALTER TABLE ONLY procurement_accesses
 
 
 --
--- Name: procurement_attachments procurement_attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_attachments
@@ -1641,7 +2223,7 @@ ALTER TABLE ONLY procurement_attachments
 
 
 --
--- Name: procurement_budget_limits procurement_budget_limits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_budget_limits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_budget_limits
@@ -1649,7 +2231,7 @@ ALTER TABLE ONLY procurement_budget_limits
 
 
 --
--- Name: procurement_budget_periods procurement_budget_periods_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_budget_periods_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_budget_periods
@@ -1657,7 +2239,7 @@ ALTER TABLE ONLY procurement_budget_periods
 
 
 --
--- Name: procurement_categories procurement_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_categories
@@ -1665,7 +2247,7 @@ ALTER TABLE ONLY procurement_categories
 
 
 --
--- Name: procurement_category_inspectors procurement_category_inspectors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_category_inspectors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_category_inspectors
@@ -1673,7 +2255,7 @@ ALTER TABLE ONLY procurement_category_inspectors
 
 
 --
--- Name: procurement_images procurement_images_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_images_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_images
@@ -1681,7 +2263,7 @@ ALTER TABLE ONLY procurement_images
 
 
 --
--- Name: procurement_main_categories procurement_main_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_main_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_main_categories
@@ -1689,7 +2271,7 @@ ALTER TABLE ONLY procurement_main_categories
 
 
 --
--- Name: procurement_organizations procurement_organizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_organizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_organizations
@@ -1697,7 +2279,7 @@ ALTER TABLE ONLY procurement_organizations
 
 
 --
--- Name: procurement_requests procurement_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_requests
@@ -1705,7 +2287,7 @@ ALTER TABLE ONLY procurement_requests
 
 
 --
--- Name: procurement_settings procurement_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_settings
@@ -1713,7 +2295,7 @@ ALTER TABLE ONLY procurement_settings
 
 
 --
--- Name: procurement_templates procurement_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_templates
@@ -1721,7 +2303,7 @@ ALTER TABLE ONLY procurement_templates
 
 
 --
--- Name: procurement_users_filters procurement_users_filters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_users_filters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_users_filters
@@ -1729,7 +2311,7 @@ ALTER TABLE ONLY procurement_users_filters
 
 
 --
--- Name: properties properties_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: properties_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY properties
@@ -1737,7 +2319,7 @@ ALTER TABLE ONLY properties
 
 
 --
--- Name: reservations reservations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: reservations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY reservations
@@ -1745,7 +2327,7 @@ ALTER TABLE ONLY reservations
 
 
 --
--- Name: rooms rooms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: rooms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY rooms
@@ -1753,15 +2335,7 @@ ALTER TABLE ONLY rooms
 
 
 --
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
-
-
---
--- Name: settings settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY settings
@@ -1769,7 +2343,7 @@ ALTER TABLE ONLY settings
 
 
 --
--- Name: suppliers suppliers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: suppliers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY suppliers
@@ -1777,7 +2351,7 @@ ALTER TABLE ONLY suppliers
 
 
 --
--- Name: user_sessions user_sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: user_sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY user_sessions
@@ -1785,7 +2359,7 @@ ALTER TABLE ONLY user_sessions
 
 
 --
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY users
@@ -1793,7 +2367,7 @@ ALTER TABLE ONLY users
 
 
 --
--- Name: workdays workdays_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: workdays_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workdays
@@ -2445,6 +3019,13 @@ CREATE UNIQUE INDEX rooms_unique_name_and_building_id ON rooms USING btree ((((l
 
 
 --
+-- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_schema_migrations ON schema_migrations USING btree (version);
+
+
+--
 -- Name: user_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2452,119 +3033,133 @@ CREATE INDEX user_index ON audits USING btree (user_id, user_type);
 
 
 --
--- Name: reservations trigger_check_closed_reservations_contract_state; Type: TRIGGER; Schema: public; Owner: -
+-- Name: fields_insert_check_trigger; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER fields_insert_check_trigger BEFORE INSERT ON fields FOR EACH ROW EXECUTE PROCEDURE fields_insert_check_function();
+
+
+--
+-- Name: fields_update_check_trigger; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER fields_update_check_trigger BEFORE UPDATE ON fields FOR EACH ROW EXECUTE PROCEDURE fields_update_check_function();
+
+
+--
+-- Name: trigger_check_closed_reservations_contract_state; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_closed_reservations_contract_state AFTER INSERT OR UPDATE ON reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE check_closed_reservations_contract_state();
 
 
 --
--- Name: contracts trigger_check_contract_has_at_least_one_reservation; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_contract_has_at_least_one_reservation; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_contract_has_at_least_one_reservation AFTER INSERT OR UPDATE ON contracts DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE check_contract_has_at_least_one_reservation();
 
 
 --
--- Name: rooms trigger_check_general_building_id_for_general_room; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_general_building_id_for_general_room; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_general_building_id_for_general_room AFTER UPDATE ON rooms NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE check_general_building_id_for_general_room();
 
 
 --
--- Name: reservations trigger_check_item_line_state_consistency; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_item_line_state_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_item_line_state_consistency AFTER INSERT OR UPDATE ON reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE check_item_line_state_consistency();
 
 
 --
--- Name: reservations trigger_check_option_line_state_consistency; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_option_line_state_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_option_line_state_consistency AFTER INSERT OR UPDATE ON reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE check_option_line_state_consistency();
 
 
 --
--- Name: reservations trigger_check_reservation_contract_inventory_pool_id_consistenc; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_reservation_contract_inventory_pool_id_consistenc; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_reservation_contract_inventory_pool_id_consistenc AFTER INSERT OR UPDATE ON reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE check_reservation_contract_inventory_pool_id_consistency();
 
 
 --
--- Name: reservations trigger_check_reservation_contract_user_id_consistency; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_reservation_contract_user_id_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_reservation_contract_user_id_consistency AFTER INSERT OR UPDATE ON reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE check_reservation_contract_user_id_consistency();
 
 
 --
--- Name: reservations trigger_check_reservation_order_inventory_pool_id_consistency; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_reservation_order_inventory_pool_id_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_reservation_order_inventory_pool_id_consistency AFTER INSERT OR UPDATE ON reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE check_reservation_order_inventory_pool_id_consistency();
 
 
 --
--- Name: reservations trigger_check_reservation_order_user_id_consistency; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_reservation_order_user_id_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_reservation_order_user_id_consistency AFTER INSERT OR UPDATE ON reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE check_reservation_order_user_id_consistency();
 
 
 --
--- Name: contracts trigger_check_reservations_contracts_state_consistency; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_reservations_contracts_state_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_reservations_contracts_state_consistency AFTER INSERT OR UPDATE ON contracts DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE check_reservations_contracts_state_consistency();
 
 
 --
--- Name: reservations trigger_delete_empty_order; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_delete_empty_order; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_delete_empty_order AFTER DELETE ON reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE delete_empty_order();
 
 
 --
--- Name: procurement_accesses trigger_delete_procurement_users_filters_after_procurement_acce; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_delete_procurement_users_filters_after_procurement_acce; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_delete_procurement_users_filters_after_procurement_acce AFTER DELETE ON procurement_accesses DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE delete_procurement_users_filters_after_procurement_accesses();
 
 
 --
--- Name: users trigger_delete_procurement_users_filters_after_users; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_delete_procurement_users_filters_after_users; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_delete_procurement_users_filters_after_users AFTER DELETE ON users DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE delete_procurement_users_filters_after_users();
 
 
 --
--- Name: buildings trigger_ensure_general_building_cannot_be_deleted; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_ensure_general_building_cannot_be_deleted; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_ensure_general_building_cannot_be_deleted AFTER DELETE ON buildings NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE ensure_general_building_cannot_be_deleted();
 
 
 --
--- Name: rooms trigger_ensure_general_room_cannot_be_deleted; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_ensure_general_room_cannot_be_deleted; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_ensure_general_room_cannot_be_deleted AFTER DELETE ON rooms NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE ensure_general_room_cannot_be_deleted();
 
 
 --
--- Name: fields trigger_restrict_operations_on_fields_function; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_fields_delete_check_function; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER trigger_restrict_operations_on_fields_function BEFORE INSERT OR DELETE ON fields FOR EACH STATEMENT EXECUTE PROCEDURE restrict_operations_on_fields_function();
+CREATE TRIGGER trigger_fields_delete_check_function BEFORE DELETE ON fields FOR EACH ROW EXECUTE PROCEDURE fields_delete_check_function();
 
 
 --
--- Name: hidden_fields fk_rails_00a4ef0c4f; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_00a4ef0c4f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY hidden_fields
@@ -2572,7 +3167,7 @@ ALTER TABLE ONLY hidden_fields
 
 
 --
--- Name: items fk_rails_042cf7b23c; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_042cf7b23c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY items
@@ -2580,7 +3175,7 @@ ALTER TABLE ONLY items
 
 
 --
--- Name: procurement_organizations fk_rails_0731e8b712; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_0731e8b712; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_organizations
@@ -2588,7 +3183,7 @@ ALTER TABLE ONLY procurement_organizations
 
 
 --
--- Name: items fk_rails_0ed18b3bf9; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_0ed18b3bf9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY items
@@ -2596,7 +3191,7 @@ ALTER TABLE ONLY items
 
 
 --
--- Name: model_links fk_rails_11add1a9a3; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_11add1a9a3; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY model_links
@@ -2604,7 +3199,7 @@ ALTER TABLE ONLY model_links
 
 
 --
--- Name: reservations fk_rails_151794e412; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_151794e412; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY reservations
@@ -2612,7 +3207,7 @@ ALTER TABLE ONLY reservations
 
 
 --
--- Name: contracts fk_rails_1bf8633565; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_1bf8633565; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY contracts
@@ -2620,7 +3215,7 @@ ALTER TABLE ONLY contracts
 
 
 --
--- Name: procurement_budget_limits fk_rails_1c5f9021ad; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_1c5f9021ad; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_budget_limits
@@ -2628,7 +3223,7 @@ ALTER TABLE ONLY procurement_budget_limits
 
 
 --
--- Name: procurement_requests fk_rails_214a7de1ff; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_214a7de1ff; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_requests
@@ -2636,7 +3231,7 @@ ALTER TABLE ONLY procurement_requests
 
 
 --
--- Name: users fk_rails_330f34f125; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_330f34f125; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY users
@@ -2644,7 +3239,7 @@ ALTER TABLE ONLY users
 
 
 --
--- Name: procurement_attachments fk_rails_396a61ca60; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_396a61ca60; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_attachments
@@ -2652,7 +3247,7 @@ ALTER TABLE ONLY procurement_attachments
 
 
 --
--- Name: reservations fk_rails_3cc4562273; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_3cc4562273; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY reservations
@@ -2660,7 +3255,7 @@ ALTER TABLE ONLY reservations
 
 
 --
--- Name: hidden_fields fk_rails_3dac013d86; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_3dac013d86; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY hidden_fields
@@ -2668,7 +3263,7 @@ ALTER TABLE ONLY hidden_fields
 
 
 --
--- Name: mail_templates fk_rails_3e8b923972; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_3e8b923972; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY mail_templates
@@ -2676,7 +3271,7 @@ ALTER TABLE ONLY mail_templates
 
 
 --
--- Name: entitlements fk_rails_44495fc6cf; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_44495fc6cf; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY entitlements
@@ -2684,7 +3279,7 @@ ALTER TABLE ONLY entitlements
 
 
 --
--- Name: users fk_rails_45f4f12508; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_45f4f12508; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY users
@@ -2692,7 +3287,7 @@ ALTER TABLE ONLY users
 
 
 --
--- Name: entitlement_groups fk_rails_45f96f9df2; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_45f96f9df2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY entitlement_groups
@@ -2700,7 +3295,7 @@ ALTER TABLE ONLY entitlement_groups
 
 
 --
--- Name: procurement_templates fk_rails_46cc05bf71; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_46cc05bf71; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_templates
@@ -2708,7 +3303,7 @@ ALTER TABLE ONLY procurement_templates
 
 
 --
--- Name: procurement_images fk_rails_47fed491ad; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_47fed491ad; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_images
@@ -2716,7 +3311,7 @@ ALTER TABLE ONLY procurement_images
 
 
 --
--- Name: reservations fk_rails_48a92fce51; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_48a92fce51; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY reservations
@@ -2724,7 +3319,7 @@ ALTER TABLE ONLY reservations
 
 
 --
--- Name: model_group_links fk_rails_48e1ccdd03; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_48e1ccdd03; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY model_group_links
@@ -2732,7 +3327,7 @@ ALTER TABLE ONLY model_group_links
 
 
 --
--- Name: procurement_requests fk_rails_4c51bafad3; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_4c51bafad3; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_requests
@@ -2740,7 +3335,7 @@ ALTER TABLE ONLY procurement_requests
 
 
 --
--- Name: reservations fk_rails_4d0c0195f0; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_4d0c0195f0; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY reservations
@@ -2748,7 +3343,7 @@ ALTER TABLE ONLY reservations
 
 
 --
--- Name: entitlement_groups_users fk_rails_4e63edbd27; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_4e63edbd27; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY entitlement_groups_users
@@ -2756,7 +3351,7 @@ ALTER TABLE ONLY entitlement_groups_users
 
 
 --
--- Name: procurement_requests fk_rails_51707743b7; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_51707743b7; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_requests
@@ -2764,7 +3359,7 @@ ALTER TABLE ONLY procurement_requests
 
 
 --
--- Name: items fk_rails_538506beaf; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_538506beaf; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY items
@@ -2772,7 +3367,7 @@ ALTER TABLE ONLY items
 
 
 --
--- Name: accessories fk_rails_54c6f19548; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_54c6f19548; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY accessories
@@ -2780,7 +3375,7 @@ ALTER TABLE ONLY accessories
 
 
 --
--- Name: models_compatibles fk_rails_5c311e46b1; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_5c311e46b1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY models_compatibles
@@ -2788,7 +3383,7 @@ ALTER TABLE ONLY models_compatibles
 
 
 --
--- Name: reservations fk_rails_5cc2043d96; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_5cc2043d96; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY reservations
@@ -2796,7 +3391,7 @@ ALTER TABLE ONLY reservations
 
 
 --
--- Name: mail_templates fk_rails_5d00b5b086; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_5d00b5b086; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY mail_templates
@@ -2804,7 +3399,7 @@ ALTER TABLE ONLY mail_templates
 
 
 --
--- Name: procurement_images fk_rails_62917a6a8f; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_62917a6a8f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_images
@@ -2812,7 +3407,7 @@ ALTER TABLE ONLY procurement_images
 
 
 --
--- Name: entitlements fk_rails_69c88ff594; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_69c88ff594; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY entitlements
@@ -2820,7 +3415,7 @@ ALTER TABLE ONLY entitlements
 
 
 --
--- Name: inventory_pools fk_rails_6a55965722; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_6a55965722; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY inventory_pools
@@ -2828,7 +3423,7 @@ ALTER TABLE ONLY inventory_pools
 
 
 --
--- Name: inventory_pools_model_groups fk_rails_6a7781d99f; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_6a7781d99f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY inventory_pools_model_groups
@@ -2836,7 +3431,7 @@ ALTER TABLE ONLY inventory_pools_model_groups
 
 
 --
--- Name: reservations fk_rails_6f10314351; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_6f10314351; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY reservations
@@ -2844,7 +3439,7 @@ ALTER TABLE ONLY reservations
 
 
 --
--- Name: attachments fk_rails_753607b7c1; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_753607b7c1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY attachments
@@ -2852,7 +3447,7 @@ ALTER TABLE ONLY attachments
 
 
 --
--- Name: entitlement_groups_users fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY entitlement_groups_users
@@ -2860,7 +3455,7 @@ ALTER TABLE ONLY entitlement_groups_users
 
 
 --
--- Name: database_authentications fk_rails_85650bffa9; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_85650bffa9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY database_authentications
@@ -2868,7 +3463,7 @@ ALTER TABLE ONLY database_authentications
 
 
 --
--- Name: items fk_rails_8757b4d49c; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_8757b4d49c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY items
@@ -2876,7 +3471,7 @@ ALTER TABLE ONLY items
 
 
 --
--- Name: user_sessions fk_rails_8987cee3fd; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_8987cee3fd; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY user_sessions
@@ -2884,7 +3479,7 @@ ALTER TABLE ONLY user_sessions
 
 
 --
--- Name: reservations fk_rails_8dc1da71d1; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_8dc1da71d1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY reservations
@@ -2892,7 +3487,7 @@ ALTER TABLE ONLY reservations
 
 
 --
--- Name: items fk_rails_9353db44a2; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_9353db44a2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY items
@@ -2900,7 +3495,7 @@ ALTER TABLE ONLY items
 
 
 --
--- Name: reservations fk_rails_943a884838; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_943a884838; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY reservations
@@ -2908,7 +3503,7 @@ ALTER TABLE ONLY reservations
 
 
 --
--- Name: accessories_inventory_pools fk_rails_9511c9a747; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_9511c9a747; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY accessories_inventory_pools
@@ -2916,7 +3511,7 @@ ALTER TABLE ONLY accessories_inventory_pools
 
 
 --
--- Name: model_links fk_rails_9b7295b085; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_9b7295b085; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY model_links
@@ -2924,7 +3519,7 @@ ALTER TABLE ONLY model_links
 
 
 --
--- Name: user_sessions fk_rails_9fa262d742; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_9fa262d742; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY user_sessions
@@ -2932,7 +3527,7 @@ ALTER TABLE ONLY user_sessions
 
 
 --
--- Name: workdays fk_rails_a18bc267df; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_a18bc267df; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workdays
@@ -2940,7 +3535,7 @@ ALTER TABLE ONLY workdays
 
 
 --
--- Name: rooms fk_rails_a3957b23a8; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_a3957b23a8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY rooms
@@ -2948,7 +3543,7 @@ ALTER TABLE ONLY rooms
 
 
 --
--- Name: properties fk_rails_a52b96ad3d; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_a52b96ad3d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY properties
@@ -2956,7 +3551,7 @@ ALTER TABLE ONLY properties
 
 
 --
--- Name: reservations fk_rails_a863d81c8a; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_a863d81c8a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY reservations
@@ -2964,7 +3559,7 @@ ALTER TABLE ONLY reservations
 
 
 --
--- Name: notifications fk_rails_b080fb4855; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_b080fb4855; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY notifications
@@ -2972,7 +3567,7 @@ ALTER TABLE ONLY notifications
 
 
 --
--- Name: entitlements fk_rails_b10a540212; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_b10a540212; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY entitlements
@@ -2980,7 +3575,7 @@ ALTER TABLE ONLY entitlements
 
 
 --
--- Name: access_rights fk_rails_b36d97eb0c; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_b36d97eb0c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY access_rights
@@ -2988,7 +3583,7 @@ ALTER TABLE ONLY access_rights
 
 
 --
--- Name: delegations_users fk_rails_b5f7f9c898; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_b5f7f9c898; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY delegations_users
@@ -2996,7 +3591,7 @@ ALTER TABLE ONLY delegations_users
 
 
 --
--- Name: procurement_requests fk_rails_b6213e1ee9; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_b6213e1ee9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_requests
@@ -3004,7 +3599,7 @@ ALTER TABLE ONLY procurement_requests
 
 
 --
--- Name: procurement_requests fk_rails_b740f37e3d; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_b740f37e3d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_requests
@@ -3012,7 +3607,7 @@ ALTER TABLE ONLY procurement_requests
 
 
 --
--- Name: procurement_budget_limits fk_rails_beb637d785; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_beb637d785; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_budget_limits
@@ -3020,7 +3615,7 @@ ALTER TABLE ONLY procurement_budget_limits
 
 
 --
--- Name: procurement_requests fk_rails_bf7bec026c; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_bf7bec026c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_requests
@@ -3028,7 +3623,7 @@ ALTER TABLE ONLY procurement_requests
 
 
 --
--- Name: access_rights fk_rails_c10a7fd1fd; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_c10a7fd1fd; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY access_rights
@@ -3036,7 +3631,7 @@ ALTER TABLE ONLY access_rights
 
 
 --
--- Name: procurement_accesses fk_rails_c116e35025; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_c116e35025; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_accesses
@@ -3044,7 +3639,7 @@ ALTER TABLE ONLY procurement_accesses
 
 
 --
--- Name: holidays fk_rails_c189a29194; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_c189a29194; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY holidays
@@ -3052,7 +3647,7 @@ ALTER TABLE ONLY holidays
 
 
 --
--- Name: inventory_pools_model_groups fk_rails_cb04742a0b; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_cb04742a0b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY inventory_pools_model_groups
@@ -3060,7 +3655,7 @@ ALTER TABLE ONLY inventory_pools_model_groups
 
 
 --
--- Name: model_group_links fk_rails_d4425f3184; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_d4425f3184; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY model_group_links
@@ -3068,7 +3663,7 @@ ALTER TABLE ONLY model_group_links
 
 
 --
--- Name: delegations_users fk_rails_df1fb72b34; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_df1fb72b34; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY delegations_users
@@ -3076,7 +3671,7 @@ ALTER TABLE ONLY delegations_users
 
 
 --
--- Name: models_compatibles fk_rails_e63411efbd; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_e63411efbd; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY models_compatibles
@@ -3084,7 +3679,7 @@ ALTER TABLE ONLY models_compatibles
 
 
 --
--- Name: procurement_templates fk_rails_e6aab61827; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_e6aab61827; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_templates
@@ -3092,7 +3687,7 @@ ALTER TABLE ONLY procurement_templates
 
 
 --
--- Name: accessories_inventory_pools fk_rails_e9daa88f6c; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_e9daa88f6c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY accessories_inventory_pools
@@ -3100,7 +3695,7 @@ ALTER TABLE ONLY accessories_inventory_pools
 
 
 --
--- Name: procurement_category_inspectors fk_rails_ed1149b98d; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_ed1149b98d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_category_inspectors
@@ -3108,7 +3703,7 @@ ALTER TABLE ONLY procurement_category_inspectors
 
 
 --
--- Name: items fk_rails_ed5bf219ac; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_ed5bf219ac; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY items
@@ -3116,7 +3711,7 @@ ALTER TABLE ONLY items
 
 
 --
--- Name: contracts fk_rails_f191b5ed7a; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_f191b5ed7a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY contracts
@@ -3124,7 +3719,7 @@ ALTER TABLE ONLY contracts
 
 
 --
--- Name: procurement_requests fk_rails_f365098d3c; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_f365098d3c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_requests
@@ -3132,7 +3727,7 @@ ALTER TABLE ONLY procurement_requests
 
 
 --
--- Name: procurement_requests fk_rails_f60a954ec5; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_f60a954ec5; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_requests
@@ -3140,7 +3735,7 @@ ALTER TABLE ONLY procurement_requests
 
 
 --
--- Name: attachments fk_rails_f6d36cd48e; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_f6d36cd48e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY attachments
@@ -3148,7 +3743,7 @@ ALTER TABLE ONLY attachments
 
 
 --
--- Name: procurement_category_inspectors fk_rails_f80c94fb1e; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_f80c94fb1e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_category_inspectors
@@ -3156,7 +3751,7 @@ ALTER TABLE ONLY procurement_category_inspectors
 
 
 --
--- Name: options fk_rails_fd8397be78; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_fd8397be78; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY options
@@ -3164,7 +3759,7 @@ ALTER TABLE ONLY options
 
 
 --
--- Name: procurement_templates fk_rails_fe27b0b24a; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_fe27b0b24a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY procurement_templates
@@ -3172,7 +3767,7 @@ ALTER TABLE ONLY procurement_templates
 
 
 --
--- Name: images fkey_images_images_parent_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fkey_images_images_parent_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY images
@@ -3180,7 +3775,7 @@ ALTER TABLE ONLY images
 
 
 --
--- Name: users fkey_users_delegators; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fkey_users_delegators; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY users
@@ -3242,6 +3837,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('215'),
 ('216'),
 ('217'),
+('218'),
 ('4'),
 ('5'),
 ('6'),
