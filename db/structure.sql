@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.2
--- Dumped by pg_dump version 10.2
+-- Dumped from database version 9.6.4
+-- Dumped by pg_dump version 9.6.4
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1039,6 +1039,20 @@ CREATE FUNCTION hex_to_int(hexval character varying) RETURNS bigint
       $$;
 
 
+--
+-- Name: users_update_searchable_column(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION users_update_searchable_column() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+   NEW.searchable = COALESCE(NEW.lastname::text, '') || ' ' || COALESCE(NEW.firstname::text, '') || ' ' || COALESCE(NEW.email::text, '') || ' ' || COALESCE(NEW.login::text, '') || ' ' || COALESCE(NEW.unique_id::text, '') ;
+   RETURN NEW;
+END;
+$$;
+
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
@@ -1057,7 +1071,7 @@ CREATE TABLE access_rights (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     role character varying NOT NULL,
-    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY (ARRAY[('customer'::character varying)::text, ('group_manager'::character varying)::text, ('lending_manager'::character varying)::text, ('inventory_manager'::character varying)::text, ('admin'::character varying)::text])))
+    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY ((ARRAY['customer'::character varying, 'group_manager'::character varying, 'lending_manager'::character varying, 'inventory_manager'::character varying, 'admin'::character varying])::text[])))
 );
 
 
@@ -1095,6 +1109,29 @@ CREATE TABLE addresses (
     country_code character varying,
     latitude double precision,
     longitude double precision
+);
+
+
+--
+-- Name: api_tokens; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE api_tokens (
+    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+    user_id uuid NOT NULL,
+    token_hash text NOT NULL,
+    token_part character varying(5) NOT NULL,
+    scope_read boolean DEFAULT true NOT NULL,
+    scope_write boolean DEFAULT false NOT NULL,
+    scope_admin_read boolean DEFAULT false NOT NULL,
+    scope_admin_write boolean DEFAULT false NOT NULL,
+    description text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    expires_at timestamp with time zone DEFAULT (now() + '1 year'::interval) NOT NULL,
+    CONSTRAINT sensible_scope_admin_read CHECK (((NOT scope_admin_read) OR (scope_admin_read AND scope_read))),
+    CONSTRAINT sensible_scrope_admin_write CHECK (((NOT scope_admin_write) OR (scope_admin_write AND scope_admin_read))),
+    CONSTRAINT sensible_scrope_write CHECK (((NOT scope_write) OR (scope_write AND scope_read)))
 );
 
 
@@ -1652,11 +1689,7 @@ CREATE TABLE procurement_images (
 
 CREATE TABLE procurement_main_categories (
     id uuid DEFAULT uuid_generate_v4() NOT NULL,
-    name character varying,
-    image_file_name character varying,
-    image_content_type character varying,
-    image_file_size integer,
-    image_updated_at timestamp without time zone
+    name character varying
 );
 
 
@@ -1705,8 +1738,8 @@ CREATE TABLE procurement_requests (
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     accounting_type character varying DEFAULT 'aquisition'::character varying NOT NULL,
     internal_order_number character varying,
-    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
-    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY (ARRAY[('low'::character varying)::text, ('medium'::character varying)::text, ('high'::character varying)::text, ('mandatory'::character varying)::text]))),
+    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY ((ARRAY['normal'::character varying, 'high'::character varying])::text[]))),
+    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'mandatory'::character varying])::text[]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
     CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[])))
 );
@@ -1823,15 +1856,14 @@ CREATE TABLE schema_migrations (
 --
 
 CREATE TABLE settings (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
     smtp_address character varying,
     smtp_port integer,
     smtp_domain character varying,
-    local_currency_string character varying NOT NULL,
+    local_currency_string text,
     contract_terms text,
     contract_lending_party_string text,
-    email_signature character varying NOT NULL,
-    default_email character varying NOT NULL,
+    email_signature text,
+    default_email text,
     deliver_order_notifications boolean,
     user_image_url character varying,
     ldap_config character varying,
@@ -1853,7 +1885,10 @@ CREATE TABLE settings (
     sessions_max_lifetime_secs integer DEFAULT 432000,
     sessions_force_uniqueness boolean DEFAULT true NOT NULL,
     sessions_force_secure boolean DEFAULT false NOT NULL,
-    documentation_link character varying DEFAULT ''::character varying
+    documentation_link character varying DEFAULT ''::character varying,
+    id integer DEFAULT 0 NOT NULL,
+    accept_server_secret_as_universal_password boolean DEFAULT true NOT NULL,
+    CONSTRAINT id_is_zero CHECK ((id = 0))
 );
 
 
@@ -1890,7 +1925,7 @@ CREATE TABLE user_sessions (
 CREATE TABLE users (
     id uuid DEFAULT uuid_generate_v4() NOT NULL,
     login character varying,
-    firstname character varying NOT NULL,
+    firstname text,
     lastname character varying,
     phone character varying,
     authentication_system_id uuid,
@@ -1905,9 +1940,35 @@ CREATE TABLE users (
     extended_info text,
     settings character varying(1024),
     delegator_user_id uuid,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    searchable text DEFAULT ''::text NOT NULL,
+    sign_in_enabled boolean DEFAULT true NOT NULL,
+    password_sign_in_enabled boolean DEFAULT true NOT NULL,
+    pw_hash text DEFAULT crypt((gen_random_uuid())::text, gen_salt('bf'::text)) NOT NULL,
+    img256_data_url character varying(100000),
+    img32_data_url character varying(10000),
+    img_upload_id text,
+    is_admin boolean DEFAULT false NOT NULL,
+    CONSTRAINT email_not_null CHECK (((email IS NOT NULL) OR (delegator_user_id IS NOT NULL)))
 );
+
+
+--
+-- Name: users_overview; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW users_overview AS
+ SELECT users.id,
+    users.unique_id AS org_id,
+    users.email,
+    users.firstname,
+    users.lastname,
+    users.is_admin,
+    users.sign_in_enabled,
+    (users.pw_hash IS NOT NULL) AS has_password,
+    (users.img256_data_url IS NOT NULL) AS has_image
+   FROM users;
 
 
 --
@@ -2335,6 +2396,14 @@ ALTER TABLE ONLY reservations
 
 ALTER TABLE ONLY rooms
     ADD CONSTRAINT rooms_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY schema_migrations
+    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -3022,17 +3091,24 @@ CREATE UNIQUE INDEX rooms_unique_name_and_building_id ON rooms USING btree ((((l
 
 
 --
--- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX unique_schema_migrations ON schema_migrations USING btree (version);
-
-
---
 -- Name: user_index; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX user_index ON audits USING btree (user_id, user_type);
+
+
+--
+-- Name: users_searchable_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX users_searchable_idx ON users USING gin (searchable gin_trgm_ops);
+
+
+--
+-- Name: users_to_tsvector_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX users_to_tsvector_idx ON users USING gin (to_tsvector('english'::regconfig, searchable));
 
 
 --
@@ -3159,6 +3235,13 @@ CREATE CONSTRAINT TRIGGER trigger_ensure_general_room_cannot_be_deleted AFTER DE
 --
 
 CREATE TRIGGER trigger_fields_delete_check_function BEFORE DELETE ON fields FOR EACH ROW EXECUTE PROCEDURE fields_delete_check_function();
+
+
+--
+-- Name: users update_searchable_column_of_users; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_searchable_column_of_users BEFORE INSERT OR UPDATE ON users FOR EACH ROW EXECUTE PROCEDURE users_update_searchable_column();
 
 
 --
@@ -3844,6 +3927,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('219'),
 ('4'),
 ('5'),
+('500'),
 ('6'),
 ('7'),
 ('8'),
