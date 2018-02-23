@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.2
--- Dumped by pg_dump version 10.2
+-- Dumped from database version 9.6.5
+-- Dumped by pg_dump version 9.6.1
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1652,11 +1652,7 @@ CREATE TABLE procurement_images (
 
 CREATE TABLE procurement_main_categories (
     id uuid DEFAULT uuid_generate_v4() NOT NULL,
-    name character varying,
-    image_file_name character varying,
-    image_content_type character varying,
-    image_file_size integer,
-    image_updated_at timestamp without time zone
+    name character varying
 );
 
 
