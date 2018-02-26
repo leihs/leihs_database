@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.5
--- Dumped by pg_dump version 9.6.1
+-- Dumped from database version 10.2
+-- Dumped by pg_dump version 10.2
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1247,7 +1247,6 @@ CREATE TABLE entitlement_groups_users (
 CREATE TABLE entitlements (
     id uuid DEFAULT uuid_generate_v4() NOT NULL,
     model_id uuid NOT NULL,
-    inventory_pool_id uuid NOT NULL,
     entitlement_group_id uuid NOT NULL,
     quantity integer NOT NULL,
     "position" integer DEFAULT 0 NOT NULL
@@ -2402,13 +2401,6 @@ CREATE UNIQUE INDEX case_insensitive_inventory_code_for_options ON options USING
 
 
 --
--- Name: idx_model_pool_egroup; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX idx_model_pool_egroup ON entitlements USING btree (model_id, inventory_pool_id, entitlement_group_id);
-
-
---
 -- Name: idx_procurement_group_inspectors_uc; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2574,13 +2566,6 @@ CREATE INDEX index_entitlement_groups_users_on_entitlement_group_id ON entitleme
 --
 
 CREATE INDEX index_entitlements_on_entitlement_group_id ON entitlements USING btree (entitlement_group_id);
-
-
---
--- Name: index_entitlements_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_entitlements_on_inventory_pool_id ON entitlements USING btree (inventory_pool_id);
 
 
 --
@@ -3566,14 +3551,6 @@ ALTER TABLE ONLY notifications
 
 
 --
--- Name: entitlements fk_rails_b10a540212; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY entitlements
-    ADD CONSTRAINT fk_rails_b10a540212 FOREIGN KEY (inventory_pool_id) REFERENCES inventory_pools(id);
-
-
---
 -- Name: access_rights fk_rails_b36d97eb0c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3838,6 +3815,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('217'),
 ('218'),
 ('219'),
+('220'),
 ('4'),
 ('5'),
 ('6'),
