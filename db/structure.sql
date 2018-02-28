@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.2
--- Dumped by pg_dump version 10.2
+-- Dumped from database version 9.6.5
+-- Dumped by pg_dump version 9.6.1
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1703,7 +1703,7 @@ CREATE TABLE procurement_requests (
     CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
     CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY (ARRAY[('low'::character varying)::text, ('medium'::character varying)::text, ('high'::character varying)::text, ('mandatory'::character varying)::text]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
-    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[])))
+    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY (ARRAY[('aquisition'::character varying)::text, ('investment'::character varying)::text])))
 );
 
 
@@ -2926,6 +2926,13 @@ CREATE INDEX index_reservations_on_option_id ON reservations USING btree (option
 
 
 --
+-- Name: index_reservations_on_order_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_reservations_on_order_id ON reservations USING btree (order_id);
+
+
+--
 -- Name: index_reservations_on_returned_date_and_contract_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2951,6 +2958,13 @@ CREATE INDEX index_reservations_on_status ON reservations USING btree (status);
 --
 
 CREATE INDEX index_reservations_on_type_and_contract_id ON reservations USING btree (type, contract_id);
+
+
+--
+-- Name: index_reservations_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_reservations_on_user_id ON reservations USING btree (user_id);
 
 
 --
@@ -3816,6 +3830,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('218'),
 ('219'),
 ('220'),
+('221'),
+('222'),
 ('4'),
 ('5'),
 ('6'),
