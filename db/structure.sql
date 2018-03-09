@@ -2,14 +2,15 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.2
--- Dumped by pg_dump version 10.2
+-- Dumped from database version 10.3
+-- Dumped by pg_dump version 10.3
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET row_security = off;
@@ -70,13 +71,11 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
 
 
-SET search_path = public, pg_catalog;
-
 --
 -- Name: reservation_status; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE reservation_status AS ENUM (
+CREATE TYPE public.reservation_status AS ENUM (
     'unsubmitted',
     'submitted',
     'rejected',
@@ -90,7 +89,7 @@ CREATE TYPE reservation_status AS ENUM (
 -- Name: check_closed_reservations_contract_state(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION check_closed_reservations_contract_state() RETURNS trigger
+CREATE FUNCTION public.check_closed_reservations_contract_state() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       BEGIN
@@ -115,7 +114,7 @@ CREATE FUNCTION check_closed_reservations_contract_state() RETURNS trigger
 -- Name: check_contract_has_at_least_one_reservation(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION check_contract_has_at_least_one_reservation() RETURNS trigger
+CREATE FUNCTION public.check_contract_has_at_least_one_reservation() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       BEGIN
@@ -136,7 +135,7 @@ CREATE FUNCTION check_contract_has_at_least_one_reservation() RETURNS trigger
 -- Name: check_general_building_id_for_general_room(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION check_general_building_id_for_general_room() RETURNS trigger
+CREATE FUNCTION public.check_general_building_id_for_general_room() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       BEGIN
@@ -156,7 +155,7 @@ CREATE FUNCTION check_general_building_id_for_general_room() RETURNS trigger
 -- Name: check_item_line_state_consistency(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION check_item_line_state_consistency() RETURNS trigger
+CREATE FUNCTION public.check_item_line_state_consistency() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       BEGIN
@@ -187,7 +186,7 @@ CREATE FUNCTION check_item_line_state_consistency() RETURNS trigger
 -- Name: check_option_line_state_consistency(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION check_option_line_state_consistency() RETURNS trigger
+CREATE FUNCTION public.check_option_line_state_consistency() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       BEGIN
@@ -210,7 +209,7 @@ CREATE FUNCTION check_option_line_state_consistency() RETURNS trigger
 -- Name: check_reservation_contract_inventory_pool_id_consistency(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION check_reservation_contract_inventory_pool_id_consistency() RETURNS trigger
+CREATE FUNCTION public.check_reservation_contract_inventory_pool_id_consistency() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       BEGIN
@@ -233,7 +232,7 @@ CREATE FUNCTION check_reservation_contract_inventory_pool_id_consistency() RETUR
 -- Name: check_reservation_contract_user_id_consistency(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION check_reservation_contract_user_id_consistency() RETURNS trigger
+CREATE FUNCTION public.check_reservation_contract_user_id_consistency() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       BEGIN
@@ -256,7 +255,7 @@ CREATE FUNCTION check_reservation_contract_user_id_consistency() RETURNS trigger
 -- Name: check_reservation_order_inventory_pool_id_consistency(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION check_reservation_order_inventory_pool_id_consistency() RETURNS trigger
+CREATE FUNCTION public.check_reservation_order_inventory_pool_id_consistency() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       BEGIN
@@ -279,7 +278,7 @@ CREATE FUNCTION check_reservation_order_inventory_pool_id_consistency() RETURNS 
 -- Name: check_reservation_order_user_id_consistency(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION check_reservation_order_user_id_consistency() RETURNS trigger
+CREATE FUNCTION public.check_reservation_order_user_id_consistency() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       BEGIN
@@ -302,7 +301,7 @@ CREATE FUNCTION check_reservation_order_user_id_consistency() RETURNS trigger
 -- Name: check_reservations_contracts_state_consistency(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION check_reservations_contracts_state_consistency() RETURNS trigger
+CREATE FUNCTION public.check_reservations_contracts_state_consistency() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       BEGIN
@@ -325,7 +324,7 @@ CREATE FUNCTION check_reservations_contracts_state_consistency() RETURNS trigger
 -- Name: delete_empty_order(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION delete_empty_order() RETURNS trigger
+CREATE FUNCTION public.delete_empty_order() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       DECLARE
@@ -350,7 +349,7 @@ CREATE FUNCTION delete_empty_order() RETURNS trigger
 -- Name: delete_procurement_users_filters_after_procurement_accesses(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION delete_procurement_users_filters_after_procurement_accesses() RETURNS trigger
+CREATE FUNCTION public.delete_procurement_users_filters_after_procurement_accesses() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -376,7 +375,7 @@ $$;
 -- Name: delete_procurement_users_filters_after_users(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION delete_procurement_users_filters_after_users() RETURNS trigger
+CREATE FUNCTION public.delete_procurement_users_filters_after_users() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -398,7 +397,7 @@ $$;
 -- Name: ensure_general_building_cannot_be_deleted(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION ensure_general_building_cannot_be_deleted() RETURNS trigger
+CREATE FUNCTION public.ensure_general_building_cannot_be_deleted() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       BEGIN
@@ -415,7 +414,7 @@ CREATE FUNCTION ensure_general_building_cannot_be_deleted() RETURNS trigger
 -- Name: ensure_general_room_cannot_be_deleted(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION ensure_general_room_cannot_be_deleted() RETURNS trigger
+CREATE FUNCTION public.ensure_general_room_cannot_be_deleted() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       BEGIN
@@ -435,7 +434,7 @@ CREATE FUNCTION ensure_general_room_cannot_be_deleted() RETURNS trigger
 -- Name: fields_delete_check_function(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION fields_delete_check_function() RETURNS trigger
+CREATE FUNCTION public.fields_delete_check_function() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -471,7 +470,7 @@ $$;
 -- Name: fields_insert_check_function(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION fields_insert_check_function() RETURNS trigger
+CREATE FUNCTION public.fields_insert_check_function() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       BEGIN
@@ -716,7 +715,7 @@ CREATE FUNCTION fields_insert_check_function() RETURNS trigger
 -- Name: fields_update_check_function(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION fields_update_check_function() RETURNS trigger
+CREATE FUNCTION public.fields_update_check_function() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       BEGIN
@@ -1027,7 +1026,7 @@ CREATE FUNCTION fields_update_check_function() RETURNS trigger
 -- Name: hex_to_int(character varying); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION hex_to_int(hexval character varying) RETURNS bigint
+CREATE FUNCTION public.hex_to_int(hexval character varying) RETURNS bigint
     LANGUAGE plpgsql IMMUTABLE STRICT
     AS $$
       DECLARE
@@ -1047,8 +1046,8 @@ SET default_with_oids = false;
 -- Name: access_rights; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE access_rights (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.access_rights (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     user_id uuid NOT NULL,
     inventory_pool_id uuid,
     suspended_until date,
@@ -1065,8 +1064,8 @@ CREATE TABLE access_rights (
 -- Name: accessories; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE accessories (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.accessories (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     model_id uuid,
     name character varying NOT NULL,
     quantity integer
@@ -1077,7 +1076,7 @@ CREATE TABLE accessories (
 -- Name: accessories_inventory_pools; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE accessories_inventory_pools (
+CREATE TABLE public.accessories_inventory_pools (
     accessory_id uuid,
     inventory_pool_id uuid
 );
@@ -1087,8 +1086,8 @@ CREATE TABLE accessories_inventory_pools (
 -- Name: addresses; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE addresses (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.addresses (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     street character varying,
     zip_code character varying,
     city character varying,
@@ -1102,7 +1101,7 @@ CREATE TABLE addresses (
 -- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE ar_internal_metadata (
+CREATE TABLE public.ar_internal_metadata (
     key character varying NOT NULL,
     value character varying,
     created_at timestamp without time zone NOT NULL,
@@ -1114,8 +1113,8 @@ CREATE TABLE ar_internal_metadata (
 -- Name: attachments; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE attachments (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.attachments (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     model_id uuid,
     content_type character varying,
     filename character varying,
@@ -1130,8 +1129,8 @@ CREATE TABLE attachments (
 -- Name: audits; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE audits (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.audits (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     auditable_id uuid,
     auditable_type character varying,
     associated_id uuid,
@@ -1153,8 +1152,8 @@ CREATE TABLE audits (
 -- Name: authentication_systems; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE authentication_systems (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.authentication_systems (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     name character varying,
     class_name character varying,
     is_default boolean DEFAULT false,
@@ -1166,8 +1165,8 @@ CREATE TABLE authentication_systems (
 -- Name: buildings; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE buildings (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.buildings (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     name character varying NOT NULL,
     code character varying
 );
@@ -1177,8 +1176,8 @@ CREATE TABLE buildings (
 -- Name: contracts; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE contracts (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.contracts (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     compact_id text NOT NULL,
     note text,
     created_at timestamp without time zone NOT NULL,
@@ -1195,8 +1194,8 @@ CREATE TABLE contracts (
 -- Name: database_authentications; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE database_authentications (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.database_authentications (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     login character varying NOT NULL,
     crypted_password character varying(40),
     salt character varying(40),
@@ -1210,7 +1209,7 @@ CREATE TABLE database_authentications (
 -- Name: delegations_users; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE delegations_users (
+CREATE TABLE public.delegations_users (
     delegation_id uuid,
     user_id uuid
 );
@@ -1220,8 +1219,8 @@ CREATE TABLE delegations_users (
 -- Name: entitlement_groups; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE entitlement_groups (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.entitlement_groups (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     name character varying NOT NULL,
     inventory_pool_id uuid NOT NULL,
     is_verification_required boolean DEFAULT false,
@@ -1234,7 +1233,7 @@ CREATE TABLE entitlement_groups (
 -- Name: entitlement_groups_users; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE entitlement_groups_users (
+CREATE TABLE public.entitlement_groups_users (
     user_id uuid,
     entitlement_group_id uuid
 );
@@ -1244,8 +1243,8 @@ CREATE TABLE entitlement_groups_users (
 -- Name: entitlements; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE entitlements (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.entitlements (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     model_id uuid NOT NULL,
     entitlement_group_id uuid NOT NULL,
     quantity integer NOT NULL,
@@ -1257,7 +1256,7 @@ CREATE TABLE entitlements (
 -- Name: fields; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE fields (
+CREATE TABLE public.fields (
     id character varying(50) NOT NULL,
     active boolean DEFAULT true NOT NULL,
     "position" integer NOT NULL,
@@ -1270,8 +1269,8 @@ CREATE TABLE fields (
 -- Name: hidden_fields; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE hidden_fields (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.hidden_fields (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     field_id character varying,
     user_id uuid
 );
@@ -1281,8 +1280,8 @@ CREATE TABLE hidden_fields (
 -- Name: holidays; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE holidays (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.holidays (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     inventory_pool_id uuid,
     start_date date,
     end_date date,
@@ -1294,8 +1293,8 @@ CREATE TABLE holidays (
 -- Name: images; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE images (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.images (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     target_id uuid,
     target_type character varying,
     content_type character varying,
@@ -1312,8 +1311,8 @@ CREATE TABLE images (
 -- Name: inventory_pools; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE inventory_pools (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.inventory_pools (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     name character varying NOT NULL,
     description text,
     contact_details character varying,
@@ -1339,7 +1338,7 @@ CREATE TABLE inventory_pools (
 -- Name: inventory_pools_model_groups; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE inventory_pools_model_groups (
+CREATE TABLE public.inventory_pools_model_groups (
     inventory_pool_id uuid,
     model_group_id uuid
 );
@@ -1349,8 +1348,8 @@ CREATE TABLE inventory_pools_model_groups (
 -- Name: items; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE items (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.items (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     inventory_code character varying NOT NULL,
     serial_number character varying,
     model_id uuid NOT NULL,
@@ -1388,8 +1387,8 @@ CREATE TABLE items (
 -- Name: languages; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE languages (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.languages (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     name character varying,
     locale_name character varying,
     "default" boolean,
@@ -1401,15 +1400,13 @@ CREATE TABLE languages (
 -- Name: mail_templates; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE mail_templates (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
-    inventory_pool_id uuid NOT NULL,
-    language_id uuid NOT NULL,
-    name character varying NOT NULL,
-    format character varying NOT NULL,
-    body text NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+CREATE TABLE public.mail_templates (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    inventory_pool_id uuid,
+    language_id uuid,
+    name character varying,
+    format character varying,
+    body text
 );
 
 
@@ -1417,8 +1414,8 @@ CREATE TABLE mail_templates (
 -- Name: model_group_links; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE model_group_links (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.model_group_links (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     parent_id uuid,
     child_id uuid,
     label character varying
@@ -1429,8 +1426,8 @@ CREATE TABLE model_group_links (
 -- Name: model_groups; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE model_groups (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.model_groups (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     type character varying,
     name character varying NOT NULL,
     created_at timestamp without time zone NOT NULL,
@@ -1442,8 +1439,8 @@ CREATE TABLE model_groups (
 -- Name: model_links; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE model_links (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.model_links (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     model_group_id uuid NOT NULL,
     model_id uuid NOT NULL,
     quantity integer DEFAULT 1 NOT NULL
@@ -1454,8 +1451,8 @@ CREATE TABLE model_links (
 -- Name: models; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE models (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.models (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     type character varying DEFAULT 'Model'::character varying NOT NULL,
     manufacturer character varying,
     product character varying NOT NULL,
@@ -1477,7 +1474,7 @@ CREATE TABLE models (
 -- Name: models_compatibles; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE models_compatibles (
+CREATE TABLE public.models_compatibles (
     model_id uuid,
     compatible_id uuid
 );
@@ -1487,8 +1484,8 @@ CREATE TABLE models_compatibles (
 -- Name: notifications; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE notifications (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.notifications (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     user_id uuid,
     title character varying DEFAULT ''::character varying,
     created_at timestamp without time zone NOT NULL
@@ -1499,8 +1496,8 @@ CREATE TABLE notifications (
 -- Name: numerators; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE numerators (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.numerators (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     item integer
 );
 
@@ -1509,8 +1506,8 @@ CREATE TABLE numerators (
 -- Name: old_empty_contracts; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE old_empty_contracts (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.old_empty_contracts (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     compact_id text NOT NULL,
     note text,
     created_at timestamp without time zone NOT NULL,
@@ -1522,10 +1519,10 @@ CREATE TABLE old_empty_contracts (
 -- Name: options; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE options (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.options (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     inventory_pool_id uuid NOT NULL,
-    inventory_code character varying DEFAULT (uuid_generate_v4())::text NOT NULL,
+    inventory_code character varying DEFAULT (public.uuid_generate_v4())::text NOT NULL,
     manufacturer character varying,
     product character varying NOT NULL,
     version character varying,
@@ -1537,8 +1534,8 @@ CREATE TABLE options (
 -- Name: orders; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE orders (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.orders (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     user_id uuid NOT NULL,
     inventory_pool_id uuid NOT NULL,
     purpose text,
@@ -1555,8 +1552,8 @@ CREATE TABLE orders (
 -- Name: procurement_accesses; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE procurement_accesses (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.procurement_accesses (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     user_id uuid,
     organization_id uuid,
     is_admin boolean
@@ -1567,8 +1564,8 @@ CREATE TABLE procurement_accesses (
 -- Name: procurement_attachments; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE procurement_attachments (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.procurement_attachments (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     request_id uuid,
     filename character varying,
     content_type character varying,
@@ -1582,8 +1579,8 @@ CREATE TABLE procurement_attachments (
 -- Name: procurement_budget_limits; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE procurement_budget_limits (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.procurement_budget_limits (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     budget_period_id uuid NOT NULL,
     main_category_id uuid NOT NULL,
     amount_cents integer DEFAULT 0 NOT NULL,
@@ -1595,8 +1592,8 @@ CREATE TABLE procurement_budget_limits (
 -- Name: procurement_budget_periods; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE procurement_budget_periods (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.procurement_budget_periods (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     name character varying NOT NULL,
     inspection_start_date date NOT NULL,
     end_date date NOT NULL,
@@ -1609,8 +1606,8 @@ CREATE TABLE procurement_budget_periods (
 -- Name: procurement_categories; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE procurement_categories (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.procurement_categories (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     name character varying,
     main_category_id uuid,
     general_ledger_account character varying,
@@ -1622,8 +1619,8 @@ CREATE TABLE procurement_categories (
 -- Name: procurement_category_inspectors; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE procurement_category_inspectors (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.procurement_category_inspectors (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     user_id uuid NOT NULL,
     category_id uuid NOT NULL
 );
@@ -1633,8 +1630,8 @@ CREATE TABLE procurement_category_inspectors (
 -- Name: procurement_images; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE procurement_images (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.procurement_images (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     main_category_id uuid NOT NULL,
     content_type character varying NOT NULL,
     content character varying NOT NULL,
@@ -1649,8 +1646,8 @@ CREATE TABLE procurement_images (
 -- Name: procurement_main_categories; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE procurement_main_categories (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.procurement_main_categories (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     name character varying
 );
 
@@ -1659,8 +1656,8 @@ CREATE TABLE procurement_main_categories (
 -- Name: procurement_organizations; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE procurement_organizations (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.procurement_organizations (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     name character varying,
     shortname character varying,
     parent_id uuid
@@ -1671,8 +1668,8 @@ CREATE TABLE procurement_organizations (
 -- Name: procurement_requests; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE procurement_requests (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.procurement_requests (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     budget_period_id uuid,
     category_id uuid NOT NULL,
     user_id uuid,
@@ -1711,7 +1708,7 @@ CREATE TABLE procurement_requests (
 -- Name: procurement_settings; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE procurement_settings (
+CREATE TABLE public.procurement_settings (
     id integer DEFAULT 0 NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
@@ -1725,8 +1722,8 @@ CREATE TABLE procurement_settings (
 -- Name: procurement_templates; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE procurement_templates (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.procurement_templates (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     model_id uuid,
     supplier_id uuid,
     article_name character varying NOT NULL,
@@ -1742,8 +1739,8 @@ CREATE TABLE procurement_templates (
 -- Name: procurement_users_filters; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE procurement_users_filters (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.procurement_users_filters (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     user_id uuid,
     filter json
 );
@@ -1753,8 +1750,8 @@ CREATE TABLE procurement_users_filters (
 -- Name: properties; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE properties (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.properties (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     model_id uuid,
     key character varying NOT NULL,
     value character varying NOT NULL
@@ -1765,15 +1762,15 @@ CREATE TABLE properties (
 -- Name: reservations; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE reservations (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.reservations (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     contract_id uuid,
     inventory_pool_id uuid NOT NULL,
     user_id uuid NOT NULL,
     delegated_user_id uuid,
     handed_over_by_user_id uuid,
     type character varying DEFAULT 'ItemLine'::character varying NOT NULL,
-    status reservation_status NOT NULL,
+    status public.reservation_status NOT NULL,
     item_id uuid,
     model_id uuid,
     quantity integer DEFAULT 1,
@@ -1785,8 +1782,8 @@ CREATE TABLE reservations (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     order_id uuid,
-    CONSTRAINT check_order_id_for_different_statuses_of_item_line CHECK (((((type)::text = 'ItemLine'::text) AND (((status = 'unsubmitted'::reservation_status) AND (order_id IS NULL)) OR ((status = ANY (ARRAY['submitted'::reservation_status, 'rejected'::reservation_status])) AND (order_id IS NOT NULL)) OR (status = ANY (ARRAY['approved'::reservation_status, 'signed'::reservation_status, 'closed'::reservation_status])))) OR (((type)::text = 'OptionLine'::text) AND (status = ANY (ARRAY['approved'::reservation_status, 'signed'::reservation_status, 'closed'::reservation_status]))))),
-    CONSTRAINT check_valid_status_and_contract_id CHECK ((((status = ANY (ARRAY['unsubmitted'::reservation_status, 'submitted'::reservation_status, 'approved'::reservation_status, 'rejected'::reservation_status])) AND (contract_id IS NULL)) OR ((status = ANY (ARRAY['signed'::reservation_status, 'closed'::reservation_status])) AND (contract_id IS NOT NULL))))
+    CONSTRAINT check_order_id_for_different_statuses_of_item_line CHECK (((((type)::text = 'ItemLine'::text) AND (((status = 'unsubmitted'::public.reservation_status) AND (order_id IS NULL)) OR ((status = ANY (ARRAY['submitted'::public.reservation_status, 'rejected'::public.reservation_status])) AND (order_id IS NOT NULL)) OR (status = ANY (ARRAY['approved'::public.reservation_status, 'signed'::public.reservation_status, 'closed'::public.reservation_status])))) OR (((type)::text = 'OptionLine'::text) AND (status = ANY (ARRAY['approved'::public.reservation_status, 'signed'::public.reservation_status, 'closed'::public.reservation_status]))))),
+    CONSTRAINT check_valid_status_and_contract_id CHECK ((((status = ANY (ARRAY['unsubmitted'::public.reservation_status, 'submitted'::public.reservation_status, 'approved'::public.reservation_status, 'rejected'::public.reservation_status])) AND (contract_id IS NULL)) OR ((status = ANY (ARRAY['signed'::public.reservation_status, 'closed'::public.reservation_status])) AND (contract_id IS NOT NULL))))
 );
 
 
@@ -1794,8 +1791,8 @@ CREATE TABLE reservations (
 -- Name: rooms; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE rooms (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.rooms (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     name character varying NOT NULL,
     description text,
     building_id uuid NOT NULL,
@@ -1808,7 +1805,7 @@ CREATE TABLE rooms (
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE schema_migrations (
+CREATE TABLE public.schema_migrations (
     version character varying NOT NULL
 );
 
@@ -1817,8 +1814,8 @@ CREATE TABLE schema_migrations (
 -- Name: settings; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE settings (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.settings (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     smtp_address character varying,
     smtp_port integer,
     smtp_domain character varying,
@@ -1856,8 +1853,8 @@ CREATE TABLE settings (
 -- Name: suppliers; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE suppliers (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.suppliers (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     name character varying NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
@@ -1869,8 +1866,8 @@ CREATE TABLE suppliers (
 -- Name: user_sessions; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE user_sessions (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.user_sessions (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     token_hash text NOT NULL,
     user_id uuid,
     delegation_id uuid,
@@ -1882,8 +1879,8 @@ CREATE TABLE user_sessions (
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE users (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.users (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     login character varying,
     firstname character varying NOT NULL,
     lastname character varying,
@@ -1909,15 +1906,15 @@ CREATE TABLE users (
 -- Name: visits; Type: VIEW; Schema: public; Owner: -
 --
 
-CREATE VIEW visits AS
- SELECT uuid_generate_v5(uuid_ns_dns(), concat_ws('_'::text, visit_reservations.user_id, visit_reservations.inventory_pool_id, visit_reservations.status, visit_reservations.date)) AS id,
+CREATE VIEW public.visits AS
+ SELECT public.uuid_generate_v5(public.uuid_ns_dns(), concat_ws('_'::text, visit_reservations.user_id, visit_reservations.inventory_pool_id, visit_reservations.status, visit_reservations.date)) AS id,
     visit_reservations.user_id,
     visit_reservations.inventory_pool_id,
     visit_reservations.date,
     visit_reservations.visit_type AS type,
         CASE
-            WHEN (visit_reservations.status = 'submitted'::reservation_status) THEN false
-            WHEN (visit_reservations.status = ANY (ARRAY['approved'::reservation_status, 'signed'::reservation_status])) THEN true
+            WHEN (visit_reservations.status = 'submitted'::public.reservation_status) THEN false
+            WHEN (visit_reservations.status = ANY (ARRAY['approved'::public.reservation_status, 'signed'::public.reservation_status])) THEN true
             ELSE NULL::boolean
         END AS is_approved,
     sum(visit_reservations.quantity) AS quantity,
@@ -1928,28 +1925,28 @@ CREATE VIEW visits AS
             reservations.user_id,
             reservations.inventory_pool_id,
                 CASE
-                    WHEN (reservations.status = ANY (ARRAY['submitted'::reservation_status, 'approved'::reservation_status])) THEN reservations.start_date
-                    WHEN (reservations.status = 'signed'::reservation_status) THEN reservations.end_date
+                    WHEN (reservations.status = ANY (ARRAY['submitted'::public.reservation_status, 'approved'::public.reservation_status])) THEN reservations.start_date
+                    WHEN (reservations.status = 'signed'::public.reservation_status) THEN reservations.end_date
                     ELSE NULL::date
                 END AS date,
                 CASE
-                    WHEN (reservations.status = ANY (ARRAY['submitted'::reservation_status, 'approved'::reservation_status])) THEN 'hand_over'::text
-                    WHEN (reservations.status = 'signed'::reservation_status) THEN 'take_back'::text
+                    WHEN (reservations.status = ANY (ARRAY['submitted'::public.reservation_status, 'approved'::public.reservation_status])) THEN 'hand_over'::text
+                    WHEN (reservations.status = 'signed'::public.reservation_status) THEN 'take_back'::text
                     ELSE NULL::text
                 END AS visit_type,
             reservations.status,
             reservations.quantity,
             (EXISTS ( SELECT 1
-                   FROM (entitlement_groups_users
-                     JOIN entitlement_groups ON ((entitlement_groups.id = entitlement_groups_users.entitlement_group_id)))
+                   FROM (public.entitlement_groups_users
+                     JOIN public.entitlement_groups ON ((entitlement_groups.id = entitlement_groups_users.entitlement_group_id)))
                   WHERE ((entitlement_groups_users.user_id = reservations.user_id) AND (entitlement_groups.is_verification_required IS TRUE)))) AS with_user_to_verify,
             (EXISTS ( SELECT 1
-                   FROM ((entitlements
-                     JOIN entitlement_groups ON ((entitlement_groups.id = entitlements.entitlement_group_id)))
-                     JOIN entitlement_groups_users ON ((entitlement_groups_users.entitlement_group_id = entitlement_groups.id)))
+                   FROM ((public.entitlements
+                     JOIN public.entitlement_groups ON ((entitlement_groups.id = entitlements.entitlement_group_id)))
+                     JOIN public.entitlement_groups_users ON ((entitlement_groups_users.entitlement_group_id = entitlement_groups.id)))
                   WHERE ((entitlements.model_id = reservations.model_id) AND (entitlement_groups_users.user_id = reservations.user_id) AND (entitlement_groups.is_verification_required IS TRUE)))) AS with_user_and_model_to_verify
-           FROM reservations
-          WHERE (reservations.status = ANY (ARRAY['submitted'::reservation_status, 'approved'::reservation_status, 'signed'::reservation_status]))) visit_reservations
+           FROM public.reservations
+          WHERE (reservations.status = ANY (ARRAY['submitted'::public.reservation_status, 'approved'::public.reservation_status, 'signed'::public.reservation_status]))) visit_reservations
   GROUP BY visit_reservations.user_id, visit_reservations.inventory_pool_id, visit_reservations.date, visit_reservations.visit_type, visit_reservations.status;
 
 
@@ -1957,8 +1954,8 @@ CREATE VIEW visits AS
 -- Name: workdays; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE workdays (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
+CREATE TABLE public.workdays (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     inventory_pool_id uuid,
     monday boolean DEFAULT true,
     tuesday boolean DEFAULT true,
@@ -1976,7 +1973,7 @@ CREATE TABLE workdays (
 -- Name: access_rights access_rights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY access_rights
+ALTER TABLE ONLY public.access_rights
     ADD CONSTRAINT access_rights_pkey PRIMARY KEY (id);
 
 
@@ -1984,7 +1981,7 @@ ALTER TABLE ONLY access_rights
 -- Name: accessories accessories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY accessories
+ALTER TABLE ONLY public.accessories
     ADD CONSTRAINT accessories_pkey PRIMARY KEY (id);
 
 
@@ -1992,7 +1989,7 @@ ALTER TABLE ONLY accessories
 -- Name: addresses addresses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY addresses
+ALTER TABLE ONLY public.addresses
     ADD CONSTRAINT addresses_pkey PRIMARY KEY (id);
 
 
@@ -2000,7 +1997,7 @@ ALTER TABLE ONLY addresses
 -- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY ar_internal_metadata
+ALTER TABLE ONLY public.ar_internal_metadata
     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
 
 
@@ -2008,7 +2005,7 @@ ALTER TABLE ONLY ar_internal_metadata
 -- Name: attachments attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY attachments
+ALTER TABLE ONLY public.attachments
     ADD CONSTRAINT attachments_pkey PRIMARY KEY (id);
 
 
@@ -2016,7 +2013,7 @@ ALTER TABLE ONLY attachments
 -- Name: audits audits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY audits
+ALTER TABLE ONLY public.audits
     ADD CONSTRAINT audits_pkey PRIMARY KEY (id);
 
 
@@ -2024,7 +2021,7 @@ ALTER TABLE ONLY audits
 -- Name: authentication_systems authentication_systems_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY authentication_systems
+ALTER TABLE ONLY public.authentication_systems
     ADD CONSTRAINT authentication_systems_pkey PRIMARY KEY (id);
 
 
@@ -2032,7 +2029,7 @@ ALTER TABLE ONLY authentication_systems
 -- Name: buildings buildings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY buildings
+ALTER TABLE ONLY public.buildings
     ADD CONSTRAINT buildings_pkey PRIMARY KEY (id);
 
 
@@ -2040,7 +2037,7 @@ ALTER TABLE ONLY buildings
 -- Name: contracts contracts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY contracts
+ALTER TABLE ONLY public.contracts
     ADD CONSTRAINT contracts_pkey PRIMARY KEY (id);
 
 
@@ -2048,7 +2045,7 @@ ALTER TABLE ONLY contracts
 -- Name: database_authentications database_authentications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY database_authentications
+ALTER TABLE ONLY public.database_authentications
     ADD CONSTRAINT database_authentications_pkey PRIMARY KEY (id);
 
 
@@ -2056,7 +2053,7 @@ ALTER TABLE ONLY database_authentications
 -- Name: fields fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY fields
+ALTER TABLE ONLY public.fields
     ADD CONSTRAINT fields_pkey PRIMARY KEY (id);
 
 
@@ -2064,7 +2061,7 @@ ALTER TABLE ONLY fields
 -- Name: entitlement_groups groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY entitlement_groups
+ALTER TABLE ONLY public.entitlement_groups
     ADD CONSTRAINT groups_pkey PRIMARY KEY (id);
 
 
@@ -2072,7 +2069,7 @@ ALTER TABLE ONLY entitlement_groups
 -- Name: hidden_fields hidden_fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY hidden_fields
+ALTER TABLE ONLY public.hidden_fields
     ADD CONSTRAINT hidden_fields_pkey PRIMARY KEY (id);
 
 
@@ -2080,7 +2077,7 @@ ALTER TABLE ONLY hidden_fields
 -- Name: holidays holidays_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY holidays
+ALTER TABLE ONLY public.holidays
     ADD CONSTRAINT holidays_pkey PRIMARY KEY (id);
 
 
@@ -2088,7 +2085,7 @@ ALTER TABLE ONLY holidays
 -- Name: images images_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY images
+ALTER TABLE ONLY public.images
     ADD CONSTRAINT images_pkey PRIMARY KEY (id);
 
 
@@ -2096,7 +2093,7 @@ ALTER TABLE ONLY images
 -- Name: inventory_pools inventory_pools_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY inventory_pools
+ALTER TABLE ONLY public.inventory_pools
     ADD CONSTRAINT inventory_pools_pkey PRIMARY KEY (id);
 
 
@@ -2104,7 +2101,7 @@ ALTER TABLE ONLY inventory_pools
 -- Name: items items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY items
+ALTER TABLE ONLY public.items
     ADD CONSTRAINT items_pkey PRIMARY KEY (id);
 
 
@@ -2112,7 +2109,7 @@ ALTER TABLE ONLY items
 -- Name: languages languages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY languages
+ALTER TABLE ONLY public.languages
     ADD CONSTRAINT languages_pkey PRIMARY KEY (id);
 
 
@@ -2120,7 +2117,7 @@ ALTER TABLE ONLY languages
 -- Name: mail_templates mail_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY mail_templates
+ALTER TABLE ONLY public.mail_templates
     ADD CONSTRAINT mail_templates_pkey PRIMARY KEY (id);
 
 
@@ -2128,7 +2125,7 @@ ALTER TABLE ONLY mail_templates
 -- Name: model_group_links model_group_links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY model_group_links
+ALTER TABLE ONLY public.model_group_links
     ADD CONSTRAINT model_group_links_pkey PRIMARY KEY (id);
 
 
@@ -2136,7 +2133,7 @@ ALTER TABLE ONLY model_group_links
 -- Name: model_groups model_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY model_groups
+ALTER TABLE ONLY public.model_groups
     ADD CONSTRAINT model_groups_pkey PRIMARY KEY (id);
 
 
@@ -2144,7 +2141,7 @@ ALTER TABLE ONLY model_groups
 -- Name: model_links model_links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY model_links
+ALTER TABLE ONLY public.model_links
     ADD CONSTRAINT model_links_pkey PRIMARY KEY (id);
 
 
@@ -2152,7 +2149,7 @@ ALTER TABLE ONLY model_links
 -- Name: models models_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY models
+ALTER TABLE ONLY public.models
     ADD CONSTRAINT models_pkey PRIMARY KEY (id);
 
 
@@ -2160,7 +2157,7 @@ ALTER TABLE ONLY models
 -- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY notifications
+ALTER TABLE ONLY public.notifications
     ADD CONSTRAINT notifications_pkey PRIMARY KEY (id);
 
 
@@ -2168,7 +2165,7 @@ ALTER TABLE ONLY notifications
 -- Name: numerators numerators_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY numerators
+ALTER TABLE ONLY public.numerators
     ADD CONSTRAINT numerators_pkey PRIMARY KEY (id);
 
 
@@ -2176,7 +2173,7 @@ ALTER TABLE ONLY numerators
 -- Name: old_empty_contracts old_empty_contracts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY old_empty_contracts
+ALTER TABLE ONLY public.old_empty_contracts
     ADD CONSTRAINT old_empty_contracts_pkey PRIMARY KEY (id);
 
 
@@ -2184,7 +2181,7 @@ ALTER TABLE ONLY old_empty_contracts
 -- Name: options options_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY options
+ALTER TABLE ONLY public.options
     ADD CONSTRAINT options_pkey PRIMARY KEY (id);
 
 
@@ -2192,7 +2189,7 @@ ALTER TABLE ONLY options
 -- Name: orders orders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY orders
+ALTER TABLE ONLY public.orders
     ADD CONSTRAINT orders_pkey PRIMARY KEY (id);
 
 
@@ -2200,7 +2197,7 @@ ALTER TABLE ONLY orders
 -- Name: entitlements partitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY entitlements
+ALTER TABLE ONLY public.entitlements
     ADD CONSTRAINT partitions_pkey PRIMARY KEY (id);
 
 
@@ -2208,7 +2205,7 @@ ALTER TABLE ONLY entitlements
 -- Name: procurement_accesses procurement_accesses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_accesses
+ALTER TABLE ONLY public.procurement_accesses
     ADD CONSTRAINT procurement_accesses_pkey PRIMARY KEY (id);
 
 
@@ -2216,7 +2213,7 @@ ALTER TABLE ONLY procurement_accesses
 -- Name: procurement_attachments procurement_attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_attachments
+ALTER TABLE ONLY public.procurement_attachments
     ADD CONSTRAINT procurement_attachments_pkey PRIMARY KEY (id);
 
 
@@ -2224,7 +2221,7 @@ ALTER TABLE ONLY procurement_attachments
 -- Name: procurement_budget_limits procurement_budget_limits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_budget_limits
+ALTER TABLE ONLY public.procurement_budget_limits
     ADD CONSTRAINT procurement_budget_limits_pkey PRIMARY KEY (id);
 
 
@@ -2232,7 +2229,7 @@ ALTER TABLE ONLY procurement_budget_limits
 -- Name: procurement_budget_periods procurement_budget_periods_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_budget_periods
+ALTER TABLE ONLY public.procurement_budget_periods
     ADD CONSTRAINT procurement_budget_periods_pkey PRIMARY KEY (id);
 
 
@@ -2240,7 +2237,7 @@ ALTER TABLE ONLY procurement_budget_periods
 -- Name: procurement_categories procurement_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_categories
+ALTER TABLE ONLY public.procurement_categories
     ADD CONSTRAINT procurement_categories_pkey PRIMARY KEY (id);
 
 
@@ -2248,7 +2245,7 @@ ALTER TABLE ONLY procurement_categories
 -- Name: procurement_category_inspectors procurement_category_inspectors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_category_inspectors
+ALTER TABLE ONLY public.procurement_category_inspectors
     ADD CONSTRAINT procurement_category_inspectors_pkey PRIMARY KEY (id);
 
 
@@ -2256,7 +2253,7 @@ ALTER TABLE ONLY procurement_category_inspectors
 -- Name: procurement_images procurement_images_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_images
+ALTER TABLE ONLY public.procurement_images
     ADD CONSTRAINT procurement_images_pkey PRIMARY KEY (id);
 
 
@@ -2264,7 +2261,7 @@ ALTER TABLE ONLY procurement_images
 -- Name: procurement_main_categories procurement_main_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_main_categories
+ALTER TABLE ONLY public.procurement_main_categories
     ADD CONSTRAINT procurement_main_categories_pkey PRIMARY KEY (id);
 
 
@@ -2272,7 +2269,7 @@ ALTER TABLE ONLY procurement_main_categories
 -- Name: procurement_organizations procurement_organizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_organizations
+ALTER TABLE ONLY public.procurement_organizations
     ADD CONSTRAINT procurement_organizations_pkey PRIMARY KEY (id);
 
 
@@ -2280,7 +2277,7 @@ ALTER TABLE ONLY procurement_organizations
 -- Name: procurement_requests procurement_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_requests
+ALTER TABLE ONLY public.procurement_requests
     ADD CONSTRAINT procurement_requests_pkey PRIMARY KEY (id);
 
 
@@ -2288,7 +2285,7 @@ ALTER TABLE ONLY procurement_requests
 -- Name: procurement_settings procurement_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_settings
+ALTER TABLE ONLY public.procurement_settings
     ADD CONSTRAINT procurement_settings_pkey PRIMARY KEY (id);
 
 
@@ -2296,7 +2293,7 @@ ALTER TABLE ONLY procurement_settings
 -- Name: procurement_templates procurement_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_templates
+ALTER TABLE ONLY public.procurement_templates
     ADD CONSTRAINT procurement_templates_pkey PRIMARY KEY (id);
 
 
@@ -2304,7 +2301,7 @@ ALTER TABLE ONLY procurement_templates
 -- Name: procurement_users_filters procurement_users_filters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_users_filters
+ALTER TABLE ONLY public.procurement_users_filters
     ADD CONSTRAINT procurement_users_filters_pkey PRIMARY KEY (id);
 
 
@@ -2312,7 +2309,7 @@ ALTER TABLE ONLY procurement_users_filters
 -- Name: properties properties_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY properties
+ALTER TABLE ONLY public.properties
     ADD CONSTRAINT properties_pkey PRIMARY KEY (id);
 
 
@@ -2320,7 +2317,7 @@ ALTER TABLE ONLY properties
 -- Name: reservations reservations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY reservations
+ALTER TABLE ONLY public.reservations
     ADD CONSTRAINT reservations_pkey PRIMARY KEY (id);
 
 
@@ -2328,7 +2325,7 @@ ALTER TABLE ONLY reservations
 -- Name: rooms rooms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY rooms
+ALTER TABLE ONLY public.rooms
     ADD CONSTRAINT rooms_pkey PRIMARY KEY (id);
 
 
@@ -2336,7 +2333,7 @@ ALTER TABLE ONLY rooms
 -- Name: settings settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY settings
+ALTER TABLE ONLY public.settings
     ADD CONSTRAINT settings_pkey PRIMARY KEY (id);
 
 
@@ -2344,7 +2341,7 @@ ALTER TABLE ONLY settings
 -- Name: suppliers suppliers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY suppliers
+ALTER TABLE ONLY public.suppliers
     ADD CONSTRAINT suppliers_pkey PRIMARY KEY (id);
 
 
@@ -2352,7 +2349,7 @@ ALTER TABLE ONLY suppliers
 -- Name: user_sessions user_sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY user_sessions
+ALTER TABLE ONLY public.user_sessions
     ADD CONSTRAINT user_sessions_pkey PRIMARY KEY (id);
 
 
@@ -2360,7 +2357,7 @@ ALTER TABLE ONLY user_sessions
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY users
+ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
 
 
@@ -2368,7 +2365,7 @@ ALTER TABLE ONLY users
 -- Name: workdays workdays_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY workdays
+ALTER TABLE ONLY public.workdays
     ADD CONSTRAINT workdays_pkey PRIMARY KEY (id);
 
 
@@ -2376,1386 +2373,1386 @@ ALTER TABLE ONLY workdays
 -- Name: associated_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX associated_index ON audits USING btree (associated_id, associated_type);
+CREATE INDEX associated_index ON public.audits USING btree (associated_id, associated_type);
 
 
 --
 -- Name: auditable_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX auditable_index ON audits USING btree (auditable_id, auditable_type);
+CREATE INDEX auditable_index ON public.audits USING btree (auditable_id, auditable_type);
 
 
 --
 -- Name: case_insensitive_inventory_code_for_items; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX case_insensitive_inventory_code_for_items ON items USING btree (lower((inventory_code)::text));
+CREATE UNIQUE INDEX case_insensitive_inventory_code_for_items ON public.items USING btree (lower((inventory_code)::text));
 
 
 --
 -- Name: case_insensitive_inventory_code_for_options; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX case_insensitive_inventory_code_for_options ON options USING btree (lower((inventory_code)::text));
+CREATE UNIQUE INDEX case_insensitive_inventory_code_for_options ON public.options USING btree (lower((inventory_code)::text));
 
 
 --
 -- Name: idx_procurement_group_inspectors_uc; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_procurement_group_inspectors_uc ON procurement_category_inspectors USING btree (user_id, category_id);
+CREATE UNIQUE INDEX idx_procurement_group_inspectors_uc ON public.procurement_category_inspectors USING btree (user_id, category_id);
 
 
 --
 -- Name: idx_user_egroup; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_user_egroup ON entitlement_groups_users USING btree (user_id, entitlement_group_id);
+CREATE UNIQUE INDEX idx_user_egroup ON public.entitlement_groups_users USING btree (user_id, entitlement_group_id);
 
 
 --
 -- Name: index_access_rights_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_access_rights_on_deleted_at ON access_rights USING btree (deleted_at);
+CREATE INDEX index_access_rights_on_deleted_at ON public.access_rights USING btree (deleted_at);
 
 
 --
 -- Name: index_access_rights_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_access_rights_on_inventory_pool_id ON access_rights USING btree (inventory_pool_id);
+CREATE INDEX index_access_rights_on_inventory_pool_id ON public.access_rights USING btree (inventory_pool_id);
 
 
 --
 -- Name: index_access_rights_on_role; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_access_rights_on_role ON access_rights USING btree (role);
+CREATE INDEX index_access_rights_on_role ON public.access_rights USING btree (role);
 
 
 --
 -- Name: index_access_rights_on_suspended_until; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_access_rights_on_suspended_until ON access_rights USING btree (suspended_until);
+CREATE INDEX index_access_rights_on_suspended_until ON public.access_rights USING btree (suspended_until);
 
 
 --
 -- Name: index_accessories_inventory_pools; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_accessories_inventory_pools ON accessories_inventory_pools USING btree (accessory_id, inventory_pool_id);
+CREATE UNIQUE INDEX index_accessories_inventory_pools ON public.accessories_inventory_pools USING btree (accessory_id, inventory_pool_id);
 
 
 --
 -- Name: index_accessories_inventory_pools_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_accessories_inventory_pools_on_inventory_pool_id ON accessories_inventory_pools USING btree (inventory_pool_id);
+CREATE INDEX index_accessories_inventory_pools_on_inventory_pool_id ON public.accessories_inventory_pools USING btree (inventory_pool_id);
 
 
 --
 -- Name: index_accessories_on_model_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_accessories_on_model_id ON accessories USING btree (model_id);
+CREATE INDEX index_accessories_on_model_id ON public.accessories USING btree (model_id);
 
 
 --
 -- Name: index_addresses_szcc; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_addresses_szcc ON addresses USING btree (street, zip_code, city, country_code);
+CREATE UNIQUE INDEX index_addresses_szcc ON public.addresses USING btree (street, zip_code, city, country_code);
 
 
 --
 -- Name: index_attachments_on_model_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_attachments_on_model_id ON attachments USING btree (model_id);
+CREATE INDEX index_attachments_on_model_id ON public.attachments USING btree (model_id);
 
 
 --
 -- Name: index_audits_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_audits_on_created_at ON audits USING btree (created_at);
+CREATE INDEX index_audits_on_created_at ON public.audits USING btree (created_at);
 
 
 --
 -- Name: index_audits_on_request_uuid; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_audits_on_request_uuid ON audits USING btree (request_uuid);
+CREATE INDEX index_audits_on_request_uuid ON public.audits USING btree (request_uuid);
 
 
 --
 -- Name: index_contracts_on_compact_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_contracts_on_compact_id ON contracts USING btree (compact_id);
+CREATE UNIQUE INDEX index_contracts_on_compact_id ON public.contracts USING btree (compact_id);
 
 
 --
 -- Name: index_contracts_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_contracts_on_created_at ON contracts USING btree (created_at);
+CREATE INDEX index_contracts_on_created_at ON public.contracts USING btree (created_at);
 
 
 --
 -- Name: index_contracts_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_contracts_on_inventory_pool_id ON contracts USING btree (inventory_pool_id);
+CREATE INDEX index_contracts_on_inventory_pool_id ON public.contracts USING btree (inventory_pool_id);
 
 
 --
 -- Name: index_contracts_on_state; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_contracts_on_state ON contracts USING btree (state);
+CREATE INDEX index_contracts_on_state ON public.contracts USING btree (state);
 
 
 --
 -- Name: index_contracts_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_contracts_on_user_id ON contracts USING btree (user_id);
+CREATE INDEX index_contracts_on_user_id ON public.contracts USING btree (user_id);
 
 
 --
 -- Name: index_delegations_users_on_delegation_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_delegations_users_on_delegation_id ON delegations_users USING btree (delegation_id);
+CREATE INDEX index_delegations_users_on_delegation_id ON public.delegations_users USING btree (delegation_id);
 
 
 --
 -- Name: index_delegations_users_on_user_id_and_delegation_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_delegations_users_on_user_id_and_delegation_id ON delegations_users USING btree (user_id, delegation_id);
+CREATE UNIQUE INDEX index_delegations_users_on_user_id_and_delegation_id ON public.delegations_users USING btree (user_id, delegation_id);
 
 
 --
 -- Name: index_entitlement_groups_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_entitlement_groups_on_inventory_pool_id ON entitlement_groups USING btree (inventory_pool_id);
+CREATE INDEX index_entitlement_groups_on_inventory_pool_id ON public.entitlement_groups USING btree (inventory_pool_id);
 
 
 --
 -- Name: index_entitlement_groups_on_is_verification_required; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_entitlement_groups_on_is_verification_required ON entitlement_groups USING btree (is_verification_required);
+CREATE INDEX index_entitlement_groups_on_is_verification_required ON public.entitlement_groups USING btree (is_verification_required);
 
 
 --
 -- Name: index_entitlement_groups_users_on_entitlement_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_entitlement_groups_users_on_entitlement_group_id ON entitlement_groups_users USING btree (entitlement_group_id);
+CREATE INDEX index_entitlement_groups_users_on_entitlement_group_id ON public.entitlement_groups_users USING btree (entitlement_group_id);
 
 
 --
 -- Name: index_entitlements_on_entitlement_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_entitlements_on_entitlement_group_id ON entitlements USING btree (entitlement_group_id);
+CREATE INDEX index_entitlements_on_entitlement_group_id ON public.entitlements USING btree (entitlement_group_id);
 
 
 --
 -- Name: index_entitlements_on_model_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_entitlements_on_model_id ON entitlements USING btree (model_id);
+CREATE INDEX index_entitlements_on_model_id ON public.entitlements USING btree (model_id);
 
 
 --
 -- Name: index_fields_on_active; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_fields_on_active ON fields USING btree (active);
+CREATE INDEX index_fields_on_active ON public.fields USING btree (active);
 
 
 --
 -- Name: index_holidays_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_holidays_on_inventory_pool_id ON holidays USING btree (inventory_pool_id);
+CREATE INDEX index_holidays_on_inventory_pool_id ON public.holidays USING btree (inventory_pool_id);
 
 
 --
 -- Name: index_holidays_on_start_date_and_end_date; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_holidays_on_start_date_and_end_date ON holidays USING btree (start_date, end_date);
+CREATE INDEX index_holidays_on_start_date_and_end_date ON public.holidays USING btree (start_date, end_date);
 
 
 --
 -- Name: index_images_on_target_id_and_target_type; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_images_on_target_id_and_target_type ON images USING btree (target_id, target_type);
+CREATE INDEX index_images_on_target_id_and_target_type ON public.images USING btree (target_id, target_type);
 
 
 --
 -- Name: index_inventory_pools_model_groups_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_inventory_pools_model_groups_on_inventory_pool_id ON inventory_pools_model_groups USING btree (inventory_pool_id);
+CREATE INDEX index_inventory_pools_model_groups_on_inventory_pool_id ON public.inventory_pools_model_groups USING btree (inventory_pool_id);
 
 
 --
 -- Name: index_inventory_pools_model_groups_on_model_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_inventory_pools_model_groups_on_model_group_id ON inventory_pools_model_groups USING btree (model_group_id);
+CREATE INDEX index_inventory_pools_model_groups_on_model_group_id ON public.inventory_pools_model_groups USING btree (model_group_id);
 
 
 --
 -- Name: index_inventory_pools_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_inventory_pools_on_name ON inventory_pools USING btree (name);
+CREATE UNIQUE INDEX index_inventory_pools_on_name ON public.inventory_pools USING btree (name);
 
 
 --
 -- Name: index_items_on_inventory_code; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_items_on_inventory_code ON items USING btree (inventory_code);
+CREATE UNIQUE INDEX index_items_on_inventory_code ON public.items USING btree (inventory_code);
 
 
 --
 -- Name: index_items_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_items_on_inventory_pool_id ON items USING btree (inventory_pool_id);
+CREATE INDEX index_items_on_inventory_pool_id ON public.items USING btree (inventory_pool_id);
 
 
 --
 -- Name: index_items_on_is_borrowable; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_items_on_is_borrowable ON items USING btree (is_borrowable);
+CREATE INDEX index_items_on_is_borrowable ON public.items USING btree (is_borrowable);
 
 
 --
 -- Name: index_items_on_is_broken; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_items_on_is_broken ON items USING btree (is_broken);
+CREATE INDEX index_items_on_is_broken ON public.items USING btree (is_broken);
 
 
 --
 -- Name: index_items_on_is_incomplete; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_items_on_is_incomplete ON items USING btree (is_incomplete);
+CREATE INDEX index_items_on_is_incomplete ON public.items USING btree (is_incomplete);
 
 
 --
 -- Name: index_items_on_model_id_and_retired_and_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_items_on_model_id_and_retired_and_inventory_pool_id ON items USING btree (model_id, retired, inventory_pool_id);
+CREATE INDEX index_items_on_model_id_and_retired_and_inventory_pool_id ON public.items USING btree (model_id, retired, inventory_pool_id);
 
 
 --
 -- Name: index_items_on_owner_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_items_on_owner_id ON items USING btree (owner_id);
+CREATE INDEX index_items_on_owner_id ON public.items USING btree (owner_id);
 
 
 --
 -- Name: index_items_on_parent_id_and_retired; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_items_on_parent_id_and_retired ON items USING btree (parent_id, retired);
+CREATE INDEX index_items_on_parent_id_and_retired ON public.items USING btree (parent_id, retired);
 
 
 --
 -- Name: index_items_on_retired; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_items_on_retired ON items USING btree (retired);
+CREATE INDEX index_items_on_retired ON public.items USING btree (retired);
 
 
 --
 -- Name: index_items_on_supplier_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_items_on_supplier_id ON items USING btree (supplier_id);
+CREATE INDEX index_items_on_supplier_id ON public.items USING btree (supplier_id);
 
 
 --
 -- Name: index_languages_on_active_and_default; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_languages_on_active_and_default ON languages USING btree (active, "default");
+CREATE INDEX index_languages_on_active_and_default ON public.languages USING btree (active, "default");
 
 
 --
 -- Name: index_languages_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_languages_on_name ON languages USING btree (name);
+CREATE UNIQUE INDEX index_languages_on_name ON public.languages USING btree (name);
 
 
 --
 -- Name: index_model_group_links_on_child_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_model_group_links_on_child_id ON model_group_links USING btree (child_id);
+CREATE INDEX index_model_group_links_on_child_id ON public.model_group_links USING btree (child_id);
 
 
 --
 -- Name: index_model_group_links_on_parent_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_model_group_links_on_parent_id ON model_group_links USING btree (parent_id);
+CREATE INDEX index_model_group_links_on_parent_id ON public.model_group_links USING btree (parent_id);
 
 
 --
 -- Name: index_model_groups_on_type; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_model_groups_on_type ON model_groups USING btree (type);
+CREATE INDEX index_model_groups_on_type ON public.model_groups USING btree (type);
 
 
 --
 -- Name: index_model_links_on_model_group_id_and_model_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_model_links_on_model_group_id_and_model_id ON model_links USING btree (model_group_id, model_id);
+CREATE INDEX index_model_links_on_model_group_id_and_model_id ON public.model_links USING btree (model_group_id, model_id);
 
 
 --
 -- Name: index_model_links_on_model_id_and_model_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_model_links_on_model_id_and_model_group_id ON model_links USING btree (model_id, model_group_id);
+CREATE INDEX index_model_links_on_model_id_and_model_group_id ON public.model_links USING btree (model_id, model_group_id);
 
 
 --
 -- Name: index_models_compatibles_on_compatible_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_models_compatibles_on_compatible_id ON models_compatibles USING btree (compatible_id);
+CREATE INDEX index_models_compatibles_on_compatible_id ON public.models_compatibles USING btree (compatible_id);
 
 
 --
 -- Name: index_models_compatibles_on_model_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_models_compatibles_on_model_id ON models_compatibles USING btree (model_id);
+CREATE INDEX index_models_compatibles_on_model_id ON public.models_compatibles USING btree (model_id);
 
 
 --
 -- Name: index_models_on_is_package; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_models_on_is_package ON models USING btree (is_package);
+CREATE INDEX index_models_on_is_package ON public.models USING btree (is_package);
 
 
 --
 -- Name: index_models_on_type; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_models_on_type ON models USING btree (type);
+CREATE INDEX index_models_on_type ON public.models USING btree (type);
 
 
 --
 -- Name: index_notifications_on_created_at_and_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_notifications_on_created_at_and_user_id ON notifications USING btree (created_at, user_id);
+CREATE INDEX index_notifications_on_created_at_and_user_id ON public.notifications USING btree (created_at, user_id);
 
 
 --
 -- Name: index_notifications_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_notifications_on_user_id ON notifications USING btree (user_id);
+CREATE INDEX index_notifications_on_user_id ON public.notifications USING btree (user_id);
 
 
 --
 -- Name: index_old_empty_contracts_on_compact_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_old_empty_contracts_on_compact_id ON old_empty_contracts USING btree (compact_id);
+CREATE UNIQUE INDEX index_old_empty_contracts_on_compact_id ON public.old_empty_contracts USING btree (compact_id);
 
 
 --
 -- Name: index_on_budget_period_id_and_category_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_on_budget_period_id_and_category_id ON procurement_budget_limits USING btree (budget_period_id, main_category_id);
+CREATE UNIQUE INDEX index_on_budget_period_id_and_category_id ON public.procurement_budget_limits USING btree (budget_period_id, main_category_id);
 
 
 --
 -- Name: index_on_user_id_and_inventory_pool_id_and_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_on_user_id_and_inventory_pool_id_and_deleted_at ON access_rights USING btree (user_id, inventory_pool_id, deleted_at);
+CREATE INDEX index_on_user_id_and_inventory_pool_id_and_deleted_at ON public.access_rights USING btree (user_id, inventory_pool_id, deleted_at);
 
 
 --
 -- Name: index_options_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_options_on_inventory_pool_id ON options USING btree (inventory_pool_id);
+CREATE INDEX index_options_on_inventory_pool_id ON public.options USING btree (inventory_pool_id);
 
 
 --
 -- Name: index_orders_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_orders_on_created_at ON orders USING btree (created_at);
+CREATE INDEX index_orders_on_created_at ON public.orders USING btree (created_at);
 
 
 --
 -- Name: index_orders_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_orders_on_inventory_pool_id ON orders USING btree (inventory_pool_id);
+CREATE INDEX index_orders_on_inventory_pool_id ON public.orders USING btree (inventory_pool_id);
 
 
 --
 -- Name: index_orders_on_state; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_orders_on_state ON orders USING btree (state);
+CREATE INDEX index_orders_on_state ON public.orders USING btree (state);
 
 
 --
 -- Name: index_orders_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_orders_on_user_id ON orders USING btree (user_id);
+CREATE INDEX index_orders_on_user_id ON public.orders USING btree (user_id);
 
 
 --
 -- Name: index_procurement_accesses_on_is_admin; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_procurement_accesses_on_is_admin ON procurement_accesses USING btree (is_admin);
+CREATE INDEX index_procurement_accesses_on_is_admin ON public.procurement_accesses USING btree (is_admin);
 
 
 --
 -- Name: index_procurement_budget_periods_on_end_date; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_procurement_budget_periods_on_end_date ON procurement_budget_periods USING btree (end_date);
+CREATE INDEX index_procurement_budget_periods_on_end_date ON public.procurement_budget_periods USING btree (end_date);
 
 
 --
 -- Name: index_procurement_categories_on_main_category_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_procurement_categories_on_main_category_id ON procurement_categories USING btree (main_category_id);
+CREATE INDEX index_procurement_categories_on_main_category_id ON public.procurement_categories USING btree (main_category_id);
 
 
 --
 -- Name: index_procurement_categories_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_procurement_categories_on_name ON procurement_categories USING btree (name);
+CREATE UNIQUE INDEX index_procurement_categories_on_name ON public.procurement_categories USING btree (name);
 
 
 --
 -- Name: index_procurement_main_categories_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_procurement_main_categories_on_name ON procurement_main_categories USING btree (name);
+CREATE UNIQUE INDEX index_procurement_main_categories_on_name ON public.procurement_main_categories USING btree (name);
 
 
 --
 -- Name: index_procurement_users_filters_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_procurement_users_filters_on_user_id ON procurement_users_filters USING btree (user_id);
+CREATE UNIQUE INDEX index_procurement_users_filters_on_user_id ON public.procurement_users_filters USING btree (user_id);
 
 
 --
 -- Name: index_properties_on_model_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_properties_on_model_id ON properties USING btree (model_id);
+CREATE INDEX index_properties_on_model_id ON public.properties USING btree (model_id);
 
 
 --
 -- Name: index_reservations_on_contract_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_reservations_on_contract_id ON reservations USING btree (contract_id);
+CREATE INDEX index_reservations_on_contract_id ON public.reservations USING btree (contract_id);
 
 
 --
 -- Name: index_reservations_on_end_date; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_reservations_on_end_date ON reservations USING btree (end_date);
+CREATE INDEX index_reservations_on_end_date ON public.reservations USING btree (end_date);
 
 
 --
 -- Name: index_reservations_on_item_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_reservations_on_item_id ON reservations USING btree (item_id);
+CREATE INDEX index_reservations_on_item_id ON public.reservations USING btree (item_id);
 
 
 --
 -- Name: index_reservations_on_model_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_reservations_on_model_id ON reservations USING btree (model_id);
+CREATE INDEX index_reservations_on_model_id ON public.reservations USING btree (model_id);
 
 
 --
 -- Name: index_reservations_on_option_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_reservations_on_option_id ON reservations USING btree (option_id);
+CREATE INDEX index_reservations_on_option_id ON public.reservations USING btree (option_id);
 
 
 --
 -- Name: index_reservations_on_returned_date_and_contract_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_reservations_on_returned_date_and_contract_id ON reservations USING btree (returned_date, contract_id);
+CREATE INDEX index_reservations_on_returned_date_and_contract_id ON public.reservations USING btree (returned_date, contract_id);
 
 
 --
 -- Name: index_reservations_on_start_date; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_reservations_on_start_date ON reservations USING btree (start_date);
+CREATE INDEX index_reservations_on_start_date ON public.reservations USING btree (start_date);
 
 
 --
 -- Name: index_reservations_on_status; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_reservations_on_status ON reservations USING btree (status);
+CREATE INDEX index_reservations_on_status ON public.reservations USING btree (status);
 
 
 --
 -- Name: index_reservations_on_type_and_contract_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_reservations_on_type_and_contract_id ON reservations USING btree (type, contract_id);
+CREATE INDEX index_reservations_on_type_and_contract_id ON public.reservations USING btree (type, contract_id);
 
 
 --
 -- Name: index_suppliers_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_suppliers_on_name ON suppliers USING btree (name);
+CREATE UNIQUE INDEX index_suppliers_on_name ON public.suppliers USING btree (name);
 
 
 --
 -- Name: index_user_sessions_on_token_hash; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_user_sessions_on_token_hash ON user_sessions USING btree (token_hash);
+CREATE UNIQUE INDEX index_user_sessions_on_token_hash ON public.user_sessions USING btree (token_hash);
 
 
 --
 -- Name: index_user_sessions_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_user_sessions_on_user_id ON user_sessions USING btree (user_id);
+CREATE INDEX index_user_sessions_on_user_id ON public.user_sessions USING btree (user_id);
 
 
 --
 -- Name: index_users_on_authentication_system_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_users_on_authentication_system_id ON users USING btree (authentication_system_id);
+CREATE INDEX index_users_on_authentication_system_id ON public.users USING btree (authentication_system_id);
 
 
 --
 -- Name: index_workdays_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_workdays_on_inventory_pool_id ON workdays USING btree (inventory_pool_id);
+CREATE INDEX index_workdays_on_inventory_pool_id ON public.workdays USING btree (inventory_pool_id);
 
 
 --
 -- Name: rooms_unique_building_id_general_true; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX rooms_unique_building_id_general_true ON rooms USING btree (building_id, general) WHERE (general IS TRUE);
+CREATE UNIQUE INDEX rooms_unique_building_id_general_true ON public.rooms USING btree (building_id, general) WHERE (general IS TRUE);
 
 
 --
 -- Name: rooms_unique_name_and_building_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX rooms_unique_name_and_building_id ON rooms USING btree ((((lower((name)::text) || ' '::text) || building_id)));
+CREATE UNIQUE INDEX rooms_unique_name_and_building_id ON public.rooms USING btree ((((lower((name)::text) || ' '::text) || building_id)));
 
 
 --
 -- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX unique_schema_migrations ON schema_migrations USING btree (version);
+CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
 
 
 --
 -- Name: user_index; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX user_index ON audits USING btree (user_id, user_type);
+CREATE INDEX user_index ON public.audits USING btree (user_id, user_type);
 
 
 --
 -- Name: fields fields_insert_check_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER fields_insert_check_trigger BEFORE INSERT ON fields FOR EACH ROW EXECUTE PROCEDURE fields_insert_check_function();
+CREATE TRIGGER fields_insert_check_trigger BEFORE INSERT ON public.fields FOR EACH ROW EXECUTE PROCEDURE public.fields_insert_check_function();
 
 
 --
 -- Name: fields fields_update_check_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER fields_update_check_trigger BEFORE UPDATE ON fields FOR EACH ROW EXECUTE PROCEDURE fields_update_check_function();
+CREATE TRIGGER fields_update_check_trigger BEFORE UPDATE ON public.fields FOR EACH ROW EXECUTE PROCEDURE public.fields_update_check_function();
 
 
 --
 -- Name: reservations trigger_check_closed_reservations_contract_state; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_closed_reservations_contract_state AFTER INSERT OR UPDATE ON reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE check_closed_reservations_contract_state();
+CREATE CONSTRAINT TRIGGER trigger_check_closed_reservations_contract_state AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_closed_reservations_contract_state();
 
 
 --
 -- Name: contracts trigger_check_contract_has_at_least_one_reservation; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_contract_has_at_least_one_reservation AFTER INSERT OR UPDATE ON contracts DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE check_contract_has_at_least_one_reservation();
+CREATE CONSTRAINT TRIGGER trigger_check_contract_has_at_least_one_reservation AFTER INSERT OR UPDATE ON public.contracts DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_contract_has_at_least_one_reservation();
 
 
 --
 -- Name: rooms trigger_check_general_building_id_for_general_room; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_general_building_id_for_general_room AFTER UPDATE ON rooms NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE check_general_building_id_for_general_room();
+CREATE CONSTRAINT TRIGGER trigger_check_general_building_id_for_general_room AFTER UPDATE ON public.rooms NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.check_general_building_id_for_general_room();
 
 
 --
 -- Name: reservations trigger_check_item_line_state_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_item_line_state_consistency AFTER INSERT OR UPDATE ON reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE check_item_line_state_consistency();
+CREATE CONSTRAINT TRIGGER trigger_check_item_line_state_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_item_line_state_consistency();
 
 
 --
 -- Name: reservations trigger_check_option_line_state_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_option_line_state_consistency AFTER INSERT OR UPDATE ON reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE check_option_line_state_consistency();
+CREATE CONSTRAINT TRIGGER trigger_check_option_line_state_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_option_line_state_consistency();
 
 
 --
 -- Name: reservations trigger_check_reservation_contract_inventory_pool_id_consistenc; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_reservation_contract_inventory_pool_id_consistenc AFTER INSERT OR UPDATE ON reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE check_reservation_contract_inventory_pool_id_consistency();
+CREATE CONSTRAINT TRIGGER trigger_check_reservation_contract_inventory_pool_id_consistenc AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_reservation_contract_inventory_pool_id_consistency();
 
 
 --
 -- Name: reservations trigger_check_reservation_contract_user_id_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_reservation_contract_user_id_consistency AFTER INSERT OR UPDATE ON reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE check_reservation_contract_user_id_consistency();
+CREATE CONSTRAINT TRIGGER trigger_check_reservation_contract_user_id_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_reservation_contract_user_id_consistency();
 
 
 --
 -- Name: reservations trigger_check_reservation_order_inventory_pool_id_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_reservation_order_inventory_pool_id_consistency AFTER INSERT OR UPDATE ON reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE check_reservation_order_inventory_pool_id_consistency();
+CREATE CONSTRAINT TRIGGER trigger_check_reservation_order_inventory_pool_id_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_reservation_order_inventory_pool_id_consistency();
 
 
 --
 -- Name: reservations trigger_check_reservation_order_user_id_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_reservation_order_user_id_consistency AFTER INSERT OR UPDATE ON reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE check_reservation_order_user_id_consistency();
+CREATE CONSTRAINT TRIGGER trigger_check_reservation_order_user_id_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_reservation_order_user_id_consistency();
 
 
 --
 -- Name: contracts trigger_check_reservations_contracts_state_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_reservations_contracts_state_consistency AFTER INSERT OR UPDATE ON contracts DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE check_reservations_contracts_state_consistency();
+CREATE CONSTRAINT TRIGGER trigger_check_reservations_contracts_state_consistency AFTER INSERT OR UPDATE ON public.contracts DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_reservations_contracts_state_consistency();
 
 
 --
 -- Name: reservations trigger_delete_empty_order; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_delete_empty_order AFTER DELETE ON reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE delete_empty_order();
+CREATE CONSTRAINT TRIGGER trigger_delete_empty_order AFTER DELETE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.delete_empty_order();
 
 
 --
 -- Name: procurement_accesses trigger_delete_procurement_users_filters_after_procurement_acce; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_delete_procurement_users_filters_after_procurement_acce AFTER DELETE ON procurement_accesses DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE delete_procurement_users_filters_after_procurement_accesses();
+CREATE CONSTRAINT TRIGGER trigger_delete_procurement_users_filters_after_procurement_acce AFTER DELETE ON public.procurement_accesses DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.delete_procurement_users_filters_after_procurement_accesses();
 
 
 --
 -- Name: users trigger_delete_procurement_users_filters_after_users; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_delete_procurement_users_filters_after_users AFTER DELETE ON users DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE delete_procurement_users_filters_after_users();
+CREATE CONSTRAINT TRIGGER trigger_delete_procurement_users_filters_after_users AFTER DELETE ON public.users DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.delete_procurement_users_filters_after_users();
 
 
 --
 -- Name: buildings trigger_ensure_general_building_cannot_be_deleted; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_ensure_general_building_cannot_be_deleted AFTER DELETE ON buildings NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE ensure_general_building_cannot_be_deleted();
+CREATE CONSTRAINT TRIGGER trigger_ensure_general_building_cannot_be_deleted AFTER DELETE ON public.buildings NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.ensure_general_building_cannot_be_deleted();
 
 
 --
 -- Name: rooms trigger_ensure_general_room_cannot_be_deleted; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_ensure_general_room_cannot_be_deleted AFTER DELETE ON rooms NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE ensure_general_room_cannot_be_deleted();
+CREATE CONSTRAINT TRIGGER trigger_ensure_general_room_cannot_be_deleted AFTER DELETE ON public.rooms NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.ensure_general_room_cannot_be_deleted();
 
 
 --
 -- Name: fields trigger_fields_delete_check_function; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER trigger_fields_delete_check_function BEFORE DELETE ON fields FOR EACH ROW EXECUTE PROCEDURE fields_delete_check_function();
+CREATE TRIGGER trigger_fields_delete_check_function BEFORE DELETE ON public.fields FOR EACH ROW EXECUTE PROCEDURE public.fields_delete_check_function();
 
 
 --
 -- Name: hidden_fields fk_rails_00a4ef0c4f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY hidden_fields
-    ADD CONSTRAINT fk_rails_00a4ef0c4f FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.hidden_fields
+    ADD CONSTRAINT fk_rails_00a4ef0c4f FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
 -- Name: items fk_rails_042cf7b23c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY items
-    ADD CONSTRAINT fk_rails_042cf7b23c FOREIGN KEY (inventory_pool_id) REFERENCES inventory_pools(id);
+ALTER TABLE ONLY public.items
+    ADD CONSTRAINT fk_rails_042cf7b23c FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id);
 
 
 --
 -- Name: procurement_organizations fk_rails_0731e8b712; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_organizations
-    ADD CONSTRAINT fk_rails_0731e8b712 FOREIGN KEY (parent_id) REFERENCES procurement_organizations(id);
+ALTER TABLE ONLY public.procurement_organizations
+    ADD CONSTRAINT fk_rails_0731e8b712 FOREIGN KEY (parent_id) REFERENCES public.procurement_organizations(id);
 
 
 --
 -- Name: items fk_rails_0ed18b3bf9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY items
-    ADD CONSTRAINT fk_rails_0ed18b3bf9 FOREIGN KEY (model_id) REFERENCES models(id);
+ALTER TABLE ONLY public.items
+    ADD CONSTRAINT fk_rails_0ed18b3bf9 FOREIGN KEY (model_id) REFERENCES public.models(id);
 
 
 --
 -- Name: model_links fk_rails_11add1a9a3; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY model_links
-    ADD CONSTRAINT fk_rails_11add1a9a3 FOREIGN KEY (model_group_id) REFERENCES model_groups(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.model_links
+    ADD CONSTRAINT fk_rails_11add1a9a3 FOREIGN KEY (model_group_id) REFERENCES public.model_groups(id) ON DELETE CASCADE;
 
 
 --
 -- Name: reservations fk_rails_151794e412; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY reservations
-    ADD CONSTRAINT fk_rails_151794e412 FOREIGN KEY (inventory_pool_id) REFERENCES inventory_pools(id);
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT fk_rails_151794e412 FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id);
 
 
 --
 -- Name: contracts fk_rails_1bf8633565; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY contracts
-    ADD CONSTRAINT fk_rails_1bf8633565 FOREIGN KEY (inventory_pool_id) REFERENCES inventory_pools(id);
+ALTER TABLE ONLY public.contracts
+    ADD CONSTRAINT fk_rails_1bf8633565 FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id);
 
 
 --
 -- Name: procurement_budget_limits fk_rails_1c5f9021ad; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_budget_limits
-    ADD CONSTRAINT fk_rails_1c5f9021ad FOREIGN KEY (main_category_id) REFERENCES procurement_main_categories(id);
+ALTER TABLE ONLY public.procurement_budget_limits
+    ADD CONSTRAINT fk_rails_1c5f9021ad FOREIGN KEY (main_category_id) REFERENCES public.procurement_main_categories(id);
 
 
 --
 -- Name: procurement_requests fk_rails_214a7de1ff; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_requests
-    ADD CONSTRAINT fk_rails_214a7de1ff FOREIGN KEY (model_id) REFERENCES models(id);
+ALTER TABLE ONLY public.procurement_requests
+    ADD CONSTRAINT fk_rails_214a7de1ff FOREIGN KEY (model_id) REFERENCES public.models(id);
 
 
 --
 -- Name: users fk_rails_330f34f125; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY users
-    ADD CONSTRAINT fk_rails_330f34f125 FOREIGN KEY (authentication_system_id) REFERENCES authentication_systems(id);
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT fk_rails_330f34f125 FOREIGN KEY (authentication_system_id) REFERENCES public.authentication_systems(id);
 
 
 --
 -- Name: procurement_attachments fk_rails_396a61ca60; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_attachments
-    ADD CONSTRAINT fk_rails_396a61ca60 FOREIGN KEY (request_id) REFERENCES procurement_requests(id);
+ALTER TABLE ONLY public.procurement_attachments
+    ADD CONSTRAINT fk_rails_396a61ca60 FOREIGN KEY (request_id) REFERENCES public.procurement_requests(id);
 
 
 --
 -- Name: reservations fk_rails_3cc4562273; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY reservations
-    ADD CONSTRAINT fk_rails_3cc4562273 FOREIGN KEY (handed_over_by_user_id) REFERENCES users(id);
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT fk_rails_3cc4562273 FOREIGN KEY (handed_over_by_user_id) REFERENCES public.users(id);
 
 
 --
 -- Name: hidden_fields fk_rails_3dac013d86; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY hidden_fields
-    ADD CONSTRAINT fk_rails_3dac013d86 FOREIGN KEY (field_id) REFERENCES fields(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.hidden_fields
+    ADD CONSTRAINT fk_rails_3dac013d86 FOREIGN KEY (field_id) REFERENCES public.fields(id) ON DELETE CASCADE;
 
 
 --
 -- Name: mail_templates fk_rails_3e8b923972; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY mail_templates
-    ADD CONSTRAINT fk_rails_3e8b923972 FOREIGN KEY (language_id) REFERENCES languages(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.mail_templates
+    ADD CONSTRAINT fk_rails_3e8b923972 FOREIGN KEY (language_id) REFERENCES public.languages(id) ON DELETE CASCADE;
 
 
 --
 -- Name: entitlements fk_rails_44495fc6cf; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY entitlements
-    ADD CONSTRAINT fk_rails_44495fc6cf FOREIGN KEY (entitlement_group_id) REFERENCES entitlement_groups(id);
+ALTER TABLE ONLY public.entitlements
+    ADD CONSTRAINT fk_rails_44495fc6cf FOREIGN KEY (entitlement_group_id) REFERENCES public.entitlement_groups(id);
 
 
 --
 -- Name: users fk_rails_45f4f12508; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY users
-    ADD CONSTRAINT fk_rails_45f4f12508 FOREIGN KEY (language_id) REFERENCES languages(id);
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT fk_rails_45f4f12508 FOREIGN KEY (language_id) REFERENCES public.languages(id);
 
 
 --
 -- Name: entitlement_groups fk_rails_45f96f9df2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY entitlement_groups
-    ADD CONSTRAINT fk_rails_45f96f9df2 FOREIGN KEY (inventory_pool_id) REFERENCES inventory_pools(id);
+ALTER TABLE ONLY public.entitlement_groups
+    ADD CONSTRAINT fk_rails_45f96f9df2 FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id);
 
 
 --
 -- Name: procurement_templates fk_rails_46cc05bf71; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_templates
-    ADD CONSTRAINT fk_rails_46cc05bf71 FOREIGN KEY (supplier_id) REFERENCES suppliers(id);
+ALTER TABLE ONLY public.procurement_templates
+    ADD CONSTRAINT fk_rails_46cc05bf71 FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id);
 
 
 --
 -- Name: procurement_images fk_rails_47fed491ad; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_images
-    ADD CONSTRAINT fk_rails_47fed491ad FOREIGN KEY (parent_id) REFERENCES procurement_images(id);
+ALTER TABLE ONLY public.procurement_images
+    ADD CONSTRAINT fk_rails_47fed491ad FOREIGN KEY (parent_id) REFERENCES public.procurement_images(id);
 
 
 --
 -- Name: reservations fk_rails_48a92fce51; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY reservations
-    ADD CONSTRAINT fk_rails_48a92fce51 FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT fk_rails_48a92fce51 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
 -- Name: model_group_links fk_rails_48e1ccdd03; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY model_group_links
-    ADD CONSTRAINT fk_rails_48e1ccdd03 FOREIGN KEY (child_id) REFERENCES model_groups(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.model_group_links
+    ADD CONSTRAINT fk_rails_48e1ccdd03 FOREIGN KEY (child_id) REFERENCES public.model_groups(id) ON DELETE CASCADE;
 
 
 --
 -- Name: procurement_requests fk_rails_4c51bafad3; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_requests
-    ADD CONSTRAINT fk_rails_4c51bafad3 FOREIGN KEY (organization_id) REFERENCES procurement_organizations(id);
+ALTER TABLE ONLY public.procurement_requests
+    ADD CONSTRAINT fk_rails_4c51bafad3 FOREIGN KEY (organization_id) REFERENCES public.procurement_organizations(id);
 
 
 --
 -- Name: reservations fk_rails_4d0c0195f0; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY reservations
-    ADD CONSTRAINT fk_rails_4d0c0195f0 FOREIGN KEY (item_id) REFERENCES items(id);
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT fk_rails_4d0c0195f0 FOREIGN KEY (item_id) REFERENCES public.items(id);
 
 
 --
 -- Name: entitlement_groups_users fk_rails_4e63edbd27; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY entitlement_groups_users
-    ADD CONSTRAINT fk_rails_4e63edbd27 FOREIGN KEY (entitlement_group_id) REFERENCES entitlement_groups(id);
+ALTER TABLE ONLY public.entitlement_groups_users
+    ADD CONSTRAINT fk_rails_4e63edbd27 FOREIGN KEY (entitlement_group_id) REFERENCES public.entitlement_groups(id);
 
 
 --
 -- Name: procurement_requests fk_rails_51707743b7; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_requests
-    ADD CONSTRAINT fk_rails_51707743b7 FOREIGN KEY (supplier_id) REFERENCES suppliers(id);
+ALTER TABLE ONLY public.procurement_requests
+    ADD CONSTRAINT fk_rails_51707743b7 FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id);
 
 
 --
 -- Name: items fk_rails_538506beaf; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY items
-    ADD CONSTRAINT fk_rails_538506beaf FOREIGN KEY (supplier_id) REFERENCES suppliers(id);
+ALTER TABLE ONLY public.items
+    ADD CONSTRAINT fk_rails_538506beaf FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id);
 
 
 --
 -- Name: accessories fk_rails_54c6f19548; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY accessories
-    ADD CONSTRAINT fk_rails_54c6f19548 FOREIGN KEY (model_id) REFERENCES models(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.accessories
+    ADD CONSTRAINT fk_rails_54c6f19548 FOREIGN KEY (model_id) REFERENCES public.models(id) ON DELETE CASCADE;
 
 
 --
 -- Name: models_compatibles fk_rails_5c311e46b1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY models_compatibles
-    ADD CONSTRAINT fk_rails_5c311e46b1 FOREIGN KEY (model_id) REFERENCES models(id);
+ALTER TABLE ONLY public.models_compatibles
+    ADD CONSTRAINT fk_rails_5c311e46b1 FOREIGN KEY (model_id) REFERENCES public.models(id);
 
 
 --
 -- Name: reservations fk_rails_5cc2043d96; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY reservations
-    ADD CONSTRAINT fk_rails_5cc2043d96 FOREIGN KEY (returned_to_user_id) REFERENCES users(id);
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT fk_rails_5cc2043d96 FOREIGN KEY (returned_to_user_id) REFERENCES public.users(id);
 
 
 --
 -- Name: mail_templates fk_rails_5d00b5b086; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY mail_templates
-    ADD CONSTRAINT fk_rails_5d00b5b086 FOREIGN KEY (inventory_pool_id) REFERENCES inventory_pools(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.mail_templates
+    ADD CONSTRAINT fk_rails_5d00b5b086 FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id) ON DELETE CASCADE;
 
 
 --
 -- Name: procurement_images fk_rails_62917a6a8f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_images
-    ADD CONSTRAINT fk_rails_62917a6a8f FOREIGN KEY (main_category_id) REFERENCES procurement_main_categories(id);
+ALTER TABLE ONLY public.procurement_images
+    ADD CONSTRAINT fk_rails_62917a6a8f FOREIGN KEY (main_category_id) REFERENCES public.procurement_main_categories(id);
 
 
 --
 -- Name: entitlements fk_rails_69c88ff594; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY entitlements
-    ADD CONSTRAINT fk_rails_69c88ff594 FOREIGN KEY (model_id) REFERENCES models(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.entitlements
+    ADD CONSTRAINT fk_rails_69c88ff594 FOREIGN KEY (model_id) REFERENCES public.models(id) ON DELETE CASCADE;
 
 
 --
 -- Name: inventory_pools fk_rails_6a55965722; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY inventory_pools
-    ADD CONSTRAINT fk_rails_6a55965722 FOREIGN KEY (address_id) REFERENCES addresses(id);
+ALTER TABLE ONLY public.inventory_pools
+    ADD CONSTRAINT fk_rails_6a55965722 FOREIGN KEY (address_id) REFERENCES public.addresses(id);
 
 
 --
 -- Name: inventory_pools_model_groups fk_rails_6a7781d99f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY inventory_pools_model_groups
-    ADD CONSTRAINT fk_rails_6a7781d99f FOREIGN KEY (inventory_pool_id) REFERENCES inventory_pools(id);
+ALTER TABLE ONLY public.inventory_pools_model_groups
+    ADD CONSTRAINT fk_rails_6a7781d99f FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id);
 
 
 --
 -- Name: reservations fk_rails_6f10314351; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY reservations
-    ADD CONSTRAINT fk_rails_6f10314351 FOREIGN KEY (delegated_user_id) REFERENCES users(id);
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT fk_rails_6f10314351 FOREIGN KEY (delegated_user_id) REFERENCES public.users(id);
 
 
 --
 -- Name: attachments fk_rails_753607b7c1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY attachments
-    ADD CONSTRAINT fk_rails_753607b7c1 FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.attachments
+    ADD CONSTRAINT fk_rails_753607b7c1 FOREIGN KEY (item_id) REFERENCES public.items(id) ON DELETE CASCADE;
 
 
 --
 -- Name: entitlement_groups_users fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY entitlement_groups_users
-    ADD CONSTRAINT fk_rails_8546c71994 FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE ONLY public.entitlement_groups_users
+    ADD CONSTRAINT fk_rails_8546c71994 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
 -- Name: database_authentications fk_rails_85650bffa9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY database_authentications
-    ADD CONSTRAINT fk_rails_85650bffa9 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.database_authentications
+    ADD CONSTRAINT fk_rails_85650bffa9 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
 -- Name: items fk_rails_8757b4d49c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY items
-    ADD CONSTRAINT fk_rails_8757b4d49c FOREIGN KEY (owner_id) REFERENCES inventory_pools(id);
+ALTER TABLE ONLY public.items
+    ADD CONSTRAINT fk_rails_8757b4d49c FOREIGN KEY (owner_id) REFERENCES public.inventory_pools(id);
 
 
 --
 -- Name: user_sessions fk_rails_8987cee3fd; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY user_sessions
-    ADD CONSTRAINT fk_rails_8987cee3fd FOREIGN KEY (delegation_id) REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.user_sessions
+    ADD CONSTRAINT fk_rails_8987cee3fd FOREIGN KEY (delegation_id) REFERENCES public.users(id) ON DELETE SET NULL;
 
 
 --
 -- Name: reservations fk_rails_8dc1da71d1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY reservations
-    ADD CONSTRAINT fk_rails_8dc1da71d1 FOREIGN KEY (contract_id) REFERENCES contracts(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT fk_rails_8dc1da71d1 FOREIGN KEY (contract_id) REFERENCES public.contracts(id) ON DELETE CASCADE;
 
 
 --
 -- Name: items fk_rails_9353db44a2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY items
-    ADD CONSTRAINT fk_rails_9353db44a2 FOREIGN KEY (room_id) REFERENCES rooms(id);
+ALTER TABLE ONLY public.items
+    ADD CONSTRAINT fk_rails_9353db44a2 FOREIGN KEY (room_id) REFERENCES public.rooms(id);
 
 
 --
 -- Name: reservations fk_rails_943a884838; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY reservations
-    ADD CONSTRAINT fk_rails_943a884838 FOREIGN KEY (model_id) REFERENCES models(id);
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT fk_rails_943a884838 FOREIGN KEY (model_id) REFERENCES public.models(id);
 
 
 --
 -- Name: accessories_inventory_pools fk_rails_9511c9a747; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY accessories_inventory_pools
-    ADD CONSTRAINT fk_rails_9511c9a747 FOREIGN KEY (accessory_id) REFERENCES accessories(id);
+ALTER TABLE ONLY public.accessories_inventory_pools
+    ADD CONSTRAINT fk_rails_9511c9a747 FOREIGN KEY (accessory_id) REFERENCES public.accessories(id);
 
 
 --
 -- Name: model_links fk_rails_9b7295b085; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY model_links
-    ADD CONSTRAINT fk_rails_9b7295b085 FOREIGN KEY (model_id) REFERENCES models(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.model_links
+    ADD CONSTRAINT fk_rails_9b7295b085 FOREIGN KEY (model_id) REFERENCES public.models(id) ON DELETE CASCADE;
 
 
 --
 -- Name: user_sessions fk_rails_9fa262d742; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY user_sessions
-    ADD CONSTRAINT fk_rails_9fa262d742 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.user_sessions
+    ADD CONSTRAINT fk_rails_9fa262d742 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
 -- Name: workdays fk_rails_a18bc267df; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY workdays
-    ADD CONSTRAINT fk_rails_a18bc267df FOREIGN KEY (inventory_pool_id) REFERENCES inventory_pools(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.workdays
+    ADD CONSTRAINT fk_rails_a18bc267df FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id) ON DELETE CASCADE;
 
 
 --
 -- Name: rooms fk_rails_a3957b23a8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY rooms
-    ADD CONSTRAINT fk_rails_a3957b23a8 FOREIGN KEY (building_id) REFERENCES buildings(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.rooms
+    ADD CONSTRAINT fk_rails_a3957b23a8 FOREIGN KEY (building_id) REFERENCES public.buildings(id) ON DELETE CASCADE;
 
 
 --
 -- Name: properties fk_rails_a52b96ad3d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY properties
-    ADD CONSTRAINT fk_rails_a52b96ad3d FOREIGN KEY (model_id) REFERENCES models(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.properties
+    ADD CONSTRAINT fk_rails_a52b96ad3d FOREIGN KEY (model_id) REFERENCES public.models(id) ON DELETE CASCADE;
 
 
 --
 -- Name: reservations fk_rails_a863d81c8a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY reservations
-    ADD CONSTRAINT fk_rails_a863d81c8a FOREIGN KEY (option_id) REFERENCES options(id);
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT fk_rails_a863d81c8a FOREIGN KEY (option_id) REFERENCES public.options(id);
 
 
 --
 -- Name: notifications fk_rails_b080fb4855; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY notifications
-    ADD CONSTRAINT fk_rails_b080fb4855 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT fk_rails_b080fb4855 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
 -- Name: access_rights fk_rails_b36d97eb0c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY access_rights
-    ADD CONSTRAINT fk_rails_b36d97eb0c FOREIGN KEY (inventory_pool_id) REFERENCES inventory_pools(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.access_rights
+    ADD CONSTRAINT fk_rails_b36d97eb0c FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id) ON DELETE CASCADE;
 
 
 --
 -- Name: delegations_users fk_rails_b5f7f9c898; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY delegations_users
-    ADD CONSTRAINT fk_rails_b5f7f9c898 FOREIGN KEY (delegation_id) REFERENCES users(id);
+ALTER TABLE ONLY public.delegations_users
+    ADD CONSTRAINT fk_rails_b5f7f9c898 FOREIGN KEY (delegation_id) REFERENCES public.users(id);
 
 
 --
 -- Name: procurement_requests fk_rails_b6213e1ee9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_requests
-    ADD CONSTRAINT fk_rails_b6213e1ee9 FOREIGN KEY (budget_period_id) REFERENCES procurement_budget_periods(id);
+ALTER TABLE ONLY public.procurement_requests
+    ADD CONSTRAINT fk_rails_b6213e1ee9 FOREIGN KEY (budget_period_id) REFERENCES public.procurement_budget_periods(id);
 
 
 --
 -- Name: procurement_requests fk_rails_b740f37e3d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_requests
-    ADD CONSTRAINT fk_rails_b740f37e3d FOREIGN KEY (category_id) REFERENCES procurement_categories(id);
+ALTER TABLE ONLY public.procurement_requests
+    ADD CONSTRAINT fk_rails_b740f37e3d FOREIGN KEY (category_id) REFERENCES public.procurement_categories(id);
 
 
 --
 -- Name: procurement_budget_limits fk_rails_beb637d785; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_budget_limits
-    ADD CONSTRAINT fk_rails_beb637d785 FOREIGN KEY (budget_period_id) REFERENCES procurement_budget_periods(id);
+ALTER TABLE ONLY public.procurement_budget_limits
+    ADD CONSTRAINT fk_rails_beb637d785 FOREIGN KEY (budget_period_id) REFERENCES public.procurement_budget_periods(id);
 
 
 --
 -- Name: procurement_requests fk_rails_bf7bec026c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_requests
-    ADD CONSTRAINT fk_rails_bf7bec026c FOREIGN KEY (template_id) REFERENCES procurement_templates(id);
+ALTER TABLE ONLY public.procurement_requests
+    ADD CONSTRAINT fk_rails_bf7bec026c FOREIGN KEY (template_id) REFERENCES public.procurement_templates(id);
 
 
 --
 -- Name: access_rights fk_rails_c10a7fd1fd; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY access_rights
-    ADD CONSTRAINT fk_rails_c10a7fd1fd FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE ONLY public.access_rights
+    ADD CONSTRAINT fk_rails_c10a7fd1fd FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
 -- Name: procurement_accesses fk_rails_c116e35025; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_accesses
-    ADD CONSTRAINT fk_rails_c116e35025 FOREIGN KEY (organization_id) REFERENCES procurement_organizations(id);
+ALTER TABLE ONLY public.procurement_accesses
+    ADD CONSTRAINT fk_rails_c116e35025 FOREIGN KEY (organization_id) REFERENCES public.procurement_organizations(id);
 
 
 --
 -- Name: holidays fk_rails_c189a29194; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY holidays
-    ADD CONSTRAINT fk_rails_c189a29194 FOREIGN KEY (inventory_pool_id) REFERENCES inventory_pools(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.holidays
+    ADD CONSTRAINT fk_rails_c189a29194 FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id) ON DELETE CASCADE;
 
 
 --
 -- Name: inventory_pools_model_groups fk_rails_cb04742a0b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY inventory_pools_model_groups
-    ADD CONSTRAINT fk_rails_cb04742a0b FOREIGN KEY (model_group_id) REFERENCES model_groups(id);
+ALTER TABLE ONLY public.inventory_pools_model_groups
+    ADD CONSTRAINT fk_rails_cb04742a0b FOREIGN KEY (model_group_id) REFERENCES public.model_groups(id);
 
 
 --
 -- Name: model_group_links fk_rails_d4425f3184; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY model_group_links
-    ADD CONSTRAINT fk_rails_d4425f3184 FOREIGN KEY (parent_id) REFERENCES model_groups(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.model_group_links
+    ADD CONSTRAINT fk_rails_d4425f3184 FOREIGN KEY (parent_id) REFERENCES public.model_groups(id) ON DELETE CASCADE;
 
 
 --
 -- Name: delegations_users fk_rails_df1fb72b34; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY delegations_users
-    ADD CONSTRAINT fk_rails_df1fb72b34 FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE ONLY public.delegations_users
+    ADD CONSTRAINT fk_rails_df1fb72b34 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
 -- Name: models_compatibles fk_rails_e63411efbd; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY models_compatibles
-    ADD CONSTRAINT fk_rails_e63411efbd FOREIGN KEY (compatible_id) REFERENCES models(id);
+ALTER TABLE ONLY public.models_compatibles
+    ADD CONSTRAINT fk_rails_e63411efbd FOREIGN KEY (compatible_id) REFERENCES public.models(id);
 
 
 --
 -- Name: procurement_templates fk_rails_e6aab61827; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_templates
-    ADD CONSTRAINT fk_rails_e6aab61827 FOREIGN KEY (model_id) REFERENCES models(id);
+ALTER TABLE ONLY public.procurement_templates
+    ADD CONSTRAINT fk_rails_e6aab61827 FOREIGN KEY (model_id) REFERENCES public.models(id);
 
 
 --
 -- Name: accessories_inventory_pools fk_rails_e9daa88f6c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY accessories_inventory_pools
-    ADD CONSTRAINT fk_rails_e9daa88f6c FOREIGN KEY (inventory_pool_id) REFERENCES inventory_pools(id);
+ALTER TABLE ONLY public.accessories_inventory_pools
+    ADD CONSTRAINT fk_rails_e9daa88f6c FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id);
 
 
 --
 -- Name: procurement_category_inspectors fk_rails_ed1149b98d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_category_inspectors
-    ADD CONSTRAINT fk_rails_ed1149b98d FOREIGN KEY (category_id) REFERENCES procurement_categories(id);
+ALTER TABLE ONLY public.procurement_category_inspectors
+    ADD CONSTRAINT fk_rails_ed1149b98d FOREIGN KEY (category_id) REFERENCES public.procurement_categories(id);
 
 
 --
 -- Name: items fk_rails_ed5bf219ac; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY items
-    ADD CONSTRAINT fk_rails_ed5bf219ac FOREIGN KEY (parent_id) REFERENCES items(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.items
+    ADD CONSTRAINT fk_rails_ed5bf219ac FOREIGN KEY (parent_id) REFERENCES public.items(id) ON DELETE SET NULL;
 
 
 --
 -- Name: contracts fk_rails_f191b5ed7a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY contracts
-    ADD CONSTRAINT fk_rails_f191b5ed7a FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE ONLY public.contracts
+    ADD CONSTRAINT fk_rails_f191b5ed7a FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
 -- Name: procurement_requests fk_rails_f365098d3c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_requests
-    ADD CONSTRAINT fk_rails_f365098d3c FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE ONLY public.procurement_requests
+    ADD CONSTRAINT fk_rails_f365098d3c FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
 -- Name: procurement_requests fk_rails_f60a954ec5; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_requests
-    ADD CONSTRAINT fk_rails_f60a954ec5 FOREIGN KEY (room_id) REFERENCES rooms(id);
+ALTER TABLE ONLY public.procurement_requests
+    ADD CONSTRAINT fk_rails_f60a954ec5 FOREIGN KEY (room_id) REFERENCES public.rooms(id);
 
 
 --
 -- Name: attachments fk_rails_f6d36cd48e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY attachments
-    ADD CONSTRAINT fk_rails_f6d36cd48e FOREIGN KEY (model_id) REFERENCES models(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.attachments
+    ADD CONSTRAINT fk_rails_f6d36cd48e FOREIGN KEY (model_id) REFERENCES public.models(id) ON DELETE CASCADE;
 
 
 --
 -- Name: procurement_category_inspectors fk_rails_f80c94fb1e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_category_inspectors
-    ADD CONSTRAINT fk_rails_f80c94fb1e FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE ONLY public.procurement_category_inspectors
+    ADD CONSTRAINT fk_rails_f80c94fb1e FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
 -- Name: options fk_rails_fd8397be78; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY options
-    ADD CONSTRAINT fk_rails_fd8397be78 FOREIGN KEY (inventory_pool_id) REFERENCES inventory_pools(id);
+ALTER TABLE ONLY public.options
+    ADD CONSTRAINT fk_rails_fd8397be78 FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id);
 
 
 --
 -- Name: procurement_templates fk_rails_fe27b0b24a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY procurement_templates
-    ADD CONSTRAINT fk_rails_fe27b0b24a FOREIGN KEY (category_id) REFERENCES procurement_categories(id);
+ALTER TABLE ONLY public.procurement_templates
+    ADD CONSTRAINT fk_rails_fe27b0b24a FOREIGN KEY (category_id) REFERENCES public.procurement_categories(id);
 
 
 --
 -- Name: images fkey_images_images_parent_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY images
-    ADD CONSTRAINT fkey_images_images_parent_id FOREIGN KEY (parent_id) REFERENCES images(id);
+ALTER TABLE ONLY public.images
+    ADD CONSTRAINT fkey_images_images_parent_id FOREIGN KEY (parent_id) REFERENCES public.images(id);
 
 
 --
 -- Name: users fkey_users_delegators; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY users
-    ADD CONSTRAINT fkey_users_delegators FOREIGN KEY (delegator_user_id) REFERENCES users(id);
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT fkey_users_delegators FOREIGN KEY (delegator_user_id) REFERENCES public.users(id);
 
 
 --
@@ -3815,7 +3812,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('217'),
 ('218'),
 ('219'),
-('220'),
 ('4'),
 ('5'),
 ('6'),
