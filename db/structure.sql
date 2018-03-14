@@ -1855,9 +1855,6 @@ CREATE TABLE schema_migrations (
 --
 
 CREATE TABLE settings (
-    smtp_address character varying,
-    smtp_port integer,
-    smtp_domain character varying,
     local_currency_string text,
     contract_terms text,
     contract_lending_party_string text,
@@ -1865,28 +1862,17 @@ CREATE TABLE settings (
     default_email text,
     deliver_order_notifications boolean,
     user_image_url character varying,
-    ldap_config character varying,
     logo_url character varying,
     mail_delivery_method character varying,
-    smtp_username character varying,
-    smtp_password character varying,
-    smtp_enable_starttls_auto boolean DEFAULT false NOT NULL,
-    smtp_openssl_verify_mode character varying DEFAULT 'none'::character varying NOT NULL,
-    time_zone character varying DEFAULT 'Bern'::character varying NOT NULL,
     disable_manage_section boolean DEFAULT false NOT NULL,
     disable_manage_section_message text,
     disable_borrow_section boolean DEFAULT false NOT NULL,
     disable_borrow_section_message text,
     text text,
     timeout_minutes integer DEFAULT 30 NOT NULL,
-    external_base_url character varying,
     custom_head_tag text,
-    sessions_max_lifetime_secs integer DEFAULT 432000,
-    sessions_force_uniqueness boolean DEFAULT true NOT NULL,
-    sessions_force_secure boolean DEFAULT false NOT NULL,
     documentation_link character varying DEFAULT ''::character varying,
     id integer DEFAULT 0 NOT NULL,
-    accept_server_secret_as_universal_password boolean DEFAULT true NOT NULL,
     CONSTRAINT id_is_zero CHECK ((id = 0))
 );
 
@@ -1901,6 +1887,30 @@ CREATE TABLE suppliers (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     note text DEFAULT ''::text
+);
+
+
+--
+-- Name: system_settings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE system_settings (
+    id integer DEFAULT 0 NOT NULL,
+    ldap_config jsonb,
+    smtp_address character varying DEFAULT 'localhost'::character varying,
+    smtp_domain character varying DEFAULT 'example.com'::character varying,
+    smtp_enable_starttls_auto boolean DEFAULT false NOT NULL,
+    smtp_openssl_verify_mode character varying DEFAULT 'none'::character varying NOT NULL,
+    smtp_password character varying,
+    smtp_port integer DEFAULT 25,
+    smtp_username character varying,
+    time_zone character varying DEFAULT 'Bern'::character varying NOT NULL,
+    external_base_url character varying DEFAULT 'http://localhost:3100'::character varying NOT NULL,
+    sessions_force_secure boolean DEFAULT false NOT NULL,
+    sessions_force_uniqueness boolean DEFAULT false NOT NULL,
+    sessions_max_lifetime_secs integer DEFAULT 32000,
+    accept_server_secret_as_universal_password boolean DEFAULT false NOT NULL,
+    CONSTRAINT id_is_zero CHECK ((id = 0))
 );
 
 
@@ -2419,6 +2429,14 @@ ALTER TABLE ONLY settings
 
 ALTER TABLE ONLY suppliers
     ADD CONSTRAINT suppliers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_settings system_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY system_settings
+    ADD CONSTRAINT system_settings_pkey PRIMARY KEY (id);
 
 
 --
@@ -3922,6 +3940,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('500'),
 ('501'),
 ('502'),
+('503'),
 ('6'),
 ('7'),
 ('8'),
