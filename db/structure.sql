@@ -1403,10 +1403,15 @@ CREATE TABLE public.languages (
 CREATE TABLE public.mail_templates (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     inventory_pool_id uuid,
-    language_id uuid,
-    name character varying,
-    format character varying,
-    body text
+    language_id uuid NOT NULL,
+    name character varying NOT NULL,
+    format character varying NOT NULL,
+    body text NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    is_template_template boolean NOT NULL,
+    type text NOT NULL,
+    CONSTRAINT mail_templates_check CHECK ((((inventory_pool_id IS NULL) AND (is_template_template IS TRUE)) OR ((inventory_pool_id IS NOT NULL) AND (is_template_template IS FALSE))))
 );
 
 
@@ -3812,6 +3817,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('217'),
 ('218'),
 ('219'),
+('220'),
 ('4'),
 ('5'),
 ('6'),
