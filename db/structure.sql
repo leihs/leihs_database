@@ -1705,7 +1705,7 @@ CREATE TABLE public.procurement_requests (
     CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
     CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY (ARRAY[('low'::character varying)::text, ('medium'::character varying)::text, ('high'::character varying)::text, ('mandatory'::character varying)::text]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
-    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[])))
+    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY (ARRAY[('aquisition'::character varying)::text, ('investment'::character varying)::text])))
 );
 
 
@@ -1829,7 +1829,7 @@ CREATE TABLE public.settings (
     contract_lending_party_string text,
     email_signature character varying NOT NULL,
     default_email character varying NOT NULL,
-    deliver_order_notifications boolean,
+    deliver_received_order_notifications boolean,
     user_image_url character varying,
     ldap_config character varying,
     logo_url character varying,
@@ -3818,6 +3818,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('218'),
 ('219'),
 ('220'),
+('221'),
 ('4'),
 ('5'),
 ('6'),
