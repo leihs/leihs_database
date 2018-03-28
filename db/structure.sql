@@ -2,12 +2,11 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.3
--- Dumped by pg_dump version 10.3
+-- Dumped from database version 9.5.5
+-- Dumped by pg_dump version 9.5.12
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -1216,6 +1215,17 @@ CREATE TABLE public.delegations_users (
 
 
 --
+-- Name: disabled_fields; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.disabled_fields (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    field_id character varying NOT NULL,
+    inventory_pool_id uuid NOT NULL
+);
+
+
+--
 -- Name: entitlement_groups; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1705,7 +1715,7 @@ CREATE TABLE public.procurement_requests (
     CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
     CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY (ARRAY[('low'::character varying)::text, ('medium'::character varying)::text, ('high'::character varying)::text, ('mandatory'::character varying)::text]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
-    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY (ARRAY[('aquisition'::character varying)::text, ('investment'::character varying)::text])))
+    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[])))
 );
 
 
@@ -1975,7 +1985,7 @@ CREATE TABLE public.workdays (
 
 
 --
--- Name: access_rights access_rights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: access_rights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.access_rights
@@ -1983,7 +1993,7 @@ ALTER TABLE ONLY public.access_rights
 
 
 --
--- Name: accessories accessories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: accessories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.accessories
@@ -1991,7 +2001,7 @@ ALTER TABLE ONLY public.accessories
 
 
 --
--- Name: addresses addresses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: addresses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.addresses
@@ -1999,7 +2009,7 @@ ALTER TABLE ONLY public.addresses
 
 
 --
--- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.ar_internal_metadata
@@ -2007,7 +2017,7 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 
 --
--- Name: attachments attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.attachments
@@ -2015,7 +2025,7 @@ ALTER TABLE ONLY public.attachments
 
 
 --
--- Name: audits audits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: audits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.audits
@@ -2023,7 +2033,7 @@ ALTER TABLE ONLY public.audits
 
 
 --
--- Name: authentication_systems authentication_systems_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: authentication_systems_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.authentication_systems
@@ -2031,7 +2041,7 @@ ALTER TABLE ONLY public.authentication_systems
 
 
 --
--- Name: buildings buildings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: buildings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.buildings
@@ -2039,7 +2049,7 @@ ALTER TABLE ONLY public.buildings
 
 
 --
--- Name: contracts contracts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: contracts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.contracts
@@ -2047,7 +2057,7 @@ ALTER TABLE ONLY public.contracts
 
 
 --
--- Name: database_authentications database_authentications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: database_authentications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.database_authentications
@@ -2055,7 +2065,15 @@ ALTER TABLE ONLY public.database_authentications
 
 
 --
--- Name: fields fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: disabled_fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.disabled_fields
+    ADD CONSTRAINT disabled_fields_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.fields
@@ -2063,7 +2081,7 @@ ALTER TABLE ONLY public.fields
 
 
 --
--- Name: entitlement_groups groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.entitlement_groups
@@ -2071,7 +2089,7 @@ ALTER TABLE ONLY public.entitlement_groups
 
 
 --
--- Name: hidden_fields hidden_fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: hidden_fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hidden_fields
@@ -2079,7 +2097,7 @@ ALTER TABLE ONLY public.hidden_fields
 
 
 --
--- Name: holidays holidays_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: holidays_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.holidays
@@ -2087,7 +2105,7 @@ ALTER TABLE ONLY public.holidays
 
 
 --
--- Name: images images_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: images_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.images
@@ -2095,7 +2113,7 @@ ALTER TABLE ONLY public.images
 
 
 --
--- Name: inventory_pools inventory_pools_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: inventory_pools_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.inventory_pools
@@ -2103,7 +2121,7 @@ ALTER TABLE ONLY public.inventory_pools
 
 
 --
--- Name: items items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.items
@@ -2111,7 +2129,7 @@ ALTER TABLE ONLY public.items
 
 
 --
--- Name: languages languages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: languages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.languages
@@ -2119,7 +2137,7 @@ ALTER TABLE ONLY public.languages
 
 
 --
--- Name: mail_templates mail_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: mail_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.mail_templates
@@ -2127,7 +2145,7 @@ ALTER TABLE ONLY public.mail_templates
 
 
 --
--- Name: model_group_links model_group_links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: model_group_links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.model_group_links
@@ -2135,7 +2153,7 @@ ALTER TABLE ONLY public.model_group_links
 
 
 --
--- Name: model_groups model_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: model_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.model_groups
@@ -2143,7 +2161,7 @@ ALTER TABLE ONLY public.model_groups
 
 
 --
--- Name: model_links model_links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: model_links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.model_links
@@ -2151,7 +2169,7 @@ ALTER TABLE ONLY public.model_links
 
 
 --
--- Name: models models_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: models_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.models
@@ -2159,7 +2177,7 @@ ALTER TABLE ONLY public.models
 
 
 --
--- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.notifications
@@ -2167,7 +2185,7 @@ ALTER TABLE ONLY public.notifications
 
 
 --
--- Name: numerators numerators_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: numerators_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.numerators
@@ -2175,7 +2193,7 @@ ALTER TABLE ONLY public.numerators
 
 
 --
--- Name: old_empty_contracts old_empty_contracts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: old_empty_contracts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.old_empty_contracts
@@ -2183,7 +2201,7 @@ ALTER TABLE ONLY public.old_empty_contracts
 
 
 --
--- Name: options options_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: options_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.options
@@ -2191,7 +2209,7 @@ ALTER TABLE ONLY public.options
 
 
 --
--- Name: orders orders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: orders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.orders
@@ -2199,7 +2217,7 @@ ALTER TABLE ONLY public.orders
 
 
 --
--- Name: entitlements partitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: partitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.entitlements
@@ -2207,7 +2225,7 @@ ALTER TABLE ONLY public.entitlements
 
 
 --
--- Name: procurement_accesses procurement_accesses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_accesses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_accesses
@@ -2215,7 +2233,7 @@ ALTER TABLE ONLY public.procurement_accesses
 
 
 --
--- Name: procurement_attachments procurement_attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_attachments
@@ -2223,7 +2241,7 @@ ALTER TABLE ONLY public.procurement_attachments
 
 
 --
--- Name: procurement_budget_limits procurement_budget_limits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_budget_limits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_budget_limits
@@ -2231,7 +2249,7 @@ ALTER TABLE ONLY public.procurement_budget_limits
 
 
 --
--- Name: procurement_budget_periods procurement_budget_periods_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_budget_periods_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_budget_periods
@@ -2239,7 +2257,7 @@ ALTER TABLE ONLY public.procurement_budget_periods
 
 
 --
--- Name: procurement_categories procurement_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_categories
@@ -2247,7 +2265,7 @@ ALTER TABLE ONLY public.procurement_categories
 
 
 --
--- Name: procurement_category_inspectors procurement_category_inspectors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_category_inspectors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_category_inspectors
@@ -2255,7 +2273,7 @@ ALTER TABLE ONLY public.procurement_category_inspectors
 
 
 --
--- Name: procurement_images procurement_images_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_images_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_images
@@ -2263,7 +2281,7 @@ ALTER TABLE ONLY public.procurement_images
 
 
 --
--- Name: procurement_main_categories procurement_main_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_main_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_main_categories
@@ -2271,7 +2289,7 @@ ALTER TABLE ONLY public.procurement_main_categories
 
 
 --
--- Name: procurement_organizations procurement_organizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_organizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_organizations
@@ -2279,7 +2297,7 @@ ALTER TABLE ONLY public.procurement_organizations
 
 
 --
--- Name: procurement_requests procurement_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_requests
@@ -2287,7 +2305,7 @@ ALTER TABLE ONLY public.procurement_requests
 
 
 --
--- Name: procurement_settings procurement_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_settings
@@ -2295,7 +2313,7 @@ ALTER TABLE ONLY public.procurement_settings
 
 
 --
--- Name: procurement_templates procurement_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_templates
@@ -2303,7 +2321,7 @@ ALTER TABLE ONLY public.procurement_templates
 
 
 --
--- Name: procurement_users_filters procurement_users_filters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_users_filters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_users_filters
@@ -2311,7 +2329,7 @@ ALTER TABLE ONLY public.procurement_users_filters
 
 
 --
--- Name: properties properties_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: properties_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.properties
@@ -2319,7 +2337,7 @@ ALTER TABLE ONLY public.properties
 
 
 --
--- Name: reservations reservations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: reservations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.reservations
@@ -2327,7 +2345,7 @@ ALTER TABLE ONLY public.reservations
 
 
 --
--- Name: rooms rooms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: rooms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.rooms
@@ -2335,7 +2353,7 @@ ALTER TABLE ONLY public.rooms
 
 
 --
--- Name: settings settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.settings
@@ -2343,7 +2361,7 @@ ALTER TABLE ONLY public.settings
 
 
 --
--- Name: suppliers suppliers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: suppliers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.suppliers
@@ -2351,7 +2369,7 @@ ALTER TABLE ONLY public.suppliers
 
 
 --
--- Name: user_sessions user_sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: user_sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.user_sessions
@@ -2359,7 +2377,7 @@ ALTER TABLE ONLY public.user_sessions
 
 
 --
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
@@ -2367,7 +2385,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: workdays workdays_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: workdays_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.workdays
@@ -2540,6 +2558,27 @@ CREATE INDEX index_delegations_users_on_delegation_id ON public.delegations_user
 --
 
 CREATE UNIQUE INDEX index_delegations_users_on_user_id_and_delegation_id ON public.delegations_users USING btree (user_id, delegation_id);
+
+
+--
+-- Name: index_disabled_fields_on_field_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_disabled_fields_on_field_id ON public.disabled_fields USING btree (field_id);
+
+
+--
+-- Name: index_disabled_fields_on_field_id_and_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_disabled_fields_on_field_id_and_inventory_pool_id ON public.disabled_fields USING btree (field_id, inventory_pool_id);
+
+
+--
+-- Name: index_disabled_fields_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_disabled_fields_on_inventory_pool_id ON public.disabled_fields USING btree (inventory_pool_id);
 
 
 --
@@ -3019,133 +3058,133 @@ CREATE INDEX user_index ON public.audits USING btree (user_id, user_type);
 
 
 --
--- Name: fields fields_insert_check_trigger; Type: TRIGGER; Schema: public; Owner: -
+-- Name: fields_insert_check_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER fields_insert_check_trigger BEFORE INSERT ON public.fields FOR EACH ROW EXECUTE PROCEDURE public.fields_insert_check_function();
 
 
 --
--- Name: fields fields_update_check_trigger; Type: TRIGGER; Schema: public; Owner: -
+-- Name: fields_update_check_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER fields_update_check_trigger BEFORE UPDATE ON public.fields FOR EACH ROW EXECUTE PROCEDURE public.fields_update_check_function();
 
 
 --
--- Name: reservations trigger_check_closed_reservations_contract_state; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_closed_reservations_contract_state; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_closed_reservations_contract_state AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_closed_reservations_contract_state();
 
 
 --
--- Name: contracts trigger_check_contract_has_at_least_one_reservation; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_contract_has_at_least_one_reservation; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_contract_has_at_least_one_reservation AFTER INSERT OR UPDATE ON public.contracts DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_contract_has_at_least_one_reservation();
 
 
 --
--- Name: rooms trigger_check_general_building_id_for_general_room; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_general_building_id_for_general_room; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_general_building_id_for_general_room AFTER UPDATE ON public.rooms NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.check_general_building_id_for_general_room();
 
 
 --
--- Name: reservations trigger_check_item_line_state_consistency; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_item_line_state_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_item_line_state_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_item_line_state_consistency();
 
 
 --
--- Name: reservations trigger_check_option_line_state_consistency; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_option_line_state_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_option_line_state_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_option_line_state_consistency();
 
 
 --
--- Name: reservations trigger_check_reservation_contract_inventory_pool_id_consistenc; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_reservation_contract_inventory_pool_id_consistenc; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_reservation_contract_inventory_pool_id_consistenc AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_reservation_contract_inventory_pool_id_consistency();
 
 
 --
--- Name: reservations trigger_check_reservation_contract_user_id_consistency; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_reservation_contract_user_id_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_reservation_contract_user_id_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_reservation_contract_user_id_consistency();
 
 
 --
--- Name: reservations trigger_check_reservation_order_inventory_pool_id_consistency; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_reservation_order_inventory_pool_id_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_reservation_order_inventory_pool_id_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_reservation_order_inventory_pool_id_consistency();
 
 
 --
--- Name: reservations trigger_check_reservation_order_user_id_consistency; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_reservation_order_user_id_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_reservation_order_user_id_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_reservation_order_user_id_consistency();
 
 
 --
--- Name: contracts trigger_check_reservations_contracts_state_consistency; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_check_reservations_contracts_state_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_reservations_contracts_state_consistency AFTER INSERT OR UPDATE ON public.contracts DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_reservations_contracts_state_consistency();
 
 
 --
--- Name: reservations trigger_delete_empty_order; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_delete_empty_order; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_delete_empty_order AFTER DELETE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.delete_empty_order();
 
 
 --
--- Name: procurement_accesses trigger_delete_procurement_users_filters_after_procurement_acce; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_delete_procurement_users_filters_after_procurement_acce; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_delete_procurement_users_filters_after_procurement_acce AFTER DELETE ON public.procurement_accesses DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.delete_procurement_users_filters_after_procurement_accesses();
 
 
 --
--- Name: users trigger_delete_procurement_users_filters_after_users; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_delete_procurement_users_filters_after_users; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_delete_procurement_users_filters_after_users AFTER DELETE ON public.users DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.delete_procurement_users_filters_after_users();
 
 
 --
--- Name: buildings trigger_ensure_general_building_cannot_be_deleted; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_ensure_general_building_cannot_be_deleted; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_ensure_general_building_cannot_be_deleted AFTER DELETE ON public.buildings NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.ensure_general_building_cannot_be_deleted();
 
 
 --
--- Name: rooms trigger_ensure_general_room_cannot_be_deleted; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_ensure_general_room_cannot_be_deleted; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE CONSTRAINT TRIGGER trigger_ensure_general_room_cannot_be_deleted AFTER DELETE ON public.rooms NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.ensure_general_room_cannot_be_deleted();
 
 
 --
--- Name: fields trigger_fields_delete_check_function; Type: TRIGGER; Schema: public; Owner: -
+-- Name: trigger_fields_delete_check_function; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trigger_fields_delete_check_function BEFORE DELETE ON public.fields FOR EACH ROW EXECUTE PROCEDURE public.fields_delete_check_function();
 
 
 --
--- Name: hidden_fields fk_rails_00a4ef0c4f; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_00a4ef0c4f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hidden_fields
@@ -3153,7 +3192,7 @@ ALTER TABLE ONLY public.hidden_fields
 
 
 --
--- Name: items fk_rails_042cf7b23c; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_042cf7b23c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.items
@@ -3161,7 +3200,7 @@ ALTER TABLE ONLY public.items
 
 
 --
--- Name: procurement_organizations fk_rails_0731e8b712; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_0731e8b712; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_organizations
@@ -3169,7 +3208,7 @@ ALTER TABLE ONLY public.procurement_organizations
 
 
 --
--- Name: items fk_rails_0ed18b3bf9; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_0ed18b3bf9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.items
@@ -3177,7 +3216,7 @@ ALTER TABLE ONLY public.items
 
 
 --
--- Name: model_links fk_rails_11add1a9a3; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_11add1a9a3; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.model_links
@@ -3185,7 +3224,7 @@ ALTER TABLE ONLY public.model_links
 
 
 --
--- Name: reservations fk_rails_151794e412; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_151794e412; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.reservations
@@ -3193,7 +3232,7 @@ ALTER TABLE ONLY public.reservations
 
 
 --
--- Name: contracts fk_rails_1bf8633565; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_1bf8633565; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.contracts
@@ -3201,7 +3240,7 @@ ALTER TABLE ONLY public.contracts
 
 
 --
--- Name: procurement_budget_limits fk_rails_1c5f9021ad; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_1c5f9021ad; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_budget_limits
@@ -3209,7 +3248,15 @@ ALTER TABLE ONLY public.procurement_budget_limits
 
 
 --
--- Name: procurement_requests fk_rails_214a7de1ff; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_1d39ce9bb5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.disabled_fields
+    ADD CONSTRAINT fk_rails_1d39ce9bb5 FOREIGN KEY (field_id) REFERENCES public.fields(id) ON DELETE CASCADE;
+
+
+--
+-- Name: fk_rails_214a7de1ff; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_requests
@@ -3217,7 +3264,7 @@ ALTER TABLE ONLY public.procurement_requests
 
 
 --
--- Name: users fk_rails_330f34f125; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_330f34f125; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
@@ -3225,7 +3272,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: procurement_attachments fk_rails_396a61ca60; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_396a61ca60; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_attachments
@@ -3233,7 +3280,7 @@ ALTER TABLE ONLY public.procurement_attachments
 
 
 --
--- Name: reservations fk_rails_3cc4562273; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_3cc4562273; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.reservations
@@ -3241,7 +3288,7 @@ ALTER TABLE ONLY public.reservations
 
 
 --
--- Name: hidden_fields fk_rails_3dac013d86; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_3dac013d86; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hidden_fields
@@ -3249,7 +3296,7 @@ ALTER TABLE ONLY public.hidden_fields
 
 
 --
--- Name: mail_templates fk_rails_3e8b923972; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_3e8b923972; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.mail_templates
@@ -3257,7 +3304,7 @@ ALTER TABLE ONLY public.mail_templates
 
 
 --
--- Name: entitlements fk_rails_44495fc6cf; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_44495fc6cf; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.entitlements
@@ -3265,7 +3312,7 @@ ALTER TABLE ONLY public.entitlements
 
 
 --
--- Name: users fk_rails_45f4f12508; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_45f4f12508; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
@@ -3273,7 +3320,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: entitlement_groups fk_rails_45f96f9df2; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_45f96f9df2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.entitlement_groups
@@ -3281,7 +3328,7 @@ ALTER TABLE ONLY public.entitlement_groups
 
 
 --
--- Name: procurement_templates fk_rails_46cc05bf71; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_46cc05bf71; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_templates
@@ -3289,7 +3336,7 @@ ALTER TABLE ONLY public.procurement_templates
 
 
 --
--- Name: procurement_images fk_rails_47fed491ad; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_47fed491ad; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_images
@@ -3297,7 +3344,7 @@ ALTER TABLE ONLY public.procurement_images
 
 
 --
--- Name: reservations fk_rails_48a92fce51; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_48a92fce51; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.reservations
@@ -3305,7 +3352,7 @@ ALTER TABLE ONLY public.reservations
 
 
 --
--- Name: model_group_links fk_rails_48e1ccdd03; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_48e1ccdd03; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.model_group_links
@@ -3313,7 +3360,7 @@ ALTER TABLE ONLY public.model_group_links
 
 
 --
--- Name: procurement_requests fk_rails_4c51bafad3; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_4c51bafad3; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_requests
@@ -3321,7 +3368,7 @@ ALTER TABLE ONLY public.procurement_requests
 
 
 --
--- Name: reservations fk_rails_4d0c0195f0; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_4d0c0195f0; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.reservations
@@ -3329,7 +3376,7 @@ ALTER TABLE ONLY public.reservations
 
 
 --
--- Name: entitlement_groups_users fk_rails_4e63edbd27; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_4e63edbd27; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.entitlement_groups_users
@@ -3337,7 +3384,7 @@ ALTER TABLE ONLY public.entitlement_groups_users
 
 
 --
--- Name: procurement_requests fk_rails_51707743b7; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_51707743b7; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_requests
@@ -3345,7 +3392,7 @@ ALTER TABLE ONLY public.procurement_requests
 
 
 --
--- Name: items fk_rails_538506beaf; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_538506beaf; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.items
@@ -3353,7 +3400,7 @@ ALTER TABLE ONLY public.items
 
 
 --
--- Name: accessories fk_rails_54c6f19548; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_54c6f19548; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.accessories
@@ -3361,7 +3408,7 @@ ALTER TABLE ONLY public.accessories
 
 
 --
--- Name: models_compatibles fk_rails_5c311e46b1; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_5c311e46b1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.models_compatibles
@@ -3369,7 +3416,7 @@ ALTER TABLE ONLY public.models_compatibles
 
 
 --
--- Name: reservations fk_rails_5cc2043d96; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_5cc2043d96; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.reservations
@@ -3377,7 +3424,7 @@ ALTER TABLE ONLY public.reservations
 
 
 --
--- Name: mail_templates fk_rails_5d00b5b086; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_5d00b5b086; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.mail_templates
@@ -3385,7 +3432,7 @@ ALTER TABLE ONLY public.mail_templates
 
 
 --
--- Name: procurement_images fk_rails_62917a6a8f; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_62917a6a8f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_images
@@ -3393,7 +3440,7 @@ ALTER TABLE ONLY public.procurement_images
 
 
 --
--- Name: entitlements fk_rails_69c88ff594; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_69c88ff594; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.entitlements
@@ -3401,7 +3448,7 @@ ALTER TABLE ONLY public.entitlements
 
 
 --
--- Name: inventory_pools fk_rails_6a55965722; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_6a55965722; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.inventory_pools
@@ -3409,7 +3456,7 @@ ALTER TABLE ONLY public.inventory_pools
 
 
 --
--- Name: inventory_pools_model_groups fk_rails_6a7781d99f; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_6a7781d99f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.inventory_pools_model_groups
@@ -3417,7 +3464,7 @@ ALTER TABLE ONLY public.inventory_pools_model_groups
 
 
 --
--- Name: reservations fk_rails_6f10314351; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_6f10314351; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.reservations
@@ -3425,7 +3472,7 @@ ALTER TABLE ONLY public.reservations
 
 
 --
--- Name: attachments fk_rails_753607b7c1; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_753607b7c1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.attachments
@@ -3433,7 +3480,7 @@ ALTER TABLE ONLY public.attachments
 
 
 --
--- Name: entitlement_groups_users fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.entitlement_groups_users
@@ -3441,7 +3488,7 @@ ALTER TABLE ONLY public.entitlement_groups_users
 
 
 --
--- Name: database_authentications fk_rails_85650bffa9; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_85650bffa9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.database_authentications
@@ -3449,7 +3496,7 @@ ALTER TABLE ONLY public.database_authentications
 
 
 --
--- Name: items fk_rails_8757b4d49c; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_8757b4d49c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.items
@@ -3457,7 +3504,7 @@ ALTER TABLE ONLY public.items
 
 
 --
--- Name: user_sessions fk_rails_8987cee3fd; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_8987cee3fd; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.user_sessions
@@ -3465,7 +3512,7 @@ ALTER TABLE ONLY public.user_sessions
 
 
 --
--- Name: reservations fk_rails_8dc1da71d1; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_8dc1da71d1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.reservations
@@ -3473,7 +3520,7 @@ ALTER TABLE ONLY public.reservations
 
 
 --
--- Name: items fk_rails_9353db44a2; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_9353db44a2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.items
@@ -3481,7 +3528,7 @@ ALTER TABLE ONLY public.items
 
 
 --
--- Name: reservations fk_rails_943a884838; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_943a884838; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.reservations
@@ -3489,7 +3536,7 @@ ALTER TABLE ONLY public.reservations
 
 
 --
--- Name: accessories_inventory_pools fk_rails_9511c9a747; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_9511c9a747; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.accessories_inventory_pools
@@ -3497,7 +3544,7 @@ ALTER TABLE ONLY public.accessories_inventory_pools
 
 
 --
--- Name: model_links fk_rails_9b7295b085; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_9b7295b085; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.model_links
@@ -3505,7 +3552,7 @@ ALTER TABLE ONLY public.model_links
 
 
 --
--- Name: user_sessions fk_rails_9fa262d742; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_9fa262d742; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.user_sessions
@@ -3513,7 +3560,7 @@ ALTER TABLE ONLY public.user_sessions
 
 
 --
--- Name: workdays fk_rails_a18bc267df; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_a18bc267df; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.workdays
@@ -3521,7 +3568,7 @@ ALTER TABLE ONLY public.workdays
 
 
 --
--- Name: rooms fk_rails_a3957b23a8; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_a3957b23a8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.rooms
@@ -3529,7 +3576,7 @@ ALTER TABLE ONLY public.rooms
 
 
 --
--- Name: properties fk_rails_a52b96ad3d; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_a52b96ad3d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.properties
@@ -3537,7 +3584,15 @@ ALTER TABLE ONLY public.properties
 
 
 --
--- Name: reservations fk_rails_a863d81c8a; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_a62b923fbd; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.disabled_fields
+    ADD CONSTRAINT fk_rails_a62b923fbd FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id) ON DELETE CASCADE;
+
+
+--
+-- Name: fk_rails_a863d81c8a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.reservations
@@ -3545,7 +3600,7 @@ ALTER TABLE ONLY public.reservations
 
 
 --
--- Name: notifications fk_rails_b080fb4855; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_b080fb4855; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.notifications
@@ -3553,7 +3608,7 @@ ALTER TABLE ONLY public.notifications
 
 
 --
--- Name: access_rights fk_rails_b36d97eb0c; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_b36d97eb0c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.access_rights
@@ -3561,7 +3616,7 @@ ALTER TABLE ONLY public.access_rights
 
 
 --
--- Name: delegations_users fk_rails_b5f7f9c898; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_b5f7f9c898; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.delegations_users
@@ -3569,7 +3624,7 @@ ALTER TABLE ONLY public.delegations_users
 
 
 --
--- Name: procurement_requests fk_rails_b6213e1ee9; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_b6213e1ee9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_requests
@@ -3577,7 +3632,7 @@ ALTER TABLE ONLY public.procurement_requests
 
 
 --
--- Name: procurement_requests fk_rails_b740f37e3d; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_b740f37e3d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_requests
@@ -3585,7 +3640,7 @@ ALTER TABLE ONLY public.procurement_requests
 
 
 --
--- Name: procurement_budget_limits fk_rails_beb637d785; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_beb637d785; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_budget_limits
@@ -3593,7 +3648,7 @@ ALTER TABLE ONLY public.procurement_budget_limits
 
 
 --
--- Name: procurement_requests fk_rails_bf7bec026c; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_bf7bec026c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_requests
@@ -3601,7 +3656,7 @@ ALTER TABLE ONLY public.procurement_requests
 
 
 --
--- Name: access_rights fk_rails_c10a7fd1fd; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_c10a7fd1fd; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.access_rights
@@ -3609,7 +3664,7 @@ ALTER TABLE ONLY public.access_rights
 
 
 --
--- Name: procurement_accesses fk_rails_c116e35025; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_c116e35025; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_accesses
@@ -3617,7 +3672,7 @@ ALTER TABLE ONLY public.procurement_accesses
 
 
 --
--- Name: holidays fk_rails_c189a29194; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_c189a29194; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.holidays
@@ -3625,7 +3680,7 @@ ALTER TABLE ONLY public.holidays
 
 
 --
--- Name: inventory_pools_model_groups fk_rails_cb04742a0b; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_cb04742a0b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.inventory_pools_model_groups
@@ -3633,7 +3688,7 @@ ALTER TABLE ONLY public.inventory_pools_model_groups
 
 
 --
--- Name: model_group_links fk_rails_d4425f3184; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_d4425f3184; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.model_group_links
@@ -3641,7 +3696,7 @@ ALTER TABLE ONLY public.model_group_links
 
 
 --
--- Name: delegations_users fk_rails_df1fb72b34; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_df1fb72b34; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.delegations_users
@@ -3649,7 +3704,7 @@ ALTER TABLE ONLY public.delegations_users
 
 
 --
--- Name: models_compatibles fk_rails_e63411efbd; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_e63411efbd; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.models_compatibles
@@ -3657,7 +3712,7 @@ ALTER TABLE ONLY public.models_compatibles
 
 
 --
--- Name: procurement_templates fk_rails_e6aab61827; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_e6aab61827; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_templates
@@ -3665,7 +3720,7 @@ ALTER TABLE ONLY public.procurement_templates
 
 
 --
--- Name: accessories_inventory_pools fk_rails_e9daa88f6c; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_e9daa88f6c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.accessories_inventory_pools
@@ -3673,7 +3728,7 @@ ALTER TABLE ONLY public.accessories_inventory_pools
 
 
 --
--- Name: procurement_category_inspectors fk_rails_ed1149b98d; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_ed1149b98d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_category_inspectors
@@ -3681,7 +3736,7 @@ ALTER TABLE ONLY public.procurement_category_inspectors
 
 
 --
--- Name: items fk_rails_ed5bf219ac; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_ed5bf219ac; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.items
@@ -3689,7 +3744,7 @@ ALTER TABLE ONLY public.items
 
 
 --
--- Name: contracts fk_rails_f191b5ed7a; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_f191b5ed7a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.contracts
@@ -3697,7 +3752,7 @@ ALTER TABLE ONLY public.contracts
 
 
 --
--- Name: procurement_requests fk_rails_f365098d3c; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_f365098d3c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_requests
@@ -3705,7 +3760,7 @@ ALTER TABLE ONLY public.procurement_requests
 
 
 --
--- Name: procurement_requests fk_rails_f60a954ec5; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_f60a954ec5; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_requests
@@ -3713,7 +3768,7 @@ ALTER TABLE ONLY public.procurement_requests
 
 
 --
--- Name: attachments fk_rails_f6d36cd48e; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_f6d36cd48e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.attachments
@@ -3721,7 +3776,7 @@ ALTER TABLE ONLY public.attachments
 
 
 --
--- Name: procurement_category_inspectors fk_rails_f80c94fb1e; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_f80c94fb1e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_category_inspectors
@@ -3729,7 +3784,7 @@ ALTER TABLE ONLY public.procurement_category_inspectors
 
 
 --
--- Name: options fk_rails_fd8397be78; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_fd8397be78; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.options
@@ -3737,7 +3792,7 @@ ALTER TABLE ONLY public.options
 
 
 --
--- Name: procurement_templates fk_rails_fe27b0b24a; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_rails_fe27b0b24a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_templates
@@ -3745,7 +3800,7 @@ ALTER TABLE ONLY public.procurement_templates
 
 
 --
--- Name: images fkey_images_images_parent_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fkey_images_images_parent_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.images
@@ -3753,7 +3808,7 @@ ALTER TABLE ONLY public.images
 
 
 --
--- Name: users fkey_users_delegators; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fkey_users_delegators; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
@@ -3819,6 +3874,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('219'),
 ('220'),
 ('221'),
+('222'),
 ('4'),
 ('5'),
 ('6'),
