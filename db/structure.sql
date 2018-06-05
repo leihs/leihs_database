@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.5.5
+-- Dumped from database version 9.5.12
 -- Dumped by pg_dump version 9.5.12
 
 SET statement_timeout = 0;
@@ -3875,6 +3875,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('220'),
 ('221'),
 ('222'),
+('223'),
 ('4'),
 ('5'),
 ('6'),
