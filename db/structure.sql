@@ -1855,6 +1855,21 @@ CREATE TABLE public.procurement_templates (
 
 
 --
+-- Name: procurement_uploads; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.procurement_uploads (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    filename character varying NOT NULL,
+    content_type character varying,
+    size integer NOT NULL,
+    content text NOT NULL,
+    metadata json,
+    created_at timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: procurement_users_filters; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2461,6 +2476,14 @@ ALTER TABLE ONLY public.procurement_settings
 
 ALTER TABLE ONLY public.procurement_templates
     ADD CONSTRAINT procurement_templates_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: procurement_uploads procurement_uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.procurement_uploads
+    ADD CONSTRAINT procurement_uploads_pkey PRIMARY KEY (id);
 
 
 --
@@ -4217,6 +4240,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('313'),
 ('314'),
 ('315'),
+('316'),
 ('4'),
 ('5'),
 ('500'),
