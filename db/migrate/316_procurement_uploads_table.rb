@@ -5,7 +5,7 @@ class ProcurementUploadsTable < ActiveRecord::Migration[5.0]
       t.string :content_type
       t.integer :size, null: false
       t.text :content, null: false
-      t.json :metadata #, null: false
+      t.json :metadata, null: false
       t.datetime :created_at, null: false, default: -> { 'NOW()' }
     end
   end

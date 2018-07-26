@@ -1864,7 +1864,7 @@ CREATE TABLE public.procurement_uploads (
     content_type character varying,
     size integer NOT NULL,
     content text NOT NULL,
-    metadata json,
+    metadata json NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL
 );
 
