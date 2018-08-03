@@ -1804,7 +1804,7 @@ CREATE TABLE public.procurement_requests (
     priority character varying DEFAULT 'normal'::character varying NOT NULL,
     replacement boolean DEFAULT true NOT NULL,
     receiver character varying,
-    motivation character varying,
+    motivation character varying NOT NULL,
     inspection_comment character varying,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     inspector_priority character varying DEFAULT 'medium'::character varying NOT NULL,

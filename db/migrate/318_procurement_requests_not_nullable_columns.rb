@@ -1,5 +1,7 @@
 class ProcurementRequestsNotNullableColumns < ActiveRecord::Migration[5.0]
   def change
-    change_column :procurement_requests, :replacement, :boolean, null: false
+    [:motivation, :replacement].each do |c|
+      change_column_null :procurement_requests, c, false
+    end
   end
 end
