@@ -23,13 +23,17 @@ class ProcurementRequestsSpecialColumns < ActiveRecord::Migration[5.0]
 
     MigrationProcurementRequest.all.each do |req|
       ################# SUPPLIER ################
-      if req.supplier_name
-        if supplier = MigrationSupplier.find_by_name(req.supplier_name) 
-          req.update_attributes!(supplier_id: supplier.id)
+      if req.supplier_id and req.supplier_name
+        supplier = MigrationSupplier.find(req.supplier_id) 
+        if supplier.name == req.supplier_name
+          req.update_attributes!(supplier_name: nil)
         else
-          new_supplier = MigrationSupplier.create(name: req.supplier_name)
-          req.update_attributes!(supplier_id: new_supplier.id)
+          req.update_attributes!(supplier_id: nil)
         end
+      end
+
+      if req.supplier_name
+        req.update_attributes!(supplier_name: req.supplier_name.strip)
       end
 
       ################# MODEL ###################
@@ -47,9 +51,7 @@ class ProcurementRequestsSpecialColumns < ActiveRecord::Migration[5.0]
       end
     end
 
-    remove_column :procurement_requests, :supplier_name
-
-    [:article_name].each do |col|
+    [:supplier_name, :article_name].each do |col|
       execute <<-SQL
         ALTER TABLE procurement_requests
         ADD CONSTRAINT #{col}_is_not_blank
@@ -63,6 +65,16 @@ class ProcurementRequestsSpecialColumns < ActiveRecord::Migration[5.0]
         CHECK (
           (model_id IS NOT NULL AND article_name IS NULL) OR
           (model_id IS NULL AND article_name IS NOT NULL)
+        );
+    SQL
+
+    execute <<-SQL.strip_heredoc
+      ALTER TABLE procurement_requests
+        ADD CONSTRAINT check_either_supplier_id_or_supplier_name
+        CHECK (
+          (supplier_id IS NOT NULL AND supplier_name IS NULL) OR
+          (supplier_id IS NULL AND supplier_name IS NOT NULL) OR
+          (supplier_id IS NULL AND supplier_name IS NULL)
         );
     SQL
   end

@@ -20,35 +20,37 @@ class ProcurementTemplatesSpecialColumns < ActiveRecord::Migration[5.0]
   def change
     change_column :procurement_templates, :article_name, :text, null: true
 
-    MigrationProcurementTemplate.all.each do |tmpl|
+    MigrationProcurementTemplate.all.each do |req|
       ################# SUPPLIER ################
-      if tmpl.supplier_name
-        if supplier = MigrationSupplier.find_by_name(tmpl.supplier_name) 
-          tmpl.update_attributes!(supplier_id: supplier.id)
+      if req.supplier_id and req.supplier_name
+        supplier = MigrationSupplier.find(req.supplier_id) 
+        if supplier.name == req.supplier_name
+          req.update_attributes!(supplier_name: nil)
         else
-          new_supplier = MigrationSupplier.create(name: tmpl.supplier_name)
-          tmpl.update_attributes!(supplier_id: new_supplier.id)
+          req.update_attributes!(supplier_id: nil)
         end
+      end
+
+      if req.supplier_name
+        req.update_attributes!(supplier_name: req.supplier_name.strip)
       end
 
       ################# MODEL ###################
-      if tmpl.model_id and tmpl.article_name
-        model = MigrationModel.find(tmpl.model_id) 
-        if model.name == tmpl.article_name
-          tmpl.update_attributes!(article_name: nil)
+      if req.model_id and req.article_name
+        model = MigrationModel.find(req.model_id) 
+        if model.name == req.article_name
+          req.update_attributes!(article_name: nil)
         else
-          tmpl.update_attributes!(model_id: nil)
+          req.update_attributes!(model_id: nil)
         end
       end
 
-      if tmpl.article_name
-        tmpl.update_attributes!(article_name: tmpl.article_name.strip)
+      if req.article_name
+        req.update_attributes!(article_name: req.article_name.strip)
       end
     end
 
-    remove_column :procurement_templates, :supplier_name
-
-    [:article_name].each do |col|
+    [:supplier_name, :article_name].each do |col|
       execute <<-SQL
         ALTER TABLE procurement_templates
         ADD CONSTRAINT #{col}_is_not_blank
@@ -62,6 +64,16 @@ class ProcurementTemplatesSpecialColumns < ActiveRecord::Migration[5.0]
         CHECK (
           (model_id IS NOT NULL AND article_name IS NULL) OR
           (model_id IS NULL AND article_name IS NOT NULL)
+        );
+    SQL
+
+    execute <<-SQL.strip_heredoc
+      ALTER TABLE procurement_templates
+        ADD CONSTRAINT check_either_supplier_id_or_supplier_name
+        CHECK (
+          (supplier_id IS NOT NULL AND supplier_name IS NULL) OR
+          (supplier_id IS NULL AND supplier_name IS NOT NULL) OR
+          (supplier_id IS NULL AND supplier_name IS NULL)
         );
     SQL
   end
