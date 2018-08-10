@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.9
--- Dumped by pg_dump version 9.6.9
+-- Dumped from database version 10.4
+-- Dumped by pg_dump version 10.4
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -55,6 +55,20 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
 --
 
 COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
+
+
+--
+-- Name: unaccent; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION unaccent; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION unaccent IS 'text search dictionary that removes accents';
 
 
 --
@@ -343,32 +357,6 @@ CREATE FUNCTION public.delete_empty_order() RETURNS trigger
         RETURN OLD;
       END;
       $$;
-
-
---
--- Name: delete_procurement_users_filters_after_procurement_accesses(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.delete_procurement_users_filters_after_procurement_accesses() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-  IF
-    (EXISTS
-      (SELECT 1
-       FROM procurement_users_filters
-       WHERE procurement_users_filters.user_id = OLD.user_id)
-     AND NOT EXISTS
-      (SELECT 1
-       FROM procurement_accesses
-       WHERE procurement_accesses.user_id = OLD.user_id))
-  THEN
-    DELETE FROM procurement_users_filters
-    WHERE procurement_users_filters.user_id = OLD.user_id;
-  END IF;
-  RETURN NEW;
-END;
-$$;
 
 
 --
@@ -1657,14 +1645,11 @@ CREATE TABLE public.orders (
 
 
 --
--- Name: procurement_accesses; Type: TABLE; Schema: public; Owner: -
+-- Name: procurement_admins; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.procurement_accesses (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    user_id uuid,
-    organization_id uuid,
-    is_admin boolean
+CREATE TABLE public.procurement_admins (
+    user_id uuid NOT NULL
 );
 
 
@@ -1703,9 +1688,9 @@ CREATE TABLE public.procurement_budget_limits (
 CREATE TABLE public.procurement_budget_periods (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     name character varying NOT NULL,
-    inspection_start_date date NOT NULL,
-    end_date date NOT NULL,
-    created_at timestamp without time zone NOT NULL,
+    inspection_start_date timestamp with time zone NOT NULL,
+    end_date timestamp with time zone NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL
 );
 
@@ -1716,10 +1701,12 @@ CREATE TABLE public.procurement_budget_periods (
 
 CREATE TABLE public.procurement_categories (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    name character varying,
+    name character varying NOT NULL,
     main_category_id uuid,
     general_ledger_account character varying,
-    cost_center character varying
+    cost_center character varying,
+    procurement_account character varying,
+    CONSTRAINT name_is_not_blank CHECK (((name)::text !~ '^\s*$'::text))
 );
 
 
@@ -1728,6 +1715,17 @@ CREATE TABLE public.procurement_categories (
 --
 
 CREATE TABLE public.procurement_category_inspectors (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    user_id uuid NOT NULL,
+    category_id uuid NOT NULL
+);
+
+
+--
+-- Name: procurement_category_viewers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.procurement_category_viewers (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     user_id uuid NOT NULL,
     category_id uuid NOT NULL
@@ -1745,7 +1743,6 @@ CREATE TABLE public.procurement_images (
     content character varying NOT NULL,
     filename character varying NOT NULL,
     size integer,
-    parent_id uuid,
     metadata json
 );
 
@@ -1756,7 +1753,8 @@ CREATE TABLE public.procurement_images (
 
 CREATE TABLE public.procurement_main_categories (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    name character varying
+    name character varying NOT NULL,
+    CONSTRAINT name_is_not_blank CHECK (((name)::text !~ '^\s*$'::text))
 );
 
 
@@ -1766,9 +1764,20 @@ CREATE TABLE public.procurement_main_categories (
 
 CREATE TABLE public.procurement_organizations (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    name character varying,
+    name character varying NOT NULL,
     shortname character varying,
     parent_id uuid
+);
+
+
+--
+-- Name: procurement_requesters_organizations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.procurement_requesters_organizations (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    user_id uuid NOT NULL,
+    organization_id uuid NOT NULL
 );
 
 
@@ -1778,14 +1787,14 @@ CREATE TABLE public.procurement_organizations (
 
 CREATE TABLE public.procurement_requests (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    budget_period_id uuid,
+    budget_period_id uuid NOT NULL,
     category_id uuid NOT NULL,
-    user_id uuid,
-    organization_id uuid,
+    user_id uuid NOT NULL,
+    organization_id uuid NOT NULL,
     model_id uuid,
     supplier_id uuid,
     template_id uuid,
-    article_name character varying NOT NULL,
+    article_name text,
     article_number character varying,
     requested_quantity integer NOT NULL,
     approved_quantity integer,
@@ -1793,22 +1802,25 @@ CREATE TABLE public.procurement_requests (
     price_cents integer DEFAULT 0 NOT NULL,
     price_currency character varying DEFAULT 'CHF'::character varying NOT NULL,
     priority character varying DEFAULT 'normal'::character varying NOT NULL,
-    replacement boolean DEFAULT true,
+    replacement boolean DEFAULT true NOT NULL,
     supplier_name character varying,
     receiver character varying,
-    location_name character varying,
-    motivation character varying,
+    motivation character varying NOT NULL,
     inspection_comment character varying,
-    created_at timestamp without time zone NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
     inspector_priority character varying DEFAULT 'medium'::character varying NOT NULL,
     room_id uuid NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     accounting_type character varying DEFAULT 'aquisition'::character varying NOT NULL,
     internal_order_number character varying,
+    CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
     CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY ((ARRAY['normal'::character varying, 'high'::character varying])::text[]))),
+    CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
+    CONSTRAINT check_either_supplier_id_or_supplier_name CHECK ((((supplier_id IS NOT NULL) AND (supplier_name IS NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NOT NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NULL)))),
     CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'mandatory'::character varying])::text[]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
-    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[])))
+    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[]))),
+    CONSTRAINT supplier_name_is_not_blank CHECK (((supplier_name)::text !~ '^\s*$'::text))
 );
 
 
@@ -1834,12 +1846,31 @@ CREATE TABLE public.procurement_templates (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     model_id uuid,
     supplier_id uuid,
-    article_name character varying NOT NULL,
+    article_name text,
     article_number character varying,
     price_cents integer DEFAULT 0 NOT NULL,
     price_currency character varying DEFAULT 'CHF'::character varying NOT NULL,
     supplier_name character varying,
-    category_id uuid NOT NULL
+    category_id uuid NOT NULL,
+    CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
+    CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
+    CONSTRAINT check_either_supplier_id_or_supplier_name CHECK ((((supplier_id IS NOT NULL) AND (supplier_name IS NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NOT NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NULL)))),
+    CONSTRAINT supplier_name_is_not_blank CHECK (((supplier_name)::text !~ '^\s*$'::text))
+);
+
+
+--
+-- Name: procurement_uploads; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.procurement_uploads (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    filename character varying NOT NULL,
+    content_type character varying,
+    size integer NOT NULL,
+    content text NOT NULL,
+    metadata json NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1849,8 +1880,8 @@ CREATE TABLE public.procurement_templates (
 
 CREATE TABLE public.procurement_users_filters (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    user_id uuid,
-    filter json
+    user_id uuid NOT NULL,
+    filter json NOT NULL
 );
 
 
@@ -2349,10 +2380,10 @@ ALTER TABLE ONLY public.entitlements
 
 
 --
--- Name: procurement_accesses procurement_accesses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_requesters_organizations procurement_accesses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.procurement_accesses
+ALTER TABLE ONLY public.procurement_requesters_organizations
     ADD CONSTRAINT procurement_accesses_pkey PRIMARY KEY (id);
 
 
@@ -2394,6 +2425,14 @@ ALTER TABLE ONLY public.procurement_categories
 
 ALTER TABLE ONLY public.procurement_category_inspectors
     ADD CONSTRAINT procurement_category_inspectors_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: procurement_category_viewers procurement_category_viewers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.procurement_category_viewers
+    ADD CONSTRAINT procurement_category_viewers_pkey PRIMARY KEY (id);
 
 
 --
@@ -2442,6 +2481,14 @@ ALTER TABLE ONLY public.procurement_settings
 
 ALTER TABLE ONLY public.procurement_templates
     ADD CONSTRAINT procurement_templates_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: procurement_uploads procurement_uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.procurement_uploads
+    ADD CONSTRAINT procurement_uploads_pkey PRIMARY KEY (id);
 
 
 --
@@ -2564,6 +2611,13 @@ CREATE INDEX groups_searchable_idx ON public.groups USING gin (searchable public
 --
 
 CREATE INDEX groups_to_tsvector_idx ON public.groups USING gin (to_tsvector('english'::regconfig, searchable));
+
+
+--
+-- Name: idx_procurement_category_viewers_uc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_procurement_category_viewers_uc ON public.procurement_category_viewers USING btree (user_id, category_id);
 
 
 --
@@ -3022,6 +3076,13 @@ CREATE INDEX index_on_user_id_and_inventory_pool_id_and_deleted_at ON public.acc
 
 
 --
+-- Name: index_on_user_id_and_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_on_user_id_and_organization_id ON public.procurement_requesters_organizations USING btree (user_id, organization_id);
+
+
+--
 -- Name: index_options_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3057,10 +3118,10 @@ CREATE INDEX index_orders_on_user_id ON public.orders USING btree (user_id);
 
 
 --
--- Name: index_procurement_accesses_on_is_admin; Type: INDEX; Schema: public; Owner: -
+-- Name: index_procurement_admins_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_procurement_accesses_on_is_admin ON public.procurement_accesses USING btree (is_admin);
+CREATE UNIQUE INDEX index_procurement_admins_on_user_id ON public.procurement_admins USING btree (user_id);
 
 
 --
@@ -3089,6 +3150,13 @@ CREATE UNIQUE INDEX index_procurement_categories_on_name ON public.procurement_c
 --
 
 CREATE UNIQUE INDEX index_procurement_main_categories_on_name ON public.procurement_main_categories USING btree (name);
+
+
+--
+-- Name: index_procurement_organizations_on_name_and_parent_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_procurement_organizations_on_name_and_parent_id ON public.procurement_organizations USING btree (name, parent_id);
 
 
 --
@@ -3218,6 +3286,13 @@ CREATE UNIQUE INDEX rooms_unique_name_and_building_id ON public.rooms USING btre
 
 
 --
+-- Name: unique_name_procurement_budget_periods; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_name_procurement_budget_periods ON public.procurement_budget_periods USING btree (lower((name)::text));
+
+
+--
 -- Name: user_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3344,13 +3419,6 @@ CREATE CONSTRAINT TRIGGER trigger_delete_empty_order AFTER DELETE ON public.rese
 
 
 --
--- Name: procurement_accesses trigger_delete_procurement_users_filters_after_procurement_acce; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE CONSTRAINT TRIGGER trigger_delete_procurement_users_filters_after_procurement_acce AFTER DELETE ON public.procurement_accesses DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.delete_procurement_users_filters_after_procurement_accesses();
-
-
---
 -- Name: users trigger_delete_procurement_users_filters_after_users; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -3474,7 +3542,7 @@ ALTER TABLE ONLY public.contracts
 --
 
 ALTER TABLE ONLY public.procurement_budget_limits
-    ADD CONSTRAINT fk_rails_1c5f9021ad FOREIGN KEY (main_category_id) REFERENCES public.procurement_main_categories(id);
+    ADD CONSTRAINT fk_rails_1c5f9021ad FOREIGN KEY (main_category_id) REFERENCES public.procurement_main_categories(id) ON DELETE CASCADE;
 
 
 --
@@ -3563,14 +3631,6 @@ ALTER TABLE ONLY public.entitlement_groups
 
 ALTER TABLE ONLY public.procurement_templates
     ADD CONSTRAINT fk_rails_46cc05bf71 FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id);
-
-
---
--- Name: procurement_images fk_rails_47fed491ad; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.procurement_images
-    ADD CONSTRAINT fk_rails_47fed491ad FOREIGN KEY (parent_id) REFERENCES public.procurement_images(id);
 
 
 --
@@ -3674,7 +3734,7 @@ ALTER TABLE ONLY public.mail_templates
 --
 
 ALTER TABLE ONLY public.procurement_images
-    ADD CONSTRAINT fk_rails_62917a6a8f FOREIGN KEY (main_category_id) REFERENCES public.procurement_main_categories(id);
+    ADD CONSTRAINT fk_rails_62917a6a8f FOREIGN KEY (main_category_id) REFERENCES public.procurement_main_categories(id) ON DELETE CASCADE;
 
 
 --
@@ -3715,6 +3775,14 @@ ALTER TABLE ONLY public.reservations
 
 ALTER TABLE ONLY public.attachments
     ADD CONSTRAINT fk_rails_753607b7c1 FOREIGN KEY (item_id) REFERENCES public.items(id) ON DELETE CASCADE;
+
+
+--
+-- Name: procurement_admins fk_rails_7f23ec3f14; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.procurement_admins
+    ADD CONSTRAINT fk_rails_7f23ec3f14 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -3798,6 +3866,14 @@ ALTER TABLE ONLY public.model_links
 
 
 --
+-- Name: procurement_category_viewers fk_rails_9e16e3bd5d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.procurement_category_viewers
+    ADD CONSTRAINT fk_rails_9e16e3bd5d FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: user_sessions fk_rails_9fa262d742; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3846,6 +3922,14 @@ ALTER TABLE ONLY public.reservations
 
 
 --
+-- Name: procurement_categories fk_rails_a8a841ddeb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.procurement_categories
+    ADD CONSTRAINT fk_rails_a8a841ddeb FOREIGN KEY (main_category_id) REFERENCES public.procurement_main_categories(id) ON DELETE CASCADE;
+
+
+--
 -- Name: notifications fk_rails_b080fb4855; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3882,7 +3966,7 @@ ALTER TABLE ONLY public.procurement_requests
 --
 
 ALTER TABLE ONLY public.procurement_budget_limits
-    ADD CONSTRAINT fk_rails_beb637d785 FOREIGN KEY (budget_period_id) REFERENCES public.procurement_budget_periods(id);
+    ADD CONSTRAINT fk_rails_beb637d785 FOREIGN KEY (budget_period_id) REFERENCES public.procurement_budget_periods(id) ON DELETE CASCADE;
 
 
 --
@@ -3894,10 +3978,10 @@ ALTER TABLE ONLY public.procurement_requests
 
 
 --
--- Name: procurement_accesses fk_rails_c116e35025; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: procurement_requesters_organizations fk_rails_c116e35025; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.procurement_accesses
+ALTER TABLE ONLY public.procurement_requesters_organizations
     ADD CONSTRAINT fk_rails_c116e35025 FOREIGN KEY (organization_id) REFERENCES public.procurement_organizations(id);
 
 
@@ -3926,6 +4010,14 @@ ALTER TABLE ONLY public.model_group_links
 
 
 --
+-- Name: procurement_category_viewers fk_rails_d7441d6a05; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.procurement_category_viewers
+    ADD CONSTRAINT fk_rails_d7441d6a05 FOREIGN KEY (category_id) REFERENCES public.procurement_categories(id) ON DELETE CASCADE;
+
+
+--
 -- Name: models_compatibles fk_rails_e63411efbd; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3950,11 +4042,19 @@ ALTER TABLE ONLY public.accessories_inventory_pools
 
 
 --
+-- Name: procurement_users_filters fk_rails_ecc9c968b6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.procurement_users_filters
+    ADD CONSTRAINT fk_rails_ecc9c968b6 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
 -- Name: procurement_category_inspectors fk_rails_ed1149b98d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.procurement_category_inspectors
-    ADD CONSTRAINT fk_rails_ed1149b98d FOREIGN KEY (category_id) REFERENCES public.procurement_categories(id);
+    ADD CONSTRAINT fk_rails_ed1149b98d FOREIGN KEY (category_id) REFERENCES public.procurement_categories(id) ON DELETE CASCADE;
 
 
 --
@@ -4122,6 +4222,26 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('221'),
 ('222'),
 ('223'),
+('300'),
+('301'),
+('302'),
+('303'),
+('304'),
+('305'),
+('306'),
+('307'),
+('308'),
+('309'),
+('310'),
+('311'),
+('312'),
+('313'),
+('314'),
+('315'),
+('316'),
+('317'),
+('318'),
+('319'),
 ('4'),
 ('5'),
 ('500'),
