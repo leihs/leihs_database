@@ -1,0 +1,6 @@
+set -eux
+
+export RAILS_ENV=test
+bundle exec rake db:environment:set
+bundle exec rake db:drop db:create
+bundle exec rake db:migrate
