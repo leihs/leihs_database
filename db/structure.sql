@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.5
--- Dumped by pg_dump version 10.5
+-- Dumped from database version 9.6.9
+-- Dumped by pg_dump version 9.6.9
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1041,6 +1041,23 @@ CREATE FUNCTION public.hex_to_int(hexval character varying) RETURNS bigint
 
 
 --
+-- Name: seed_authentication_systems(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.seed_authentication_systems() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+  BEGIN
+    INSERT INTO authentication_systems(id, name, type, enabled) 
+      VALUES ('password', 'leihs password', 'password', true)
+      ON CONFLICT (id)
+      DO UPDATE SET type = 'password';
+    RETURN NEW;
+  END;
+$$;
+
+
+--
 -- Name: update_updated_at_column(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1086,7 +1103,7 @@ CREATE TABLE public.access_rights (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     role character varying NOT NULL,
-    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY (ARRAY[('customer'::character varying)::text, ('group_manager'::character varying)::text, ('lending_manager'::character varying)::text, ('inventory_manager'::character varying)::text])))
+    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY ((ARRAY['customer'::character varying, 'group_manager'::character varying, 'lending_manager'::character varying, 'inventory_manager'::character varying])::text[])))
 );
 
 
@@ -1206,11 +1223,35 @@ CREATE TABLE public.audits (
 --
 
 CREATE TABLE public.authentication_systems (
+    id character varying NOT NULL,
+    name character varying NOT NULL,
+    description text,
+    type character varying NOT NULL,
+    enabled boolean DEFAULT false NOT NULL,
+    priority integer DEFAULT 0 NOT NULL,
+    internal_private_key text,
+    internal_public_key text,
+    external_public_key text,
+    external_base_url text,
+    ad_hoc_user_creation boolean DEFAULT false NOT NULL,
+    ad_hoc_email_matcher text,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT check_valid_type CHECK (((type)::text = ANY ((ARRAY['password'::character varying, 'external'::character varying])::text[])))
+);
+
+
+--
+-- Name: authentication_systems_users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.authentication_systems_users (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    name character varying,
-    class_name character varying,
-    is_default boolean DEFAULT false,
-    is_active boolean DEFAULT false
+    user_id uuid NOT NULL,
+    data text,
+    authentication_system_id character varying NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
 );
 
 
@@ -1240,21 +1281,6 @@ CREATE TABLE public.contracts (
     inventory_pool_id uuid NOT NULL,
     purpose text NOT NULL,
     CONSTRAINT check_valid_state CHECK ((state = ANY (ARRAY['open'::text, 'closed'::text])))
-);
-
-
---
--- Name: database_authentications; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.database_authentications (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    login character varying NOT NULL,
-    crypted_password character varying(40),
-    salt character varying(40),
-    user_id uuid NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -1818,13 +1844,13 @@ CREATE TABLE public.procurement_requests (
     accounting_type character varying DEFAULT 'aquisition'::character varying NOT NULL,
     internal_order_number character varying,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
-    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
+    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY ((ARRAY['normal'::character varying, 'high'::character varying])::text[]))),
     CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
     CONSTRAINT check_either_supplier_id_or_supplier_name CHECK ((((supplier_id IS NOT NULL) AND (supplier_name IS NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NOT NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NULL)))),
-    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY (ARRAY[('low'::character varying)::text, ('medium'::character varying)::text, ('high'::character varying)::text, ('mandatory'::character varying)::text]))),
+    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'mandatory'::character varying])::text[]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
     CONSTRAINT check_max_javascript_int CHECK (((price_cents)::double precision < ((2)::double precision ^ (52)::double precision))),
-    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY (ARRAY[('aquisition'::character varying)::text, ('investment'::character varying)::text]))),
+    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[]))),
     CONSTRAINT supplier_name_is_not_blank CHECK (((supplier_name)::text !~ '^\s*$'::text))
 );
 
@@ -2015,6 +2041,15 @@ CREATE TABLE public.suppliers (
 
 
 --
+-- Name: system_admins; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_admins (
+    user_id uuid NOT NULL
+);
+
+
+--
 -- Name: user_sessions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2023,7 +2058,8 @@ CREATE TABLE public.user_sessions (
     token_hash text NOT NULL,
     user_id uuid,
     delegation_id uuid,
-    created_at timestamp with time zone DEFAULT now()
+    created_at timestamp with time zone DEFAULT now(),
+    meta_data jsonb
 );
 
 
@@ -2037,7 +2073,6 @@ CREATE TABLE public.users (
     firstname text,
     lastname character varying,
     phone character varying,
-    authentication_system_id uuid,
     org_id character varying,
     email character varying,
     badge_id character varying,
@@ -2055,7 +2090,6 @@ CREATE TABLE public.users (
     account_enabled boolean DEFAULT true NOT NULL,
     password_sign_in_enabled boolean DEFAULT true NOT NULL,
     url character varying,
-    pw_hash text DEFAULT public.crypt((public.gen_random_uuid())::text, public.gen_salt('bf'::text)) NOT NULL,
     img256_url character varying(100000),
     img32_url character varying(10000),
     img_digest text,
@@ -2187,6 +2221,14 @@ ALTER TABLE ONLY public.authentication_systems
 
 
 --
+-- Name: authentication_systems_users authentication_systems_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.authentication_systems_users
+    ADD CONSTRAINT authentication_systems_users_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: buildings buildings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2200,14 +2242,6 @@ ALTER TABLE ONLY public.buildings
 
 ALTER TABLE ONLY public.contracts
     ADD CONSTRAINT contracts_pkey PRIMARY KEY (id);
-
-
---
--- Name: database_authentications database_authentications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.database_authentications
-    ADD CONSTRAINT database_authentications_pkey PRIMARY KEY (id);
 
 
 --
@@ -2531,6 +2565,14 @@ ALTER TABLE ONLY public.rooms
 
 
 --
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schema_migrations
+    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
 -- Name: settings settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2544,6 +2586,14 @@ ALTER TABLE ONLY public.settings
 
 ALTER TABLE ONLY public.suppliers
     ADD CONSTRAINT suppliers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_admins system_admins_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_admins
+    ADD CONSTRAINT system_admins_pkey PRIMARY KEY (user_id);
 
 
 --
@@ -2610,6 +2660,13 @@ CREATE INDEX groups_searchable_idx ON public.groups USING gin (searchable public
 --
 
 CREATE INDEX groups_to_tsvector_idx ON public.groups USING gin (to_tsvector('english'::regconfig, searchable));
+
+
+--
+-- Name: idx_auth_sys_users; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_auth_sys_users ON public.authentication_systems_users USING btree (user_id, authentication_system_id);
 
 
 --
@@ -2708,6 +2765,20 @@ CREATE INDEX index_audits_on_created_at ON public.audits USING btree (created_at
 --
 
 CREATE INDEX index_audits_on_request_uuid ON public.audits USING btree (request_uuid);
+
+
+--
+-- Name: index_authentication_systems_users_on_authentication_system_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_authentication_systems_users_on_authentication_system_id ON public.authentication_systems_users USING btree (authentication_system_id);
+
+
+--
+-- Name: index_authentication_systems_users_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_authentication_systems_users_on_user_id ON public.authentication_systems_users USING btree (user_id);
 
 
 --
@@ -3257,13 +3328,6 @@ CREATE INDEX index_user_sessions_on_user_id ON public.user_sessions USING btree 
 
 
 --
--- Name: index_users_on_authentication_system_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_users_on_authentication_system_id ON public.users USING btree (authentication_system_id);
-
-
---
 -- Name: index_workdays_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3289,13 +3353,6 @@ CREATE UNIQUE INDEX rooms_unique_name_and_building_id ON public.rooms USING btre
 --
 
 CREATE UNIQUE INDEX unique_name_procurement_budget_periods ON public.procurement_budget_periods USING btree (lower((name)::text));
-
-
---
--- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
 
 
 --
@@ -3345,6 +3402,13 @@ CREATE TRIGGER fields_insert_check_trigger BEFORE INSERT ON public.fields FOR EA
 --
 
 CREATE TRIGGER fields_update_check_trigger BEFORE UPDATE ON public.fields FOR EACH ROW EXECUTE PROCEDURE public.fields_update_check_function();
+
+
+--
+-- Name: authentication_systems_users seed_authentication_systems_on_authentication_systems_users; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER seed_authentication_systems_on_authentication_systems_users BEFORE INSERT OR UPDATE ON public.authentication_systems_users FOR EACH STATEMENT EXECUTE PROCEDURE public.seed_authentication_systems();
 
 
 --
@@ -3467,6 +3531,20 @@ CREATE TRIGGER update_searchable_column_of_users BEFORE INSERT OR UPDATE ON publ
 
 
 --
+-- Name: authentication_systems update_updated_at_column_of_authentication_systems; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_authentication_systems BEFORE UPDATE ON public.authentication_systems FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+
+
+--
+-- Name: authentication_systems_users update_updated_at_column_of_authentication_systems_users; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_authentication_systems_users BEFORE UPDATE ON public.authentication_systems_users FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+
+
+--
 -- Name: groups update_updated_at_column_of_groups; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -3565,14 +3643,6 @@ ALTER TABLE ONLY public.disabled_fields
 
 ALTER TABLE ONLY public.procurement_requests
     ADD CONSTRAINT fk_rails_214a7de1ff FOREIGN KEY (model_id) REFERENCES public.models(id);
-
-
---
--- Name: users fk_rails_330f34f125; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT fk_rails_330f34f125 FOREIGN KEY (authentication_system_id) REFERENCES public.authentication_systems(id);
 
 
 --
@@ -3712,6 +3782,14 @@ ALTER TABLE ONLY public.accessories
 
 
 --
+-- Name: authentication_systems_users fk_rails_5a92563444; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.authentication_systems_users
+    ADD CONSTRAINT fk_rails_5a92563444 FOREIGN KEY (authentication_system_id) REFERENCES public.authentication_systems(id);
+
+
+--
 -- Name: models_compatibles fk_rails_5c311e46b1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3808,14 +3886,6 @@ ALTER TABLE ONLY public.groups_users
 
 
 --
--- Name: database_authentications fk_rails_85650bffa9; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.database_authentications
-    ADD CONSTRAINT fk_rails_85650bffa9 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-
-
---
 -- Name: items fk_rails_8757b4d49c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3885,6 +3955,14 @@ ALTER TABLE ONLY public.procurement_category_viewers
 
 ALTER TABLE ONLY public.user_sessions
     ADD CONSTRAINT fk_rails_9fa262d742 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: authentication_systems_users fk_rails_9fe924475a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.authentication_systems_users
+    ADD CONSTRAINT fk_rails_9fe924475a FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -4160,6 +4238,14 @@ ALTER TABLE ONLY public.images
 
 
 --
+-- Name: system_admins fkey_system_admins_users; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_admins
+    ADD CONSTRAINT fkey_system_admins_users FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
 -- Name: users fkey_users_delegators; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4258,6 +4344,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('502'),
 ('503'),
 ('504'),
+('505'),
 ('6'),
 ('7'),
 ('8'),

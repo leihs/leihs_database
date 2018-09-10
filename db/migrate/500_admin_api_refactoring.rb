@@ -8,6 +8,8 @@ class AdminApiRefactoring < ActiveRecord::Migration[5.0]
     # remove_column :users, :authentication_system_id
     # remove_column :users, :extended_info
     # remove_column :users, :settings
+    
+    add_column :user_sessions, :meta_data, :jsonb
 
     auto_update_searchable :users, [:lastname, :firstname, :email, :badge_id, :org_id]
     set_timestamps_defaults :users
@@ -20,13 +22,8 @@ class AdminApiRefactoring < ActiveRecord::Migration[5.0]
     reversible do |dir|
       dir.up do
         change_column :users, :firstname, :text, null: true
-        execute <<-SQL.strip_heredoc
-          ALTER TABLE users ADD COLUMN pw_hash text
-            NOT NULL DEFAULT crypt(gen_random_uuid()::Text, gen_salt('bf'))
-        SQL
       end
       dir.down do
-        remove_column :users, :pw_hash
         change_column :users, :firstname, :text
       end
     end

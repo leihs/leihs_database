@@ -3,7 +3,11 @@ class UsersCleanUp < ActiveRecord::Migration[5.0]
 
   def change
 
+
+    remove_column :users, :authentication_system_id
+
     # clean up users table
+    #
 
     ActiveRecord::Base.connection.execute(
       'SELECT lower(email) AS email, array_agg(id) AS ids FROM users GROUP BY lower(email) HAVING count(lower(email)) >= 2'
