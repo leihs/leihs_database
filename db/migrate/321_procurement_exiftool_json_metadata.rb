@@ -1,4 +1,4 @@
-class ProcurementExiftoolJsonMetadata < ActiveRecord::Migration[4.2]
+class ProcurementExiftoolJsonMetadata < ActiveRecord::Migration[5.0]
   TABLES = [:procurement_images,
             :procurement_attachments,
             :procurement_uploads]
@@ -50,11 +50,6 @@ class ProcurementExiftoolJsonMetadata < ActiveRecord::Migration[4.2]
     HEREDOC
     MigrationProcurementUploads.all.each do |entity|
       read_and_store_metadata(entity, tmp_dir)
-    end
-
-    TABLES.each do |table|
-      change_column table, :exiftool_version, :string, null: false
-      change_column table, :exiftool_options, :string, null: false
     end
   end
 

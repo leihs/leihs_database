@@ -1086,7 +1086,7 @@ CREATE TABLE public.access_rights (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     role character varying NOT NULL,
-    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY ((ARRAY['customer'::character varying, 'group_manager'::character varying, 'lending_manager'::character varying, 'inventory_manager'::character varying])::text[])))
+    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY (ARRAY[('customer'::character varying)::text, ('group_manager'::character varying)::text, ('lending_manager'::character varying)::text, ('inventory_manager'::character varying)::text])))
 );
 
 
@@ -1665,8 +1665,8 @@ CREATE TABLE public.procurement_attachments (
     size integer,
     content text,
     metadata json,
-    exiftool_version character varying NOT NULL,
-    exiftool_options character varying NOT NULL
+    exiftool_version character varying,
+    exiftool_options character varying
 );
 
 
@@ -1746,8 +1746,8 @@ CREATE TABLE public.procurement_images (
     filename character varying NOT NULL,
     size integer,
     metadata json,
-    exiftool_version character varying NOT NULL,
-    exiftool_options character varying NOT NULL
+    exiftool_version character varying,
+    exiftool_options character varying
 );
 
 
@@ -1876,8 +1876,8 @@ CREATE TABLE public.procurement_uploads (
     content text NOT NULL,
     metadata json NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    exiftool_version character varying NOT NULL,
-    exiftool_options character varying NOT NULL
+    exiftool_version character varying,
+    exiftool_options character varying
 );
 
 
