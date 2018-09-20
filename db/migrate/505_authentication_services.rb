@@ -2,6 +2,7 @@ class AuthenticationServices < ActiveRecord::Migration[5.0]
   include ::Leihs::MigrationHelper
 
   def up
+    remove_column :users, :authentication_system_id
 
     execute <<-SQL.strip_heredoc
       DROP TABLE IF EXISTS authentication_systems;
