@@ -52,9 +52,6 @@ class AdminApiRefactoring < ActiveRecord::Migration[5.0]
     add_column :settings, :accept_server_secret_as_universal_password, :boolean,
       null: false, default: true
 
-    add_column :settings, :shibboleth_enabled, :boolean, null: false, default: false
-    add_column :settings, :shibboleth_login_path, :text, null: false, default: '/Shibboleth.sso/Login'
-
     reversible do |dir|
       dir.up do
         change_column :settings, :local_currency_string, :varchar, null: true

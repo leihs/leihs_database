@@ -2,13 +2,11 @@ class AuthenticationServices < ActiveRecord::Migration[5.0]
   include ::Leihs::MigrationHelper
 
   def up
-    remove_column :users, :authentication_system_id
 
     execute <<-SQL.strip_heredoc
-      DROP TABLE IF EXISTS authentication_systems;
-      DROP TABLE IF EXISTS database_authentications;
+      DROP TABLE IF EXISTS authentication_systems CASCADE;
+      DROP TABLE IF EXISTS database_authentications CASCADE;
     SQL
-
 
     execute <<-SQL.strip_heredoc
       CREATE TABLE system_admins ( 
