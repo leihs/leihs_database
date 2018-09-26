@@ -28,20 +28,33 @@ class AuthenticationServices < ActiveRecord::Migration[5.0]
       t.text :internal_private_key
       t.text :internal_public_key
       t.text :external_public_key
-      t.text :external_base_url
-      t.boolean :ad_hoc_user_creation, null: false, default: false
-      t.text :ad_hoc_email_matcher
+      t.text :external_url
+      t.boolean :send_email, null: false, default: true
+      t.boolean :send_org_id, null: false, default: false
+      t.boolean :send_login, null: false, default: false
+      t.boolean :send_auth_system_user_data, null: false, default: false
+      t.boolean :shortcut_sign_in_enabled, null: false, default: false
     end
 
     execute <<-SQL.strip_heredoc
-      -- ALTER TABLE authentication_systems ADD CONSTRAINT simple_id CHECK (name ~ '^[a-z][a-z0-9]*$')
+      ALTER TABLE authentication_systems ADD 
+        CONSTRAINT simple_id 
+        CHECK (id ~ '^[a-z][a-z0-9]*$');
 
       ALTER TABLE authentication_systems
-        ADD CONSTRAINT check_valid_type CHECK (type IN ('password', 'external'))
+        ADD CONSTRAINT check_valid_type 
+        CHECK (type IN ('password', 'external'));
+
+      ALTER TABLE authentication_systems
+        ADD CONSTRAINT check_shortcut_sing_in 
+        CHECK (shortcut_sign_in_enabled = false OR type = 'external');
     SQL
 
     add_auto_timestamps :authentication_systems
 
+
+    ### auth systems users #################################################################################
+    #
     create_table :authentication_systems_users, id: :uuid do |t|
       t.uuid :user_id, null: false, index: true
       t.text :data
@@ -74,11 +87,28 @@ class AuthenticationServices < ActiveRecord::Migration[5.0]
 
     SQL
 
+
+    ### auth systems groups ################################################################################
+
+    create_table :authentication_systems_groups, id: :uuid do |t|
+      t.uuid :group_id, null: false, index: true
+      t.string :authentication_system_id, null: false, index: true
+    end
+    add_index :authentication_systems_groups, [:group_id, :authentication_system_id], unique: true, name: "idx_auth_sys_groups"
+    add_auto_timestamps :authentication_systems_groups, updated_at: false
+
+    add_auto_timestamps :authentication_systems_groups
+
+    add_foreign_key :authentication_systems_groups, :groups, on_delete: :cascade
+    add_foreign_key :authentication_systems_groups, :authentication_systems
+
   end
+
 
   def down
 
     drop_table :system_admins
+    drop_table :authentication_systems_groups
     drop_table :authentication_systems_users
     drop_table :authentication_systems
 

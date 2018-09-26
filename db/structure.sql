@@ -1232,12 +1232,30 @@ CREATE TABLE public.authentication_systems (
     internal_private_key text,
     internal_public_key text,
     external_public_key text,
-    external_base_url text,
-    ad_hoc_user_creation boolean DEFAULT false NOT NULL,
-    ad_hoc_email_matcher text,
+    external_url text,
+    send_email boolean DEFAULT true NOT NULL,
+    send_org_id boolean DEFAULT false NOT NULL,
+    send_login boolean DEFAULT false NOT NULL,
+    send_auth_system_user_data boolean DEFAULT false NOT NULL,
+    shortcut_sign_in_enabled boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
-    CONSTRAINT check_valid_type CHECK (((type)::text = ANY ((ARRAY['password'::character varying, 'external'::character varying])::text[])))
+    CONSTRAINT check_shortcut_sing_in CHECK (((shortcut_sign_in_enabled = false) OR ((type)::text = 'external'::text))),
+    CONSTRAINT check_valid_type CHECK (((type)::text = ANY ((ARRAY['password'::character varying, 'external'::character varying])::text[]))),
+    CONSTRAINT simple_id CHECK (((id)::text ~ '^[a-z][a-z0-9]*$'::text))
+);
+
+
+--
+-- Name: authentication_systems_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.authentication_systems_groups (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    group_id uuid NOT NULL,
+    authentication_system_id character varying NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
 );
 
 
@@ -2211,6 +2229,14 @@ ALTER TABLE ONLY public.audits
 
 
 --
+-- Name: authentication_systems_groups authentication_systems_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.authentication_systems_groups
+    ADD CONSTRAINT authentication_systems_groups_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: authentication_systems authentication_systems_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2661,6 +2687,13 @@ CREATE INDEX groups_to_tsvector_idx ON public.groups USING gin (to_tsvector('eng
 
 
 --
+-- Name: idx_auth_sys_groups; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_auth_sys_groups ON public.authentication_systems_groups USING btree (group_id, authentication_system_id);
+
+
+--
 -- Name: idx_auth_sys_users; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2763,6 +2796,20 @@ CREATE INDEX index_audits_on_created_at ON public.audits USING btree (created_at
 --
 
 CREATE INDEX index_audits_on_request_uuid ON public.audits USING btree (request_uuid);
+
+
+--
+-- Name: index_authentication_systems_groups_on_authentication_system_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_authentication_systems_groups_on_authentication_system_id ON public.authentication_systems_groups USING btree (authentication_system_id);
+
+
+--
+-- Name: index_authentication_systems_groups_on_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_authentication_systems_groups_on_group_id ON public.authentication_systems_groups USING btree (group_id);
 
 
 --
@@ -3536,6 +3583,13 @@ CREATE TRIGGER update_updated_at_column_of_authentication_systems BEFORE UPDATE 
 
 
 --
+-- Name: authentication_systems_groups update_updated_at_column_of_authentication_systems_groups; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_authentication_systems_groups BEFORE UPDATE ON public.authentication_systems_groups FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+
+
+--
 -- Name: authentication_systems_users update_updated_at_column_of_authentication_systems_users; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4012,6 +4066,14 @@ ALTER TABLE ONLY public.procurement_categories
 
 
 --
+-- Name: authentication_systems_groups fk_rails_ae3d1b0414; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.authentication_systems_groups
+    ADD CONSTRAINT fk_rails_ae3d1b0414 FOREIGN KEY (authentication_system_id) REFERENCES public.authentication_systems(id);
+
+
+--
 -- Name: notifications fk_rails_b080fb4855; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4097,6 +4159,14 @@ ALTER TABLE ONLY public.model_group_links
 
 ALTER TABLE ONLY public.procurement_category_viewers
     ADD CONSTRAINT fk_rails_d7441d6a05 FOREIGN KEY (category_id) REFERENCES public.procurement_categories(id) ON DELETE CASCADE;
+
+
+--
+-- Name: authentication_systems_groups fk_rails_dcba69d719; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.authentication_systems_groups
+    ADD CONSTRAINT fk_rails_dcba69d719 FOREIGN KEY (group_id) REFERENCES public.groups(id) ON DELETE CASCADE;
 
 
 --
