@@ -39,6 +39,17 @@ class AdminConstraints < ActiveRecord::Migration[5.0]
 
     SQL
 
+    execute <<-SQL.strip_heredoc
+      
+      ALTER TABLE users ADD CONSTRAINT login_may_not_contain_at_sig
+        CHECK (login NOT ILIKE '%@%');
+      
+    SQL
+
+    add_index :users, 'lower(login)',
+      name: :users_login_idx,
+      unique: true
+
   end
 
 end

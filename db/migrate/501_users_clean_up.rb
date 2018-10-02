@@ -32,6 +32,10 @@ class UsersCleanUp < ActiveRecord::Migration[5.0]
       end
     end
 
+    ActiveRecord::Base.connection.execute <<-SQL.strip_heredoc
+      UPDATE users SET login = NULL where email ilike '%@%';
+    SQL
+
   end
 
 end

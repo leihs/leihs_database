@@ -2109,7 +2109,8 @@ CREATE TABLE public.users (
     img256_url character varying(100000),
     img32_url character varying(10000),
     img_digest text,
-    is_admin boolean DEFAULT false NOT NULL
+    is_admin boolean DEFAULT false NOT NULL,
+    CONSTRAINT login_may_not_contain_at_sig CHECK (((login)::text !~~* '%@%'::text))
 );
 
 
@@ -3412,6 +3413,13 @@ CREATE INDEX user_index ON public.audits USING btree (user_id, user_type);
 --
 
 CREATE UNIQUE INDEX users_email_idx ON public.users USING btree (lower((email)::text));
+
+
+--
+-- Name: users_login_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX users_login_idx ON public.users USING btree (lower((login)::text));
 
 
 --
