@@ -8,16 +8,6 @@ class AuthenticationServices < ActiveRecord::Migration[5.0]
       DROP TABLE IF EXISTS database_authentications CASCADE;
     SQL
 
-    execute <<-SQL.strip_heredoc
-      CREATE TABLE system_admins ( 
-        user_id UUID NOT NULL
-        );
-
-      ALTER TABLE ONLY system_admins ADD CONSTRAINT system_admins_pkey PRIMARY KEY (user_id);
-
-      ALTER TABLE ONLY system_admins ADD CONSTRAINT fkey_system_admins_users
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
-    SQL
 
     create_table :authentication_systems, id: :varchar do |t|
       t.string :name, null: false
@@ -39,7 +29,7 @@ class AuthenticationServices < ActiveRecord::Migration[5.0]
     execute <<-SQL.strip_heredoc
       ALTER TABLE authentication_systems ADD 
         CONSTRAINT simple_id 
-        CHECK (id ~ '^[a-z][a-z0-9]*$');
+        CHECK (id ~ '^[a-z][a-z0-9_-]*$');
 
       ALTER TABLE authentication_systems
         ADD CONSTRAINT check_valid_type 

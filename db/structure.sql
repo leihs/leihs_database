@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.5
--- Dumped by pg_dump version 10.5
+-- Dumped from database version 9.6.9
+-- Dumped by pg_dump version 9.6.9
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1242,7 +1242,7 @@ CREATE TABLE public.authentication_systems (
     updated_at timestamp with time zone DEFAULT now(),
     CONSTRAINT check_shortcut_sing_in CHECK (((shortcut_sign_in_enabled = false) OR ((type)::text = 'external'::text))),
     CONSTRAINT check_valid_type CHECK (((type)::text = ANY ((ARRAY['password'::character varying, 'external'::character varying])::text[]))),
-    CONSTRAINT simple_id CHECK (((id)::text ~ '^[a-z][a-z0-9]*$'::text))
+    CONSTRAINT simple_id CHECK (((id)::text ~ '^[a-z][a-z0-9_-]*$'::text))
 );
 
 
@@ -1862,13 +1862,13 @@ CREATE TABLE public.procurement_requests (
     accounting_type character varying DEFAULT 'aquisition'::character varying NOT NULL,
     internal_order_number character varying,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
-    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
+    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY ((ARRAY['normal'::character varying, 'high'::character varying])::text[]))),
     CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
     CONSTRAINT check_either_supplier_id_or_supplier_name CHECK ((((supplier_id IS NOT NULL) AND (supplier_name IS NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NOT NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NULL)))),
-    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY (ARRAY[('low'::character varying)::text, ('medium'::character varying)::text, ('high'::character varying)::text, ('mandatory'::character varying)::text]))),
+    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'mandatory'::character varying])::text[]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
     CONSTRAINT check_max_javascript_int CHECK (((price_cents)::double precision < ((2)::double precision ^ (52)::double precision))),
-    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY (ARRAY[('aquisition'::character varying)::text, ('investment'::character varying)::text]))),
+    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[]))),
     CONSTRAINT supplier_name_is_not_blank CHECK (((supplier_name)::text !~ '^\s*$'::text))
 );
 
@@ -2057,10 +2057,19 @@ CREATE TABLE public.suppliers (
 
 
 --
--- Name: system_admins; Type: TABLE; Schema: public; Owner: -
+-- Name: system_admin_groups; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.system_admins (
+CREATE TABLE public.system_admin_groups (
+    group_id uuid NOT NULL
+);
+
+
+--
+-- Name: system_admin_users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_admin_users (
     user_id uuid NOT NULL
 );
 
@@ -2591,6 +2600,14 @@ ALTER TABLE ONLY public.rooms
 
 
 --
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schema_migrations
+    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
 -- Name: settings settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2607,11 +2624,19 @@ ALTER TABLE ONLY public.suppliers
 
 
 --
--- Name: system_admins system_admins_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: system_admin_groups system_admin_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.system_admins
-    ADD CONSTRAINT system_admins_pkey PRIMARY KEY (user_id);
+ALTER TABLE ONLY public.system_admin_groups
+    ADD CONSTRAINT system_admin_groups_pkey PRIMARY KEY (group_id);
+
+
+--
+-- Name: system_admin_users system_admin_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_admin_users
+    ADD CONSTRAINT system_admin_users_pkey PRIMARY KEY (user_id);
 
 
 --
@@ -3392,13 +3417,6 @@ CREATE UNIQUE INDEX rooms_unique_name_and_building_id ON public.rooms USING btre
 --
 
 CREATE UNIQUE INDEX unique_name_procurement_budget_periods ON public.procurement_budget_periods USING btree (lower((name)::text));
-
-
---
--- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
 
 
 --
@@ -4314,11 +4332,19 @@ ALTER TABLE ONLY public.images
 
 
 --
--- Name: system_admins fkey_system_admins_users; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: system_admin_groups fkey_system_admin_groups_groups; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.system_admins
-    ADD CONSTRAINT fkey_system_admins_users FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.system_admin_groups
+    ADD CONSTRAINT fkey_system_admin_groups_groups FOREIGN KEY (group_id) REFERENCES public.groups(id) ON DELETE CASCADE;
+
+
+--
+-- Name: system_admin_users fkey_system_admin_users_users; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_admin_users
+    ADD CONSTRAINT fkey_system_admin_users_users FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -4421,6 +4447,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('503'),
 ('504'),
 ('505'),
+('506'),
 ('6'),
 ('7'),
 ('8'),
