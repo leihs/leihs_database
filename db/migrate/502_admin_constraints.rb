@@ -41,7 +41,14 @@ class AdminConstraints < ActiveRecord::Migration[5.0]
 
     execute <<-SQL.strip_heredoc
       
-      ALTER TABLE users ADD CONSTRAINT login_may_not_contain_at_sig
+      ALTER TABLE users ADD CONSTRAINT email_must_contain_at_sign
+        CHECK (email ILIKE '%@%');
+      
+    SQL
+
+    execute <<-SQL.strip_heredoc
+      
+      ALTER TABLE users ADD CONSTRAINT login_may_not_contain_at_sign
         CHECK (login NOT ILIKE '%@%');
       
     SQL
