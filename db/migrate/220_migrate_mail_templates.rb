@@ -15,6 +15,22 @@ class MigrateMailTemplates < ActiveRecord::Migration[5.0]
     self.table_name = 'languages'
   end
 
+  LANGUAGES = [['English (UK)', 'en-GB', true],
+               ['English (US)', 'en-US', false],
+               ['Deutsch', 'de-CH', false],
+               ['Züritüütsch','gsw-CH', false]]
+
+  def create_languages!
+    LANGUAGES.each do |lang|
+      MigrationLanguage.create!(
+        name: lang[0],
+        locale_name: lang[1],
+        default: lang[2],
+        active: true
+      )
+    end
+  end
+    
   TEMPLATE_TEMPLATES = {
     reminder: {
       type: :user,
@@ -244,6 +260,8 @@ class MigrateMailTemplates < ActiveRecord::Migration[5.0]
         format: :text
       }
       
+      create_languages! unless MigrationLanguage.exists?
+
       MigrationLanguage.all.each do |language|
         attrs = base_attrs.merge(language_id: language.id)
 
