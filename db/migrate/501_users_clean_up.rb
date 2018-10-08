@@ -34,6 +34,12 @@ class UsersCleanUp < ActiveRecord::Migration[5.0]
 
     ActiveRecord::Base.connection.execute <<-SQL.strip_heredoc
       UPDATE users SET login = NULL where login ilike '%@%';
+
+      UPDATE users SET login = NULL 
+        WHERE EXISTS 
+          (SELECT TRUE FROM users as duplicates
+            WHERE users.login = duplicates.login AND users.id <> duplicates.id);
+
     SQL
 
   end
