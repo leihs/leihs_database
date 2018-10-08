@@ -4,14 +4,9 @@ class AdminApiRefactoring < ActiveRecord::Migration[5.0]
   def change
     rename_column :users, :unique_id, :org_id
 
-    # TODO clean-up
-    # remove_column :users, :authentication_system_id
-    # remove_column :users, :extended_info
-    # remove_column :users, :settings
-    
     add_column :user_sessions, :meta_data, :jsonb
 
-    auto_update_searchable :users, [:lastname, :firstname, :email, :badge_id, :org_id]
+    auto_update_searchable :users, [:lastname, :firstname, :email, :login, :badge_id, :org_id]
     set_timestamps_defaults :users
 
     add_column :users, :account_enabled, :boolean, default: true, null: false
@@ -33,7 +28,7 @@ class AdminApiRefactoring < ActiveRecord::Migration[5.0]
     add_column :users, :img_digest, :text
 
     ###########################################################################
-    # users constraints, TODO INCOMPLETE YET ##################################
+    # users constraints #######################################################
     ###########################################################################
 
     execute <<-SQL.strip_heredoc
