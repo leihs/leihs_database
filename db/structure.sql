@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.9
--- Dumped by pg_dump version 9.6.9
+-- Dumped from database version 10.5
+-- Dumped by pg_dump version 10.5
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1041,6 +1041,26 @@ CREATE FUNCTION public.hex_to_int(hexval character varying) RETURNS bigint
 
 
 --
+-- Name: insert_customer_access_rights(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.insert_customer_access_rights() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  INSERT INTO access_rights (
+    user_id, inventory_pool_id, role
+  )
+  SELECT NEW.id, inventory_pools.id, 'customer'
+  FROM inventory_pools
+  WHERE inventory_pools.automatic_access = TRUE;
+
+  RETURN NULL;
+END;
+$$;
+
+
+--
 -- Name: seed_authentication_systems(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1100,8 +1120,8 @@ CREATE TABLE public.access_rights (
     suspended_until date,
     suspended_reason text,
     deleted_at date,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
     role character varying NOT NULL,
     CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY ((ARRAY['customer'::character varying, 'group_manager'::character varying, 'lending_manager'::character varying, 'inventory_manager'::character varying])::text[])))
 );
@@ -1723,7 +1743,7 @@ CREATE TABLE public.procurement_budget_limits (
     budget_period_id uuid NOT NULL,
     main_category_id uuid NOT NULL,
     amount_cents integer DEFAULT 0 NOT NULL,
-    amount_currency character varying DEFAULT 'CHF'::character varying NOT NULL
+    amount_currency character varying DEFAULT 'USD'::character varying NOT NULL
 );
 
 
@@ -1848,7 +1868,7 @@ CREATE TABLE public.procurement_requests (
     approved_quantity integer,
     order_quantity integer,
     price_cents bigint DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'CHF'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
     priority character varying DEFAULT 'normal'::character varying NOT NULL,
     replacement boolean DEFAULT true NOT NULL,
     supplier_name character varying,
@@ -1898,7 +1918,7 @@ CREATE TABLE public.procurement_templates (
     article_name text,
     article_number character varying,
     price_cents integer DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'CHF'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
     supplier_name character varying,
     category_id uuid NOT NULL,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
@@ -3378,6 +3398,13 @@ CREATE UNIQUE INDEX index_suppliers_on_name ON public.suppliers USING btree (nam
 
 
 --
+-- Name: index_user_id_inventory_pool_id_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_user_id_inventory_pool_id_deleted_at ON public.access_rights USING btree (user_id, inventory_pool_id, deleted_at);
+
+
+--
 -- Name: index_user_sessions_on_token_hash; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3585,6 +3612,13 @@ CREATE CONSTRAINT TRIGGER trigger_ensure_general_room_cannot_be_deleted AFTER DE
 --
 
 CREATE TRIGGER trigger_fields_delete_check_function BEFORE DELETE ON public.fields FOR EACH ROW EXECUTE PROCEDURE public.fields_delete_check_function();
+
+
+--
+-- Name: users trigger_insert_customer_access_rights; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trigger_insert_customer_access_rights AFTER INSERT ON public.users FOR EACH ROW EXECUTE PROCEDURE public.insert_customer_access_rights();
 
 
 --
@@ -4448,6 +4482,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('504'),
 ('505'),
 ('506'),
+('507'),
+('508'),
+('509'),
 ('6'),
 ('7'),
 ('8'),

@@ -1,0 +1,27 @@
+traits:
+  PostgreSQL: true
+
+scripts:
+
+  create-database:
+    body: |
+      #!/usr/bin/env bash
+      set -eux
+      createdb "$DATABASE_NAME"
+      psql -d "$DATABASE_NAME" -f db/structure.sql
+
+  test:
+    start_when:
+      database created:
+        script_key: create-database
+        states: [passed]
+
+  delete-database:
+    body: |
+      #!/usr/bin/env bash
+      set -eux
+      dropdb "$DATABASE_NAME"
+    start_when:
+      test is finished:
+        script_key: test
+        states: [aborted, defective, passed, failed, skipped]

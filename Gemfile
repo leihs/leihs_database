@@ -1,17 +1,15 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~> 5.0.0'
-
-gem 'uuidtools'
+gem 'addressable'
 gem 'base32-crockford'
-
+gem 'exiftool_vendored'
+gem 'factory_bot'
+gem 'faker'
+gem 'money-rails', '~> 1.4'
 gem 'pg', platform: :mri
 gem 'pg_tasks', git: 'https://github.com/drtom/rails_pg-tasks', branch: 'master_rails_5'
+gem 'pry'
+gem 'rails'
+gem 'rspec'
 gem 'sequel', '~> 4.42', '>= 4.42.1'
-
-# gem 'paperclip', '~> 4.3'
-gem 'money-rails', '~>1.4'
-
-gem 'pry', group: [:development, :test]
-
-gem 'exiftool_vendored'
+gem 'uuidtools'

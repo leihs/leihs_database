@@ -1,0 +1,56 @@
+jobs:
+  specs:
+    name: 'Run specs'
+    run_when:
+      any branch has been updated:
+        type: branch
+        include_match: ^.*$
+    context:
+      generate_tasks:
+        include_match: spec/.*_spec.rb
+      task_defaults:
+        include:
+          - cider-ci/database_task-component.yml
+          - cider-ci/ruby-bundle_task-component.yml
+        traits:
+          g2016: true
+        environment_variables:
+          DATABASE_NAME: leihs_procurement_{{CIDER_CI_TRIAL_ID}}
+          LEIHS_DATABASE_URL: "jdbc:postgresql://localhost/{{DATABASE_NAME}}?max-pool-size=5"
+          RAILS_ENV: test
+          RUBY: '{{RUBY_ENGINE}}-{{RUBY_VERSION}}'
+          RUBY_ENGINE: ruby
+          RUBY_VERSION: 2.4.3
+        git_options:
+          submodules:
+            include_match: ^.*$
+        scripts:
+          test:
+            body: |
+              #!/usr/bin/env bash
+              set -euxo
+              env | sort
+              export PATH=~/.rubies/$RUBY/bin:$PATH
+              mkdir -p log
+              bundle exec rspec --backtrace $CIDER_CI_TASK_FILE
+  good-to-merge:
+    name: Good To Merge
+    description: |
+      This job depends on all other tests and checks
+      and it will pass if and only if all dependencies have passed.
+      Status of this job is **used by github's "branch protection"**!
+    depends_on: &GOOD_TO_MERGE_DEPENDENCIES
+      specs were successful:
+        type: job
+        job_key: specs
+        states: [passed]
+    run_when: *GOOD_TO_MERGE_DEPENDENCIES
+    context:
+      task_defaults:
+        max_trials: 1
+      tasks:
+        all relevant tests have passed:
+          name: "All relevant tests have passed, thus good to merge"
+          scripts:
+            main:
+              body: echo 'All relevant tests have passed' ; exit 0
