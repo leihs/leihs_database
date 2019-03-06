@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.6
--- Dumped by pg_dump version 10.6
+-- Dumped from database version 10.5
+-- Dumped by pg_dump version 10.5
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2075,6 +2075,7 @@ CREATE TABLE public.settings (
     accept_server_secret_as_universal_password boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
+    maximum_reservation_time integer,
     CONSTRAINT id_is_zero CHECK ((id = 0))
 );
 
@@ -4509,6 +4510,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('509'),
 ('510'),
 ('511'),
+('512'),
 ('6'),
 ('7'),
 ('8'),
