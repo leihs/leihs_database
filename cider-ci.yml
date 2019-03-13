@@ -15,12 +15,13 @@ jobs:
         traits:
           g2016: true
         environment_variables:
+          LEIHS_DATABASE_DIR: "{{CIDER_CI_WORKING_DIR}}"
           DATABASE_NAME: leihs_procurement_{{CIDER_CI_TRIAL_ID}}
           LEIHS_DATABASE_URL: "jdbc:postgresql://localhost/{{DATABASE_NAME}}?max-pool-size=5"
           RAILS_ENV: test
           RUBY: '{{RUBY_ENGINE}}-{{RUBY_VERSION}}'
           RUBY_ENGINE: ruby
-          RUBY_VERSION: 2.4.3
+          RUBY_VERSION: 2.6.0
         git_options:
           submodules:
             include_match: ^.*$

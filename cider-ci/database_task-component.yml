@@ -7,6 +7,7 @@ scripts:
     body: |
       #!/usr/bin/env bash
       set -eux
+      cd $LEIHS_DATABASE_DIR
       createdb "$DATABASE_NAME"
       psql -d "$DATABASE_NAME" -f db/structure.sql
 
@@ -20,6 +21,7 @@ scripts:
     body: |
       #!/usr/bin/env bash
       set -eux
+      cd $LEIHS_DATABASE_DIR
       dropdb "$DATABASE_NAME"
     start_when:
       test is finished:
