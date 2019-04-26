@@ -373,6 +373,40 @@ CREATE FUNCTION public.delete_empty_order() RETURNS trigger
 
 
 --
+-- Name: delete_obsolete_user_password_resets_1(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.delete_obsolete_user_password_resets_1() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+          BEGIN
+            DELETE FROM user_password_resets
+            WHERE user_id = NEW.user_id;
+
+            RETURN NEW;
+          END;
+          $$;
+
+
+--
+-- Name: delete_obsolete_user_password_resets_2(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.delete_obsolete_user_password_resets_2() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+          BEGIN
+            IF NEW.authentication_system_id = 'password' THEN
+              DELETE FROM user_password_resets
+              WHERE user_id = NEW.user_id;
+            END IF;
+
+            RETURN NEW;
+          END;
+          $$;
+
+
+--
 -- Name: delete_procurement_users_filters_after_users(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -2139,6 +2173,20 @@ CREATE TABLE public.system_admin_users (
 
 
 --
+-- Name: user_password_resets; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_password_resets (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    user_id uuid NOT NULL,
+    used_user_param text NOT NULL,
+    token text NOT NULL,
+    valid_until timestamp without time zone NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: user_sessions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2709,6 +2757,14 @@ ALTER TABLE ONLY public.system_admin_groups
 
 ALTER TABLE ONLY public.system_admin_users
     ADD CONSTRAINT system_admin_users_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: user_password_resets_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_password_resets
+    ADD CONSTRAINT user_password_resets_pkey PRIMARY KEY (id);
 
 
 --
@@ -3457,6 +3513,13 @@ CREATE UNIQUE INDEX index_user_id_inventory_pool_id_deleted_at ON public.access_
 
 
 --
+-- Name: index_user_password_resets_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_user_password_resets_on_user_id ON public.user_password_resets USING btree (user_id);
+
+
+--
 -- Name: index_user_sessions_on_token_hash; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3643,6 +3706,20 @@ CREATE CONSTRAINT TRIGGER trigger_check_reservations_contracts_state_consistency
 --
 
 CREATE CONSTRAINT TRIGGER trigger_delete_empty_order AFTER DELETE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.delete_empty_order();
+
+
+--
+-- Name: trigger_delete_obsolete_user_password_resets; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trigger_delete_obsolete_user_password_resets BEFORE INSERT ON public.user_password_resets FOR EACH ROW EXECUTE PROCEDURE public.delete_obsolete_user_password_resets_1();
+
+
+--
+-- Name: trigger_delete_obsolete_user_password_resets; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trigger_delete_obsolete_user_password_resets AFTER INSERT OR UPDATE ON public.authentication_systems_users FOR EACH ROW EXECUTE PROCEDURE public.delete_obsolete_user_password_resets_2();
 
 
 --
@@ -4257,6 +4334,14 @@ ALTER TABLE ONLY public.holidays
 
 
 --
+-- Name: fk_rails_c84bfcc8b6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_password_resets
+    ADD CONSTRAINT fk_rails_c84bfcc8b6 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
 -- Name: fk_rails_cb04742a0b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4551,6 +4636,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('514'),
 ('515'),
 ('516'),
+('517'),
 ('6'),
 ('7'),
 ('8'),
