@@ -5,7 +5,8 @@ end
 FactoryBot.define do
   factory :user_password_reset do
     user
+    used_user_param { user.login or user.email }
     token { Faker::Crypto.md5 }
-    expired_at { DateTime.now + 1.hour }
+    valid_until { DateTime.now + 1.hour }
   end
 end
