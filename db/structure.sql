@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.6
--- Dumped by pg_dump version 10.6
+-- Dumped from database version 10.7
+-- Dumped by pg_dump version 10.7
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -97,6 +97,38 @@ CREATE TYPE public.reservation_status AS ENUM (
     'signed',
     'closed'
 );
+
+
+--
+-- Name: audit_change(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.audit_change() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+  DECLARE 
+    c_changed JSONB;
+    c_new JSONB;
+    c_old JSONB;
+BEGIN
+  IF (TG_OP = 'DELETE') THEN
+    c_old = row_to_json(OLD)::JSONB;
+    c_new = '{}'::JSONB;
+  ELSIF (TG_OP = 'INSERT') THEN
+    c_old = '{}'::JSONB;
+    c_new = row_to_json(NEW)::JSONB;
+  ELSIF (TG_OP = 'UPDATE') THEN
+    c_old = row_to_json(OLD)::JSONB;
+    c_new = row_to_json(NEW)::JSONB;
+  END IF;
+  c_changed = jsonb_changed(c_old,c_new);
+  if (c_old <> c_new) THEN
+    INSERT INTO audited_changes (tg_op, table_name, before, after, changed) 
+      VALUES (TG_OP, TG_TABLE_NAME, c_old, c_new, c_changed);
+  END IF;
+  RETURN NEW;
+END;
+$$;
 
 
 --
@@ -1109,6 +1141,56 @@ $$;
 
 
 --
+-- Name: jsonb_changed(jsonb, jsonb); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.jsonb_changed(jold jsonb, jnew jsonb) RETURNS jsonb
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+  result JSONB;
+  v RECORD;
+BEGIN
+   result = jnew;
+   FOR v IN SELECT * FROM jsonb_each(jold) LOOP
+     IF result @> jsonb_build_object(v.key,v.value)
+        THEN result = result - v.key;
+     ELSIF result ? v.key THEN CONTINUE;
+     ELSE
+        result = result || jsonb_build_object(v.key,'null');
+     END IF;
+   END LOOP;
+   RETURN result;
+END;
+$$;
+
+
+--
+-- Name: jsonb_diff(jsonb, jsonb); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.jsonb_diff(j1 jsonb, j2 jsonb) RETURNS jsonb
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+  result JSONB;
+  v RECORD;
+BEGIN
+   result = j1;
+   FOR v IN SELECT * FROM jsonb_each(j2) LOOP
+     IF result @> jsonb_build_object(v.key,v.value)
+        THEN result = result - v.key;
+     ELSIF result ? v.key THEN CONTINUE;
+     ELSE
+        result = result || jsonb_build_object(v.key,'null');
+     END IF;
+   END LOOP;
+   RETURN result;
+END;
+$$;
+
+
+--
 -- Name: seed_authentication_systems(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1122,6 +1204,19 @@ CREATE FUNCTION public.seed_authentication_systems() RETURNS trigger
       DO UPDATE SET type = 'password';
     RETURN NEW;
   END;
+$$;
+
+
+--
+-- Name: txid(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.txid() RETURNS uuid
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  RETURN uuid_generate_v5(uuid_nil(), current_date::TEXT || ' ' || txid_current()::TEXT);
+END;
 $$;
 
 
@@ -1171,7 +1266,7 @@ CREATE TABLE public.access_rights (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     role character varying NOT NULL,
-    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY ((ARRAY['customer'::character varying, 'group_manager'::character varying, 'lending_manager'::character varying, 'inventory_manager'::character varying])::text[])))
+    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY (ARRAY[('customer'::character varying)::text, ('group_manager'::character varying)::text, ('lending_manager'::character varying)::text, ('inventory_manager'::character varying)::text])))
 );
 
 
@@ -1271,6 +1366,50 @@ CREATE TABLE public.attachments (
 
 
 --
+-- Name: audited_changes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.audited_changes (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    txid uuid DEFAULT public.txid() NOT NULL,
+    tg_op text NOT NULL,
+    table_name text NOT NULL,
+    before jsonb,
+    after jsonb,
+    changed jsonb,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: audited_requests; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.audited_requests (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    txid uuid DEFAULT public.txid() NOT NULL,
+    user_id uuid,
+    url text,
+    method text,
+    data jsonb,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: audited_responses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.audited_responses (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    txid uuid NOT NULL,
+    status integer NOT NULL,
+    data jsonb,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
 -- Name: audits; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1317,7 +1456,7 @@ CREATE TABLE public.authentication_systems (
     updated_at timestamp with time zone DEFAULT now(),
     external_sign_out_url text,
     CONSTRAINT check_shortcut_sing_in CHECK (((shortcut_sign_in_enabled = false) OR ((type)::text = 'external'::text))),
-    CONSTRAINT check_valid_type CHECK (((type)::text = ANY ((ARRAY['password'::character varying, 'external'::character varying])::text[]))),
+    CONSTRAINT check_valid_type CHECK (((type)::text = ANY (ARRAY[('password'::character varying)::text, ('external'::character varying)::text]))),
     CONSTRAINT simple_id CHECK (((id)::text ~ '^[a-z][a-z0-9_-]*$'::text))
 );
 
@@ -1821,7 +1960,7 @@ CREATE TABLE public.procurement_budget_limits (
     budget_period_id uuid NOT NULL,
     main_category_id uuid NOT NULL,
     amount_cents integer DEFAULT 0 NOT NULL,
-    amount_currency character varying DEFAULT 'USD'::character varying NOT NULL
+    amount_currency character varying DEFAULT 'CHF'::character varying NOT NULL
 );
 
 
@@ -1946,7 +2085,7 @@ CREATE TABLE public.procurement_requests (
     approved_quantity integer,
     order_quantity integer,
     price_cents bigint DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'CHF'::character varying NOT NULL,
     priority character varying DEFAULT 'normal'::character varying NOT NULL,
     replacement boolean DEFAULT true NOT NULL,
     supplier_name character varying,
@@ -1960,13 +2099,13 @@ CREATE TABLE public.procurement_requests (
     accounting_type character varying DEFAULT 'aquisition'::character varying NOT NULL,
     internal_order_number character varying,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
-    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY ((ARRAY['normal'::character varying, 'high'::character varying])::text[]))),
+    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
     CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
     CONSTRAINT check_either_supplier_id_or_supplier_name CHECK ((((supplier_id IS NOT NULL) AND (supplier_name IS NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NOT NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NULL)))),
-    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'mandatory'::character varying])::text[]))),
+    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY (ARRAY[('low'::character varying)::text, ('medium'::character varying)::text, ('high'::character varying)::text, ('mandatory'::character varying)::text]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
     CONSTRAINT check_max_javascript_int CHECK (((price_cents)::double precision < ((2)::double precision ^ (52)::double precision))),
-    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[]))),
+    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY (ARRAY[('aquisition'::character varying)::text, ('investment'::character varying)::text]))),
     CONSTRAINT supplier_name_is_not_blank CHECK (((supplier_name)::text !~ '^\s*$'::text))
 );
 
@@ -1996,7 +2135,7 @@ CREATE TABLE public.procurement_templates (
     article_name text,
     article_number character varying,
     price_cents integer DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'CHF'::character varying NOT NULL,
     supplier_name character varying,
     category_id uuid NOT NULL,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
@@ -2345,6 +2484,30 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 ALTER TABLE ONLY public.attachments
     ADD CONSTRAINT attachments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: audited_changes audited_changes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audited_changes
+    ADD CONSTRAINT audited_changes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: audited_requests audited_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audited_requests
+    ADD CONSTRAINT audited_requests_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: audited_responses audited_responses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audited_responses
+    ADD CONSTRAINT audited_responses_pkey PRIMARY KEY (id);
 
 
 --
@@ -2724,14 +2887,6 @@ ALTER TABLE ONLY public.rooms
 
 
 --
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
-
-
---
 -- Name: settings settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2807,6 +2962,90 @@ CREATE INDEX associated_index ON public.audits USING btree (associated_id, assoc
 --
 
 CREATE INDEX auditable_index ON public.audits USING btree (auditable_id, auditable_type);
+
+
+--
+-- Name: audited_changes_after_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX audited_changes_after_idx ON public.audited_changes USING gin (to_tsvector('english'::regconfig, after));
+
+
+--
+-- Name: audited_changes_before_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX audited_changes_before_idx ON public.audited_changes USING gin (to_tsvector('english'::regconfig, before));
+
+
+--
+-- Name: audited_changes_changed_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX audited_changes_changed_idx ON public.audited_changes USING gin (to_tsvector('english'::regconfig, changed));
+
+
+--
+-- Name: audited_changes_table_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX audited_changes_table_name ON public.audited_changes USING btree (table_name);
+
+
+--
+-- Name: audited_changes_tg_op; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX audited_changes_tg_op ON public.audited_changes USING btree (tg_op);
+
+
+--
+-- Name: audited_changes_txid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX audited_changes_txid ON public.audited_changes USING btree (txid);
+
+
+--
+-- Name: audited_requests_data; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX audited_requests_data ON public.audited_requests USING gin (to_tsvector('english'::regconfig, data));
+
+
+--
+-- Name: audited_requests_method; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX audited_requests_method ON public.audited_requests USING btree (method);
+
+
+--
+-- Name: audited_requests_txid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX audited_requests_txid ON public.audited_requests USING btree (txid);
+
+
+--
+-- Name: audited_requests_url; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX audited_requests_url ON public.audited_requests USING btree (url);
+
+
+--
+-- Name: audited_requests_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX audited_requests_user_id ON public.audited_requests USING btree (user_id);
+
+
+--
+-- Name: audited_responses_txid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX audited_responses_txid ON public.audited_responses USING btree (txid);
 
 
 --
@@ -3566,6 +3805,13 @@ CREATE UNIQUE INDEX unique_name_procurement_budget_periods ON public.procurement
 
 
 --
+-- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
+
+
+--
 -- Name: user_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3605,6 +3851,76 @@ CREATE INDEX users_searchable_idx ON public.users USING gin (searchable public.g
 --
 
 CREATE INDEX users_to_tsvector_idx ON public.users USING gin (to_tsvector('english'::regconfig, searchable));
+
+
+--
+-- Name: api_tokens audited_change_on_api_tokens; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_api_tokens AFTER INSERT OR DELETE OR UPDATE ON public.api_tokens FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+
+
+--
+-- Name: authentication_systems audited_change_on_authentication_systems; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_authentication_systems AFTER INSERT OR DELETE OR UPDATE ON public.authentication_systems FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+
+
+--
+-- Name: authentication_systems_groups audited_change_on_authentication_systems_groups; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_authentication_systems_groups AFTER INSERT OR DELETE OR UPDATE ON public.authentication_systems_groups FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+
+
+--
+-- Name: authentication_systems_users audited_change_on_authentication_systems_users; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_authentication_systems_users AFTER INSERT OR DELETE OR UPDATE ON public.authentication_systems_users FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+
+
+--
+-- Name: groups audited_change_on_groups; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_groups AFTER INSERT OR DELETE OR UPDATE ON public.groups FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+
+
+--
+-- Name: groups_users audited_change_on_groups_users; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_groups_users AFTER INSERT OR DELETE OR UPDATE ON public.groups_users FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+
+
+--
+-- Name: system_admin_groups audited_change_on_system_admin_groups; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_system_admin_groups AFTER INSERT OR DELETE OR UPDATE ON public.system_admin_groups FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+
+
+--
+-- Name: user_password_resets audited_change_on_user_password_resets; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_user_password_resets AFTER INSERT OR DELETE OR UPDATE ON public.user_password_resets FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+
+
+--
+-- Name: user_sessions audited_change_on_user_sessions; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_user_sessions AFTER INSERT OR DELETE OR UPDATE ON public.user_sessions FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+
+
+--
+-- Name: users audited_change_on_users; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_users AFTER INSERT OR DELETE OR UPDATE ON public.users FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
 
 
 --
@@ -4126,7 +4442,7 @@ ALTER TABLE ONLY public.attachments
 --
 
 ALTER TABLE ONLY public.procurement_admins
-    ADD CONSTRAINT fk_rails_7f23ec3f14 FOREIGN KEY (user_id) REFERENCES public.users(id);
+    ADD CONSTRAINT fk_rails_7f23ec3f14 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -4652,6 +4968,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('518'),
 ('519'),
 ('520'),
+('521'),
 ('6'),
 ('7'),
 ('8'),

@@ -2,6 +2,9 @@ module Leihs
   module MigrationHelper
     extend ActiveSupport::Concern
 
+    def audit_table(table_name)
+    end
+
     def create_trgm_index(t, c)
       execute "CREATE INDEX ON #{t} USING gin(#{c} gin_trgm_ops);"
     end
@@ -122,5 +125,18 @@ module Leihs
       end
     end
 
+
+    def audit_table(table_name)
+      reversible do |dir|
+        dir.up do
+          execute <<-SQL.strip_heredoc
+            CREATE TRIGGER audited_change_on_#{table_name}
+              AFTER DELETE OR INSERT OR UPDATE ON #{table_name}
+              FOR EACH ROW 
+              EXECUTE PROCEDURE audit_change();
+          SQL
+        end
+      end
+    end
   end
 end
