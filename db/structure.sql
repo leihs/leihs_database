@@ -1166,31 +1166,6 @@ $$;
 
 
 --
--- Name: jsonb_diff(jsonb, jsonb); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.jsonb_diff(j1 jsonb, j2 jsonb) RETURNS jsonb
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-  result JSONB;
-  v RECORD;
-BEGIN
-   result = j1;
-   FOR v IN SELECT * FROM jsonb_each(j2) LOOP
-     IF result @> jsonb_build_object(v.key,v.value)
-        THEN result = result - v.key;
-     ELSIF result ? v.key THEN CONTINUE;
-     ELSE
-        result = result || jsonb_build_object(v.key,'null');
-     END IF;
-   END LOOP;
-   RETURN result;
-END;
-$$;
-
-
---
 -- Name: seed_authentication_systems(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4443,6 +4418,14 @@ ALTER TABLE ONLY public.attachments
 
 ALTER TABLE ONLY public.procurement_admins
     ADD CONSTRAINT fk_rails_7f23ec3f14 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: audited_requests fk_rails_83fd1038f8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audited_requests
+    ADD CONSTRAINT fk_rails_83fd1038f8 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --

@@ -2,9 +2,6 @@ module Leihs
   module MigrationHelper
     extend ActiveSupport::Concern
 
-    def audit_table(table_name)
-    end
-
     def create_trgm_index(t, c)
       execute "CREATE INDEX ON #{t} USING gin(#{c} gin_trgm_ops);"
     end

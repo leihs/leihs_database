@@ -113,9 +113,7 @@ class Audits < ActiveRecord::Migration[5.0]
       table.jsonb :data
     end
     add_auto_timestamps :audited_requests, updated_at: false
-    # not sure if we want the following  
-    # add_foreign_key :audited_requests, :users, on_delete: :cascade
-    # surely not with cascade! 
+    add_foreign_key :audited_requests, :users
 
     create_table :audited_responses, id: :uuid do |table|
       table.uuid :txid, null: false
