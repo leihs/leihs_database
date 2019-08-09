@@ -21,11 +21,22 @@ class UsersCleanUp < ActiveRecord::Migration[5.0]
       duplicate_ids.each do |duplicate_id|
         ['access_rights', 'reservations', 'orders', 'contracts', 'entitlement_groups_users'].each do |table|
           execute <<-SQL.strip_heredoc
-          UPDATE #{table}
-            SET user_id = '#{user_id}'
-            WHERE user_id = '#{duplicate_id}';
+            UPDATE #{table}
+              SET user_id = '#{user_id}'
+              WHERE user_id = '#{duplicate_id}';
           SQL
+          
+          if table == 'reservations'
+            ['handed_over_by_user_id', 'returned_to_user_id', 'delegated_user_id'].each do |col|
+              execute <<-SQL.strip_heredoc
+                UPDATE #{table}
+                SET #{col} = '#{user_id}'
+                WHERE #{col} = '#{duplicate_id}';
+              SQL
+            end
+          end
         end
+
         execute <<-SQL.strip_heredoc
           DELETE FROM users WHERE id = '#{duplicate_id}';
         SQL
