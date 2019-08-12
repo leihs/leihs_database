@@ -1,7 +1,7 @@
 GIT
-  remote: https://github.com/drtom/rails_pg-tasks
-  revision: e89db3adf583dca74dac7745387f692f9a083197
-  branch: master_rails_5
+  remote: https://github.com/leihs/rails_pg-tasks
+  revision: 322b147606e3c7032584c5bc99719eb74bdc4413
+  branch: mk/master_rails_5
   specs:
     pg_tasks (2.2.0.pre.0)
       rails (~> 5.0)
@@ -172,4 +172,4 @@ DEPENDENCIES
   uuidtools
 
 BUNDLED WITH
-   1.16.6
+   1.17.2

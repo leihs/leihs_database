@@ -7,7 +7,7 @@ gem 'factory_bot'
 gem 'faker'
 gem 'money-rails', '~> 1.4'
 gem 'pg', platform: :mri
-gem 'pg_tasks', git: 'https://github.com/drtom/rails_pg-tasks', branch: 'master_rails_5'
+gem 'pg_tasks', git: 'https://github.com/leihs/rails_pg-tasks', branch: 'mk/master_rails_5'
 gem 'pry'
 gem 'rails'
 gem 'rspec'
