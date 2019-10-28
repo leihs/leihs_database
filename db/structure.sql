@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.10
--- Dumped by pg_dump version 10.10
+-- Dumped from database version 10.9
+-- Dumped by pg_dump version 10.9
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1167,6 +1167,24 @@ $$;
 
 
 --
+-- Name: orders_insert_check_function(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.orders_insert_check_function() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF (NEW.customer_order_id IS NULL) THEN
+    RAISE EXCEPTION 'customer_order_id cannot be null for a new order.';
+    RETURN NEW;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+
+--
 -- Name: seed_authentication_systems(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1242,7 +1260,7 @@ CREATE TABLE public.access_rights (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     role character varying NOT NULL,
-    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY (ARRAY[('customer'::character varying)::text, ('group_manager'::character varying)::text, ('lending_manager'::character varying)::text, ('inventory_manager'::character varying)::text])))
+    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY ((ARRAY['customer'::character varying, 'group_manager'::character varying, 'lending_manager'::character varying, 'inventory_manager'::character varying])::text[])))
 );
 
 
@@ -1432,7 +1450,7 @@ CREATE TABLE public.authentication_systems (
     updated_at timestamp with time zone DEFAULT now(),
     external_sign_out_url text,
     CONSTRAINT check_shortcut_sing_in CHECK (((shortcut_sign_in_enabled = false) OR ((type)::text = 'external'::text))),
-    CONSTRAINT check_valid_type CHECK (((type)::text = ANY (ARRAY[('password'::character varying)::text, ('external'::character varying)::text]))),
+    CONSTRAINT check_valid_type CHECK (((type)::text = ANY ((ARRAY['password'::character varying, 'external'::character varying])::text[]))),
     CONSTRAINT simple_id CHECK (((id)::text ~ '^[a-z][a-z0-9_-]*$'::text))
 );
 
@@ -1490,6 +1508,19 @@ CREATE TABLE public.contracts (
     inventory_pool_id uuid NOT NULL,
     purpose text NOT NULL,
     CONSTRAINT check_valid_state CHECK ((state = ANY (ARRAY['open'::text, 'closed'::text])))
+);
+
+
+--
+-- Name: customer_orders; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.customer_orders (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    user_id uuid,
+    purpose text NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1896,6 +1927,7 @@ CREATE TABLE public.orders (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     reject_reason character varying,
+    customer_order_id uuid,
     CONSTRAINT check_state_and_reject_reason_consistency CHECK ((((state = ANY (ARRAY['submitted'::text, 'approved'::text, 'rejected'::text])) AND (reject_reason IS NULL)) OR ((state = 'rejected'::text) AND (reject_reason IS NOT NULL)))),
     CONSTRAINT check_valid_state CHECK ((state = ANY (ARRAY['submitted'::text, 'approved'::text, 'rejected'::text])))
 );
@@ -1936,7 +1968,7 @@ CREATE TABLE public.procurement_budget_limits (
     budget_period_id uuid NOT NULL,
     main_category_id uuid NOT NULL,
     amount_cents integer DEFAULT 0 NOT NULL,
-    amount_currency character varying DEFAULT 'GBP'::character varying NOT NULL
+    amount_currency character varying DEFAULT 'USD'::character varying NOT NULL
 );
 
 
@@ -2061,7 +2093,7 @@ CREATE TABLE public.procurement_requests (
     approved_quantity integer,
     order_quantity integer,
     price_cents bigint DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'GBP'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
     priority character varying DEFAULT 'normal'::character varying NOT NULL,
     replacement boolean DEFAULT true NOT NULL,
     supplier_name character varying,
@@ -2075,13 +2107,13 @@ CREATE TABLE public.procurement_requests (
     accounting_type character varying DEFAULT 'aquisition'::character varying NOT NULL,
     internal_order_number character varying,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
-    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
+    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY ((ARRAY['normal'::character varying, 'high'::character varying])::text[]))),
     CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
     CONSTRAINT check_either_supplier_id_or_supplier_name CHECK ((((supplier_id IS NOT NULL) AND (supplier_name IS NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NOT NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NULL)))),
-    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY (ARRAY[('low'::character varying)::text, ('medium'::character varying)::text, ('high'::character varying)::text, ('mandatory'::character varying)::text]))),
+    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'mandatory'::character varying])::text[]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
     CONSTRAINT check_max_javascript_int CHECK (((price_cents)::double precision < ((2)::double precision ^ (52)::double precision))),
-    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY (ARRAY[('aquisition'::character varying)::text, ('investment'::character varying)::text]))),
+    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[]))),
     CONSTRAINT supplier_name_is_not_blank CHECK (((supplier_name)::text !~ '^\s*$'::text))
 );
 
@@ -2111,7 +2143,7 @@ CREATE TABLE public.procurement_templates (
     article_name text,
     article_number character varying,
     price_cents integer DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'GBP'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
     supplier_name character varying,
     category_id uuid NOT NULL,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
@@ -2533,6 +2565,14 @@ ALTER TABLE ONLY public.buildings
 
 ALTER TABLE ONLY public.contracts
     ADD CONSTRAINT contracts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: customer_orders customer_orders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_orders
+    ADD CONSTRAINT customer_orders_pkey PRIMARY KEY (id);
 
 
 --
@@ -3923,6 +3963,13 @@ CREATE TRIGGER fields_update_check_trigger BEFORE UPDATE ON public.fields FOR EA
 
 
 --
+-- Name: orders orders_insert_check_function_trigger; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER orders_insert_check_function_trigger BEFORE INSERT ON public.orders FOR EACH ROW EXECUTE PROCEDURE public.orders_insert_check_function();
+
+
+--
 -- Name: authentication_systems_users seed_authentication_systems_on_authentication_systems_users; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4424,6 +4471,14 @@ ALTER TABLE ONLY public.procurement_admins
 
 
 --
+-- Name: audited_requests fk_rails_83fd1038f8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audited_requests
+    ADD CONSTRAINT fk_rails_83fd1038f8 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: entitlement_groups_users fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4461,6 +4516,14 @@ ALTER TABLE ONLY public.user_sessions
 
 ALTER TABLE ONLY public.reservations
     ADD CONSTRAINT fk_rails_8dc1da71d1 FOREIGN KEY (contract_id) REFERENCES public.contracts(id) ON DELETE CASCADE;
+
+
+--
+-- Name: customer_orders fk_rails_90249e6b2c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customer_orders
+    ADD CONSTRAINT fk_rails_90249e6b2c FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -4637,6 +4700,14 @@ ALTER TABLE ONLY public.procurement_requesters_organizations
 
 ALTER TABLE ONLY public.holidays
     ADD CONSTRAINT fk_rails_c189a29194 FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id) ON DELETE CASCADE;
+
+
+--
+-- Name: orders fk_rails_c6bc8a139b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT fk_rails_c6bc8a139b FOREIGN KEY (customer_order_id) REFERENCES public.customer_orders(id);
 
 
 --
@@ -4950,6 +5021,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('522'),
 ('523'),
 ('524'),
+('525'),
 ('6'),
 ('7'),
 ('8'),
