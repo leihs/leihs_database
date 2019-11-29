@@ -1605,6 +1605,18 @@ CREATE TABLE public.entitlements (
 
 
 --
+-- Name: favorite_models; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.favorite_models (
+    user_id uuid NOT NULL,
+    model_id uuid NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: fields; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3347,6 +3359,13 @@ CREATE INDEX index_entitlements_on_model_id ON public.entitlements USING btree (
 
 
 --
+-- Name: index_favorite_models_on_user_id_and_model_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_favorite_models_on_user_id_and_model_id ON public.favorite_models USING btree (user_id, model_id);
+
+
+--
 -- Name: index_fields_on_active; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4631,6 +4650,14 @@ ALTER TABLE ONLY public.procurement_categories
 
 
 --
+-- Name: favorite_models fk_rails_adcbeea1cb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorite_models
+    ADD CONSTRAINT fk_rails_adcbeea1cb FOREIGN KEY (model_id) REFERENCES public.models(id) ON DELETE CASCADE;
+
+
+--
 -- Name: authentication_systems_groups fk_rails_ae3d1b0414; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4772,6 +4799,14 @@ ALTER TABLE ONLY public.procurement_templates
 
 ALTER TABLE ONLY public.accessories_inventory_pools
     ADD CONSTRAINT fk_rails_e9daa88f6c FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id);
+
+
+--
+-- Name: favorite_models fk_rails_ecb05addb0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favorite_models
+    ADD CONSTRAINT fk_rails_ecb05addb0 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -5022,6 +5057,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('523'),
 ('524'),
 ('525'),
+('526'),
 ('6'),
 ('7'),
 ('8'),
