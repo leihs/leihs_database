@@ -1254,8 +1254,6 @@ CREATE TABLE public.access_rights (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     user_id uuid NOT NULL,
     inventory_pool_id uuid,
-    suspended_until date,
-    suspended_reason text,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     role character varying NOT NULL,
@@ -2317,6 +2315,21 @@ CREATE TABLE public.suppliers (
 
 
 --
+-- Name: suspensions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.suspensions (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    user_id uuid,
+    inventory_pool_id uuid,
+    suspended_until date DEFAULT (now() + '10000 years'::interval) NOT NULL,
+    suspended_reason text,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
+);
+
+
+--
 -- Name: system_admin_groups; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2939,6 +2952,14 @@ ALTER TABLE ONLY public.suppliers
 
 
 --
+-- Name: suspensions suspensions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.suspensions
+    ADD CONSTRAINT suspensions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: system_admin_groups system_admin_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3159,13 +3180,6 @@ CREATE INDEX index_access_rights_on_inventory_pool_id ON public.access_rights US
 --
 
 CREATE INDEX index_access_rights_on_role ON public.access_rights USING btree (role);
-
-
---
--- Name: index_access_rights_on_suspended_until; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_access_rights_on_suspended_until ON public.access_rights USING btree (suspended_until);
 
 
 --
@@ -3778,6 +3792,20 @@ CREATE UNIQUE INDEX index_suppliers_on_name ON public.suppliers USING btree (nam
 
 
 --
+-- Name: index_suspensions_on_suspended_until; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_suspensions_on_suspended_until ON public.suspensions USING btree (suspended_until);
+
+
+--
+-- Name: index_suspensions_on_user_id_and_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_suspensions_on_user_id_and_inventory_pool_id ON public.suspensions USING btree (user_id, inventory_pool_id);
+
+
+--
 -- Name: index_user_password_resets_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4149,6 +4177,13 @@ CREATE TRIGGER update_updated_at_column_of_settings BEFORE UPDATE ON public.sett
 
 
 --
+-- Name: suspensions update_updated_at_column_of_suspensions; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_suspensions BEFORE UPDATE ON public.suspensions FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+
+
+--
 -- Name: users update_updated_at_column_of_users; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4241,6 +4276,14 @@ ALTER TABLE ONLY public.disabled_fields
 
 ALTER TABLE ONLY public.procurement_requests
     ADD CONSTRAINT fk_rails_214a7de1ff FOREIGN KEY (model_id) REFERENCES public.models(id);
+
+
+--
+-- Name: suspensions fk_rails_244571cbc2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.suspensions
+    ADD CONSTRAINT fk_rails_244571cbc2 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -4377,6 +4420,14 @@ ALTER TABLE ONLY public.items
 
 ALTER TABLE ONLY public.accessories
     ADD CONSTRAINT fk_rails_54c6f19548 FOREIGN KEY (model_id) REFERENCES public.models(id) ON DELETE CASCADE;
+
+
+--
+-- Name: suspensions fk_rails_564631fd04; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.suspensions
+    ADD CONSTRAINT fk_rails_564631fd04 FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id);
 
 
 --
@@ -5037,6 +5088,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('525'),
 ('526'),
 ('530'),
+('531'),
 ('6'),
 ('7'),
 ('8'),
