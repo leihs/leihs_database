@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.9
--- Dumped by pg_dump version 10.9
+-- Dumped from database version 10.10
+-- Dumped by pg_dump version 10.10
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1256,7 +1256,6 @@ CREATE TABLE public.access_rights (
     inventory_pool_id uuid,
     suspended_until date,
     suspended_reason text,
-    deleted_at date,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     role character varying NOT NULL,
@@ -3149,13 +3148,6 @@ CREATE UNIQUE INDEX idx_user_egroup ON public.entitlement_groups_users USING btr
 
 
 --
--- Name: index_access_rights_on_deleted_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_access_rights_on_deleted_at ON public.access_rights USING btree (deleted_at);
-
-
---
 -- Name: index_access_rights_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3618,13 +3610,6 @@ CREATE UNIQUE INDEX index_on_budget_period_id_and_category_id ON public.procurem
 
 
 --
--- Name: index_on_user_id_and_inventory_pool_id_and_deleted_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_on_user_id_and_inventory_pool_id_and_deleted_at ON public.access_rights USING btree (user_id, inventory_pool_id, deleted_at);
-
-
---
 -- Name: index_on_user_id_and_organization_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3790,13 +3775,6 @@ CREATE INDEX index_reservations_on_type_and_contract_id ON public.reservations U
 --
 
 CREATE UNIQUE INDEX index_suppliers_on_name ON public.suppliers USING btree (name);
-
-
---
--- Name: index_user_id_inventory_pool_id_deleted_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_user_id_inventory_pool_id_deleted_at ON public.access_rights USING btree (user_id, inventory_pool_id, deleted_at);
 
 
 --
@@ -5058,6 +5036,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('524'),
 ('525'),
 ('526'),
+('530'),
 ('6'),
 ('7'),
 ('8'),
