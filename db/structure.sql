@@ -179,6 +179,24 @@ CREATE FUNCTION public.check_contract_has_at_least_one_reservation() RETURNS tri
 
 
 --
+-- Name: check_exactly_one_default_language(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_exactly_one_default_language() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF ((SELECT count(*) FROM languages WHERE "default") != 1 OR 
+      EXISTS (SELECT TRUE FROM languages WHERE "default" and not active))
+  THEN
+    RAISE EXCEPTION 'There must be exactly one default language which is also active.';
+  END IF;
+  RETURN NULL;
+END;
+$$;
+
+
+--
 -- Name: check_general_building_id_for_general_room(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4015,6 +4033,13 @@ CREATE CONSTRAINT TRIGGER trigger_check_contract_has_at_least_one_reservation AF
 
 
 --
+-- Name: languages trigger_check_exactly_one_default_language; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trigger_check_exactly_one_default_language AFTER INSERT OR DELETE OR UPDATE ON public.languages FOR EACH STATEMENT EXECUTE PROCEDURE public.check_exactly_one_default_language();
+
+
+--
 -- Name: rooms trigger_check_general_building_id_for_general_room; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -5090,6 +5115,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('531'),
 ('532'),
 ('533'),
+('534'),
 ('6'),
 ('7'),
 ('8'),
