@@ -1275,7 +1275,7 @@ CREATE TABLE public.access_rights (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     role character varying NOT NULL,
-    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY (ARRAY[('customer'::character varying)::text, ('group_manager'::character varying)::text, ('lending_manager'::character varying)::text, ('inventory_manager'::character varying)::text])))
+    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY ((ARRAY['customer'::character varying, 'group_manager'::character varying, 'lending_manager'::character varying, 'inventory_manager'::character varying])::text[])))
 );
 
 
@@ -1465,7 +1465,7 @@ CREATE TABLE public.authentication_systems (
     updated_at timestamp with time zone DEFAULT now(),
     external_sign_out_url text,
     CONSTRAINT check_shortcut_sing_in CHECK (((shortcut_sign_in_enabled = false) OR ((type)::text = 'external'::text))),
-    CONSTRAINT check_valid_type CHECK (((type)::text = ANY (ARRAY[('password'::character varying)::text, ('external'::character varying)::text]))),
+    CONSTRAINT check_valid_type CHECK (((type)::text = ANY ((ARRAY['password'::character varying, 'external'::character varying])::text[]))),
     CONSTRAINT simple_id CHECK (((id)::text ~ '^[a-z][a-z0-9_-]*$'::text))
 );
 
@@ -1641,6 +1641,21 @@ CREATE TABLE public.fields (
     "position" integer NOT NULL,
     data jsonb DEFAULT '{}'::jsonb NOT NULL,
     dynamic boolean DEFAULT false NOT NULL
+);
+
+
+--
+-- Name: group_access_rights; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.group_access_rights (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    group_id uuid,
+    inventory_pool_id uuid,
+    role text NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT check_allowed_roles CHECK ((role = ANY (ARRAY['customer'::text, 'group_manager'::text, 'lending_manager'::text, 'inventory_manager'::text])))
 );
 
 
@@ -2642,6 +2657,14 @@ ALTER TABLE ONLY public.fields
 
 
 --
+-- Name: group_access_rights group_access_rights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.group_access_rights
+    ADD CONSTRAINT group_access_rights_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: entitlement_groups groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3396,6 +3419,34 @@ CREATE INDEX index_fields_on_active ON public.fields USING btree (active);
 
 
 --
+-- Name: index_group_access_rights_on_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_group_access_rights_on_group_id ON public.group_access_rights USING btree (group_id);
+
+
+--
+-- Name: index_group_access_rights_on_group_id_and_role; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_group_access_rights_on_group_id_and_role ON public.group_access_rights USING btree (group_id, role);
+
+
+--
+-- Name: index_group_access_rights_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_group_access_rights_on_inventory_pool_id ON public.group_access_rights USING btree (inventory_pool_id);
+
+
+--
+-- Name: index_group_access_rights_on_inventory_pool_id_and_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_group_access_rights_on_inventory_pool_id_and_group_id ON public.group_access_rights USING btree (inventory_pool_id, group_id);
+
+
+--
 -- Name: index_groups_on_org_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4110,17 +4161,17 @@ CREATE CONSTRAINT TRIGGER trigger_delete_empty_order AFTER DELETE ON public.rese
 
 
 --
--- Name: authentication_systems_users trigger_delete_obsolete_user_password_resets; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_delete_obsolete_user_password_resets AFTER INSERT OR UPDATE ON public.authentication_systems_users FOR EACH ROW EXECUTE PROCEDURE public.delete_obsolete_user_password_resets_2();
-
-
---
 -- Name: user_password_resets trigger_delete_obsolete_user_password_resets; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trigger_delete_obsolete_user_password_resets BEFORE INSERT ON public.user_password_resets FOR EACH ROW EXECUTE PROCEDURE public.delete_obsolete_user_password_resets_1();
+
+
+--
+-- Name: authentication_systems_users trigger_delete_obsolete_user_password_resets; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trigger_delete_obsolete_user_password_resets AFTER INSERT OR UPDATE ON public.authentication_systems_users FOR EACH ROW EXECUTE PROCEDURE public.delete_obsolete_user_password_resets_2();
 
 
 --
@@ -4191,6 +4242,13 @@ CREATE TRIGGER update_updated_at_column_of_authentication_systems_groups BEFORE 
 --
 
 CREATE TRIGGER update_updated_at_column_of_authentication_systems_users BEFORE UPDATE ON public.authentication_systems_users FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+
+
+--
+-- Name: group_access_rights update_updated_at_column_of_group_access_rights; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_group_access_rights BEFORE UPDATE ON public.group_access_rights FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
 
 
 --
@@ -4630,6 +4688,14 @@ ALTER TABLE ONLY public.accessories_inventory_pools
 
 
 --
+-- Name: group_access_rights fk_rails_975fee0026; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.group_access_rights
+    ADD CONSTRAINT fk_rails_975fee0026 FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id);
+
+
+--
 -- Name: model_links fk_rails_9b7295b085; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4795,6 +4861,14 @@ ALTER TABLE ONLY public.holidays
 
 ALTER TABLE ONLY public.orders
     ADD CONSTRAINT fk_rails_c6bc8a139b FOREIGN KEY (customer_order_id) REFERENCES public.customer_orders(id);
+
+
+--
+-- Name: group_access_rights fk_rails_c74a24670e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.group_access_rights
+    ADD CONSTRAINT fk_rails_c74a24670e FOREIGN KEY (group_id) REFERENCES public.groups(id);
 
 
 --
@@ -5124,6 +5198,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('533'),
 ('534'),
 ('535'),
+('536'),
 ('6'),
 ('7'),
 ('8'),
