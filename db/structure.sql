@@ -3181,6 +3181,13 @@ CREATE UNIQUE INDEX idx_auth_sys_users ON public.authentication_systems_users US
 
 
 --
+-- Name: idx_group_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_group_name ON public.groups USING btree (lower((name)::text));
+
+
+--
 -- Name: idx_procurement_category_viewers_uc; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5199,6 +5206,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('534'),
 ('535'),
 ('536'),
+('537'),
 ('6'),
 ('7'),
 ('8'),
