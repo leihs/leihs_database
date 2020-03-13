@@ -6,17 +6,14 @@ describe 'authentication system user' do
       user = FactoryBot.create(:user)
       FactoryBot.create(:user_password_reset, user: user)
       expect(UserPasswordReset.count).to eq 1
-      FactoryBot.create(:authentication_system_user,
-                        user: user,
-                        authentication_system_id: 'password')
+      AuthenticationSystemUser.find(user_id: user.id, authentication_system_id: "password").delete()
+      FactoryBot.create(:authentication_system_user, user: user, authentication_system_id: 'password')
       expect(UserPasswordReset.count).to eq 0
     end
 
     example 'on update' do
       user = FactoryBot.create(:user)
-      asu = FactoryBot.create(:authentication_system_user,
-                              user: user,
-                              authentication_system_id: 'password')
+      asu = AuthenticationSystemUser.find(user_id: user.id, authentication_system_id: "password")
       FactoryBot.create(:user_password_reset, user: user)
       expect(UserPasswordReset.count).to eq 1
       asu.update(data: Faker::Crypto.md5)
