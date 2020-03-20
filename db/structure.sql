@@ -271,6 +271,28 @@ CREATE FUNCTION public.check_option_line_state_consistency() RETURNS trigger
 
 
 --
+-- Name: check_parent_id_for_organization_id(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_parent_id_for_organization_id() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+      BEGIN
+        IF (
+          SELECT true
+          FROM procurement_organizations
+          WHERE id = NEW.organization_id 
+            AND parent_id IS NULL 
+        ) THEN
+          RAISE EXCEPTION 'Associated organization must have a parent.';
+        END IF;
+
+        RETURN NEW;
+      END;
+      $$;
+
+
+--
 -- Name: check_reservation_contract_inventory_pool_id_consistency(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4127,6 +4149,13 @@ CREATE CONSTRAINT TRIGGER trigger_check_option_line_state_consistency AFTER INSE
 
 
 --
+-- Name: procurement_requesters_organizations trigger_check_parent_id_for_organization_id; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER trigger_check_parent_id_for_organization_id AFTER INSERT OR UPDATE ON public.procurement_requesters_organizations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_parent_id_for_organization_id();
+
+
+--
 -- Name: reservations trigger_check_reservation_contract_inventory_pool_id_consistenc; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -5225,6 +5254,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('536'),
 ('537'),
 ('538'),
+('539'),
 ('6'),
 ('7'),
 ('8'),
