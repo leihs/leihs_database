@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.11
--- Dumped by pg_dump version 10.11
+-- Dumped from database version 10.10
+-- Dumped by pg_dump version 10.10
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -98,6 +98,79 @@ CREATE TYPE public.reservation_status AS ENUM (
     'signed',
     'closed'
 );
+
+
+--
+-- Name: access_rights_on_delete_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.access_rights_on_delete_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF OLD.id IS NOT NULL THEN
+    DELETE FROM direct_access_rights WHERE id = OLD.id;
+  ELSE
+    DELETE FROM direct_access_rights WHERE user_id = OLD.user_id AND inventory_pool_id = OLD.inventory_pool_id;
+  END IF;
+  RETURN OLD;
+END;
+$$;
+
+
+--
+-- Name: access_rights_on_insert_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.access_rights_on_insert_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF NEW.id iS NULL then
+    NEW.id = uuid_generate_v4();
+  END IF;
+  INSERT INTO direct_access_rights(id, user_id, inventory_pool_id, role)
+    VALUES (NEW.id, NEW.user_id, NEW.inventory_pool_id, NEW.role);
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: access_rights_on_update_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.access_rights_on_update_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM direct_access_rights WHERE id = NEW.id) THEN
+    RAISE EXCEPTION 'direct_access_rights can not be updated from access_rights with id % when access_rights represents mixed or group rights', NEW.id;
+  ELSE
+    UPDATE direct_access_rights SET role = NEW.role WHERE direct_access_rights.id = NEW.id;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: ar_uuid_agg_f(uuid, uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.ar_uuid_agg_f(id1 uuid, id2 uuid) RETURNS uuid
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF id1 IS NOT NULL AND id2 IS NOT NULL THEN
+    RETURN uuid_nil();
+  ELSIF id1 IS NOT NULL THEN
+    RETURN id1;
+  ELSE
+    RETURN id2;
+  END IF;
+END;
+$$;
 
 
 --
@@ -1246,6 +1319,29 @@ $$;
 
 
 --
+-- Name: role_agg_f(text, text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.role_agg_f(role1 text, role2 text) RETURNS text
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF role1 = 'inventory_manager' OR role2 = 'inventory_manager' THEN
+    RETURN 'inventory_manager';
+  ELSIF role1 = 'lending_manager' OR role2 = 'lending_manager' THEN
+    RETURN 'lending_manager';
+  ELSIF role1 = 'group_manager' OR role2 = 'group_manager' THEN
+    RETURN 'group_manager';
+  ELSIF role1 = 'customer' OR role2 = 'customer' THEN
+    RETURN 'customer';
+    -- ELSE
+    -- RAISE 'no role condition matched';
+  END IF;
+END;
+$$;
+
+
+--
 -- Name: seed_authentication_systems(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1303,15 +1399,35 @@ END;
 $$;
 
 
+--
+-- Name: ar_uuid_agg(uuid); Type: AGGREGATE; Schema: public; Owner: -
+--
+
+CREATE AGGREGATE public.ar_uuid_agg(uuid) (
+    SFUNC = public.ar_uuid_agg_f,
+    STYPE = uuid
+);
+
+
+--
+-- Name: role_agg(text); Type: AGGREGATE; Schema: public; Owner: -
+--
+
+CREATE AGGREGATE public.role_agg(text) (
+    SFUNC = public.role_agg_f,
+    STYPE = text
+);
+
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
 
 --
--- Name: access_rights; Type: TABLE; Schema: public; Owner: -
+-- Name: direct_access_rights; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.access_rights (
+CREATE TABLE public.direct_access_rights (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     user_id uuid NOT NULL,
     inventory_pool_id uuid,
@@ -1320,6 +1436,89 @@ CREATE TABLE public.access_rights (
     role character varying NOT NULL,
     CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY ((ARRAY['customer'::character varying, 'group_manager'::character varying, 'lending_manager'::character varying, 'inventory_manager'::character varying])::text[])))
 );
+
+
+--
+-- Name: group_access_rights; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.group_access_rights (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    group_id uuid,
+    inventory_pool_id uuid,
+    role text NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT check_allowed_roles CHECK ((role = ANY (ARRAY['customer'::text, 'group_manager'::text, 'lending_manager'::text, 'inventory_manager'::text])))
+);
+
+
+--
+-- Name: groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.groups (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    name character varying NOT NULL,
+    description text,
+    org_id character varying,
+    searchable text DEFAULT ''::text NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: groups_users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.groups_users (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    user_id uuid NOT NULL,
+    group_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: unified_access_rights; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.unified_access_rights AS
+ SELECT direct_access_rights.id,
+    direct_access_rights.id AS direct_access_right_id,
+    NULL::uuid AS group_access_right_id,
+    direct_access_rights.user_id,
+    direct_access_rights.inventory_pool_id,
+    direct_access_rights.role,
+    direct_access_rights.created_at,
+    direct_access_rights.updated_at
+   FROM public.direct_access_rights
+UNION
+ SELECT group_access_rights.id,
+    NULL::uuid AS direct_access_right_id,
+    group_access_rights.id AS group_access_right_id,
+    groups_users.user_id,
+    group_access_rights.inventory_pool_id,
+    group_access_rights.role,
+    group_access_rights.created_at,
+    group_access_rights.updated_at
+   FROM ((public.group_access_rights
+     JOIN public.groups ON ((groups.id = group_access_rights.group_id)))
+     JOIN public.groups_users ON ((groups_users.group_id = groups.id)));
+
+
+--
+-- Name: access_rights; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.access_rights AS
+ SELECT public.ar_uuid_agg(unified_access_rights.id) AS id,
+    unified_access_rights.inventory_pool_id,
+    unified_access_rights.user_id,
+    public.role_agg((unified_access_rights.role)::text) AS role
+   FROM public.unified_access_rights
+  GROUP BY unified_access_rights.inventory_pool_id, unified_access_rights.user_id;
 
 
 --
@@ -1684,48 +1883,6 @@ CREATE TABLE public.fields (
     "position" integer NOT NULL,
     data jsonb DEFAULT '{}'::jsonb NOT NULL,
     dynamic boolean DEFAULT false NOT NULL
-);
-
-
---
--- Name: group_access_rights; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.group_access_rights (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    group_id uuid,
-    inventory_pool_id uuid,
-    role text NOT NULL,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
-    CONSTRAINT check_allowed_roles CHECK ((role = ANY (ARRAY['customer'::text, 'group_manager'::text, 'lending_manager'::text, 'inventory_manager'::text])))
-);
-
-
---
--- Name: groups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.groups (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    name character varying NOT NULL,
-    description text,
-    org_id character varying,
-    searchable text DEFAULT ''::text NOT NULL,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now()
-);
-
-
---
--- Name: groups_users; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.groups_users (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    user_id uuid NOT NULL,
-    group_id uuid NOT NULL,
-    created_at timestamp with time zone DEFAULT now()
 );
 
 
@@ -2556,10 +2713,10 @@ CREATE TABLE public.workdays (
 
 
 --
--- Name: access_rights access_rights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: direct_access_rights access_rights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.access_rights
+ALTER TABLE ONLY public.direct_access_rights
     ADD CONSTRAINT access_rights_pkey PRIMARY KEY (id);
 
 
@@ -3260,24 +3417,10 @@ CREATE UNIQUE INDEX idx_user_egroup ON public.entitlement_groups_users USING btr
 
 
 --
--- Name: index_access_rights_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_access_rights_on_inventory_pool_id ON public.access_rights USING btree (inventory_pool_id);
-
-
---
 -- Name: index_access_rights_on_pool_id_and_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_access_rights_on_pool_id_and_user_id ON public.access_rights USING btree (inventory_pool_id, user_id);
-
-
---
--- Name: index_access_rights_on_role; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_access_rights_on_role ON public.access_rights USING btree (role);
+CREATE UNIQUE INDEX index_access_rights_on_pool_id_and_user_id ON public.direct_access_rights USING btree (inventory_pool_id, user_id);
 
 
 --
@@ -3404,6 +3547,20 @@ CREATE INDEX index_delegations_users_on_delegation_id ON public.delegations_user
 --
 
 CREATE UNIQUE INDEX index_delegations_users_on_user_id_and_delegation_id ON public.delegations_users USING btree (user_id, delegation_id);
+
+
+--
+-- Name: index_direct_access_rights_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_direct_access_rights_on_inventory_pool_id ON public.direct_access_rights USING btree (inventory_pool_id);
+
+
+--
+-- Name: index_direct_access_rights_on_role; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_direct_access_rights_on_role ON public.direct_access_rights USING btree (role);
 
 
 --
@@ -4023,6 +4180,27 @@ CREATE INDEX users_to_tsvector_idx ON public.users USING gin (to_tsvector('engli
 
 
 --
+-- Name: access_rights access_rights_on_delete_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER access_rights_on_delete_t INSTEAD OF DELETE ON public.access_rights FOR EACH ROW EXECUTE PROCEDURE public.access_rights_on_delete_f();
+
+
+--
+-- Name: access_rights access_rights_on_insert_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER access_rights_on_insert_t INSTEAD OF INSERT ON public.access_rights FOR EACH ROW EXECUTE PROCEDURE public.access_rights_on_insert_f();
+
+
+--
+-- Name: access_rights access_rights_on_update_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER access_rights_on_update_t INSTEAD OF UPDATE ON public.access_rights FOR EACH ROW EXECUTE PROCEDURE public.access_rights_on_update_f();
+
+
+--
 -- Name: api_tokens audited_change_on_api_tokens; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4226,17 +4404,17 @@ CREATE CONSTRAINT TRIGGER trigger_delete_empty_order AFTER DELETE ON public.rese
 
 
 --
--- Name: authentication_systems_users trigger_delete_obsolete_user_password_resets; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_delete_obsolete_user_password_resets AFTER INSERT OR UPDATE ON public.authentication_systems_users FOR EACH ROW EXECUTE PROCEDURE public.delete_obsolete_user_password_resets_2();
-
-
---
 -- Name: user_password_resets trigger_delete_obsolete_user_password_resets; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trigger_delete_obsolete_user_password_resets BEFORE INSERT ON public.user_password_resets FOR EACH ROW EXECUTE PROCEDURE public.delete_obsolete_user_password_resets_1();
+
+
+--
+-- Name: authentication_systems_users trigger_delete_obsolete_user_password_resets; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trigger_delete_obsolete_user_password_resets AFTER INSERT OR UPDATE ON public.authentication_systems_users FOR EACH ROW EXECUTE PROCEDURE public.delete_obsolete_user_password_resets_2();
 
 
 --
@@ -4873,10 +5051,10 @@ ALTER TABLE ONLY public.notifications
 
 
 --
--- Name: access_rights fk_rails_b36d97eb0c; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: direct_access_rights fk_rails_b36d97eb0c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.access_rights
+ALTER TABLE ONLY public.direct_access_rights
     ADD CONSTRAINT fk_rails_b36d97eb0c FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id) ON DELETE CASCADE;
 
 
@@ -5105,10 +5283,10 @@ ALTER TABLE ONLY public.procurement_templates
 
 
 --
--- Name: access_rights fkey_access_rights_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: direct_access_rights fkey_access_rights_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.access_rights
+ALTER TABLE ONLY public.direct_access_rights
     ADD CONSTRAINT fkey_access_rights_user_id FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
