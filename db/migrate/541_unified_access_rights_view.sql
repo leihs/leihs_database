@@ -1,6 +1,7 @@
 CREATE VIEW unified_access_rights AS
     SELECT
       id AS id,
+      'direct_access_rights' AS origin_table,
       id as direct_access_right_id,
       NULL as group_access_right_id,
       user_id AS user_id,
@@ -12,6 +13,7 @@ CREATE VIEW unified_access_rights AS
   UNION
     SELECT
       group_access_rights.id AS id,
+      'group_access_rights' AS origin_table,
       NULL AS direct_access_right_id,
       group_access_rights.id AS group_access_right_id,
       groups_users.user_id as user_id,

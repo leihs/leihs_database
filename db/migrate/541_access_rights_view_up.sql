@@ -19,6 +19,28 @@ CREATE AGGREGATE ar_uuid_agg (uuid)
 );
 
 
+-- origin_table aggregate ---------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION origin_table_agg_f (ot1 text, ot2 text)
+RETURNS text AS $$
+BEGIN
+  IF ot1 IS NOT NULL AND ot2 IS NOT NULL THEN
+    RETURN 'mixed';
+  ELSIF ot1 IS NOT NULL THEN
+    RETURN ot1;
+  ELSE
+    RETURN ot2 ;
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE AGGREGATE origin_table_agg (text)
+( sfunc = origin_table_agg_f,
+  stype = text
+);
+
+
+
 -- role aggregate -------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION role_agg_f (role1 text, role2 text)
@@ -49,6 +71,7 @@ CREATE AGGREGATE role_agg (text)
 CREATE VIEW access_rights AS
     SELECT
       ar_uuid_agg(id) AS id,
+      origin_table_agg(origin_table) AS origin_table,
       inventory_pool_id,
       user_id,
       role_agg(role) AS role
@@ -81,10 +104,10 @@ FOR EACH ROW EXECUTE PROCEDURE access_rights_on_insert_f();
 CREATE OR REPLACE FUNCTION access_rights_on_delete_f()
 RETURNS TRIGGER AS $$
 BEGIN
-  IF OLD.id IS NOT NULL THEN
-    DELETE FROM direct_access_rights WHERE id = OLD.id;
+  IF NOT EXISTS (SELECT 1 FROM direct_access_rights WHERE id = OLD.id) THEN
+    RAISE EXCEPTION 'direct_access_rights can not be deleted from access_rights with id % when access_rights represents mixed or group rights', NEW.id;
   ELSE
-    DELETE FROM direct_access_rights WHERE user_id = OLD.user_id AND inventory_pool_id = OLD.inventory_pool_id;
+    DELETE FROM direct_access_rights WHERE id = OLD.id;
   END IF;
   RETURN OLD;
 END;

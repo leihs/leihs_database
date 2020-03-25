@@ -17,10 +17,13 @@ SELECT id FROM users
 
 
 
-SELECT distinct inventory_pools.name, direct_access_rights.role, access_rights.role, firstname, lastname
+SELECT distinct inventory_pools.name,
+	inventory_pools.name inventory_pool_name,
+  direct_access_rights.role direct_role,
+  access_rights.role agg_role, firstname, lastname
   FROM users
   JOIN access_rights on access_rights.user_id = users.id
   JOIN direct_access_rights on direct_access_rights.user_id = users.id
   JOIN inventory_pools on direct_access_rights.inventory_pool_id = inventory_pools.id
-  WHERE lastname = 'Foo'
+  WHERE lastname = 'Wintheiser'
   ;

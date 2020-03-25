@@ -108,10 +108,10 @@ CREATE FUNCTION public.access_rights_on_delete_f() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
-  IF OLD.id IS NOT NULL THEN
-    DELETE FROM direct_access_rights WHERE id = OLD.id;
+  IF NOT EXISTS (SELECT 1 FROM direct_access_rights WHERE id = OLD.id) THEN
+    RAISE EXCEPTION 'direct_access_rights can not be deleted from access_rights with id % when access_rights represents mixed or group rights', NEW.id;
   ELSE
-    DELETE FROM direct_access_rights WHERE user_id = OLD.user_id AND inventory_pool_id = OLD.inventory_pool_id;
+    DELETE FROM direct_access_rights WHERE id = OLD.id;
   END IF;
   RETURN OLD;
 END;
@@ -1319,6 +1319,25 @@ $$;
 
 
 --
+-- Name: origin_table_agg_f(text, text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.origin_table_agg_f(ot1 text, ot2 text) RETURNS text
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF ot1 IS NOT NULL AND ot2 IS NOT NULL THEN
+    RETURN 'mixed';
+  ELSIF ot1 IS NOT NULL THEN
+    RETURN ot1;
+  ELSE
+    RETURN ot2 ;
+  END IF;
+END;
+$$;
+
+
+--
 -- Name: role_agg_f(text, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1410,6 +1429,16 @@ CREATE AGGREGATE public.ar_uuid_agg(uuid) (
 
 
 --
+-- Name: origin_table_agg(text); Type: AGGREGATE; Schema: public; Owner: -
+--
+
+CREATE AGGREGATE public.origin_table_agg(text) (
+    SFUNC = public.origin_table_agg_f,
+    STYPE = text
+);
+
+
+--
 -- Name: role_agg(text); Type: AGGREGATE; Schema: public; Owner: -
 --
 
@@ -1486,6 +1515,7 @@ CREATE TABLE public.groups_users (
 
 CREATE VIEW public.unified_access_rights AS
  SELECT direct_access_rights.id,
+    'direct_access_rights'::text AS origin_table,
     direct_access_rights.id AS direct_access_right_id,
     NULL::uuid AS group_access_right_id,
     direct_access_rights.user_id,
@@ -1496,6 +1526,7 @@ CREATE VIEW public.unified_access_rights AS
    FROM public.direct_access_rights
 UNION
  SELECT group_access_rights.id,
+    'group_access_rights'::text AS origin_table,
     NULL::uuid AS direct_access_right_id,
     group_access_rights.id AS group_access_right_id,
     groups_users.user_id,
@@ -1514,6 +1545,7 @@ UNION
 
 CREATE VIEW public.access_rights AS
  SELECT public.ar_uuid_agg(unified_access_rights.id) AS id,
+    public.origin_table_agg(unified_access_rights.origin_table) AS origin_table,
     unified_access_rights.inventory_pool_id,
     unified_access_rights.user_id,
     public.role_agg((unified_access_rights.role)::text) AS role
