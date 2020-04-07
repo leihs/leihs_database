@@ -1,4 +1,8 @@
 class InventoryPool < Sequel::Model(:inventory_pools)
+  def after_create
+    Workday.create(inventory_pool_id: self.id)
+    super
+  end
 end
 
 FactoryBot.define do

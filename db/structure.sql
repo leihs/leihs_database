@@ -293,6 +293,27 @@ CREATE FUNCTION public.check_parent_id_for_organization_id() RETURNS trigger
 
 
 --
+-- Name: check_presence_of_workday_for_inventory_pool(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_presence_of_workday_for_inventory_pool() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT true
+          FROM workdays
+          WHERE inventory_pool_id = NEW.id
+        ) THEN
+          RAISE EXCEPTION 'An inventory pool must have a workday.';
+        END IF;
+
+        RETURN NEW;
+      END;
+      $$;
+
+
+--
 -- Name: check_reservation_contract_inventory_pool_id_consistency(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -2032,7 +2053,7 @@ CREATE TABLE public.procurement_budget_limits (
     budget_period_id uuid NOT NULL,
     main_category_id uuid NOT NULL,
     amount_cents integer DEFAULT 0 NOT NULL,
-    amount_currency character varying DEFAULT 'CHF'::character varying NOT NULL
+    amount_currency character varying DEFAULT 'USD'::character varying NOT NULL
 );
 
 
@@ -2157,7 +2178,7 @@ CREATE TABLE public.procurement_requests (
     approved_quantity integer,
     order_quantity integer,
     price_cents bigint DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'CHF'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
     priority character varying DEFAULT 'normal'::character varying NOT NULL,
     replacement boolean DEFAULT true NOT NULL,
     supplier_name character varying,
@@ -2171,13 +2192,13 @@ CREATE TABLE public.procurement_requests (
     accounting_type character varying DEFAULT 'aquisition'::character varying NOT NULL,
     internal_order_number character varying,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
-    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
+    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY ((ARRAY['normal'::character varying, 'high'::character varying])::text[]))),
     CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
     CONSTRAINT check_either_supplier_id_or_supplier_name CHECK ((((supplier_id IS NOT NULL) AND (supplier_name IS NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NOT NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NULL)))),
-    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY (ARRAY[('low'::character varying)::text, ('medium'::character varying)::text, ('high'::character varying)::text, ('mandatory'::character varying)::text]))),
+    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'mandatory'::character varying])::text[]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
     CONSTRAINT check_max_javascript_int CHECK (((price_cents)::double precision < ((2)::double precision ^ (52)::double precision))),
-    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY (ARRAY[('aquisition'::character varying)::text, ('investment'::character varying)::text]))),
+    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[]))),
     CONSTRAINT supplier_name_is_not_blank CHECK (((supplier_name)::text !~ '^\s*$'::text))
 );
 
@@ -2207,7 +2228,7 @@ CREATE TABLE public.procurement_templates (
     article_name text,
     article_number character varying,
     price_cents integer DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'CHF'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
     supplier_name character varying,
     category_id uuid NOT NULL,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
@@ -2529,7 +2550,7 @@ CREATE TABLE public.workdays (
     friday boolean DEFAULT true NOT NULL,
     saturday boolean DEFAULT false NOT NULL,
     sunday boolean DEFAULT false NOT NULL,
-    reservation_advance_days integer DEFAULT 0,
+    reservation_advance_days integer DEFAULT 0 NOT NULL,
     max_visits jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
@@ -2988,6 +3009,14 @@ ALTER TABLE ONLY public.reservations
 
 ALTER TABLE ONLY public.rooms
     ADD CONSTRAINT rooms_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schema_migrations
+    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -3927,7 +3956,7 @@ CREATE INDEX index_user_sessions_on_user_id ON public.user_sessions USING btree 
 -- Name: index_workdays_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_workdays_on_inventory_pool_id ON public.workdays USING btree (inventory_pool_id);
+CREATE UNIQUE INDEX index_workdays_on_inventory_pool_id ON public.workdays USING btree (inventory_pool_id);
 
 
 --
@@ -3949,13 +3978,6 @@ CREATE UNIQUE INDEX rooms_unique_name_and_building_id ON public.rooms USING btre
 --
 
 CREATE UNIQUE INDEX unique_name_procurement_budget_periods ON public.procurement_budget_periods USING btree (lower((name)::text));
-
-
---
--- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
 
 
 --
@@ -4152,6 +4174,13 @@ CREATE CONSTRAINT TRIGGER trigger_check_option_line_state_consistency AFTER INSE
 --
 
 CREATE CONSTRAINT TRIGGER trigger_check_parent_id_for_organization_id AFTER INSERT OR UPDATE ON public.procurement_requesters_organizations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_parent_id_for_organization_id();
+
+
+--
+-- Name: inventory_pools trigger_check_presence_of_workday_for_inventory_pool; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER trigger_check_presence_of_workday_for_inventory_pool AFTER INSERT OR UPDATE ON public.inventory_pools DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_presence_of_workday_for_inventory_pool();
 
 
 --
@@ -5255,6 +5284,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('538'),
 ('539'),
 ('540'),
+('541'),
 ('6'),
 ('7'),
 ('8'),
