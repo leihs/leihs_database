@@ -155,15 +155,15 @@ $$;
 
 
 --
--- Name: ar_uuid_agg_f(uuid, uuid); Type: FUNCTION; Schema: public; Owner: -
+-- Name: ar_uuid_agg_f(uuid, uuid, uuid, uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.ar_uuid_agg_f(id1 uuid, id2 uuid) RETURNS uuid
+CREATE FUNCTION public.ar_uuid_agg_f(id1 uuid, id2 uuid, user_id uuid, inventory_pool_id uuid) RETURNS uuid
     LANGUAGE plpgsql
     AS $$
 BEGIN
   IF id1 IS NOT NULL AND id2 IS NOT NULL THEN
-    RETURN uuid_nil();
+    RETURN uuid_generate_v3(uuid_nil(), user_id::TEXT || inventory_pool_id::TEXT);
   ELSIF id1 IS NOT NULL THEN
     RETURN id1;
   ELSE
@@ -1419,10 +1419,10 @@ $$;
 
 
 --
--- Name: ar_uuid_agg(uuid); Type: AGGREGATE; Schema: public; Owner: -
+-- Name: ar_uuid_agg(uuid, uuid, uuid); Type: AGGREGATE; Schema: public; Owner: -
 --
 
-CREATE AGGREGATE public.ar_uuid_agg(uuid) (
+CREATE AGGREGATE public.ar_uuid_agg(uuid, uuid, uuid) (
     SFUNC = public.ar_uuid_agg_f,
     STYPE = uuid
 );
@@ -1544,7 +1544,7 @@ UNION
 --
 
 CREATE VIEW public.access_rights AS
- SELECT public.ar_uuid_agg(unified_access_rights.id) AS id,
+ SELECT public.ar_uuid_agg(unified_access_rights.id, unified_access_rights.user_id, unified_access_rights.inventory_pool_id) AS id,
     public.origin_table_agg(unified_access_rights.origin_table) AS origin_table,
     unified_access_rights.inventory_pool_id,
     unified_access_rights.user_id,

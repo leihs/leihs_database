@@ -1,10 +1,10 @@
 -- id aggregate ---------------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION ar_uuid_agg_f (id1 uuid, id2 uuid)
+CREATE OR REPLACE FUNCTION ar_uuid_agg_f (id1 uuid, id2 uuid, user_id uuid, inventory_pool_id uuid)
 RETURNS uuid AS $$
 BEGIN
   IF id1 IS NOT NULL AND id2 IS NOT NULL THEN
-    RETURN uuid_nil();
+    RETURN uuid_generate_v3(uuid_nil(), user_id::TEXT || inventory_pool_id::TEXT);
   ELSIF id1 IS NOT NULL THEN
     RETURN id1;
   ELSE
@@ -13,7 +13,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE AGGREGATE ar_uuid_agg (uuid)
+CREATE AGGREGATE ar_uuid_agg (uuid, uuid, uuid)
 ( sfunc = ar_uuid_agg_f,
   stype = uuid
 );
@@ -70,7 +70,7 @@ CREATE AGGREGATE role_agg (text)
 
 CREATE VIEW access_rights AS
     SELECT
-      ar_uuid_agg(id) AS id,
+      ar_uuid_agg(id, user_id, inventory_pool_id) AS id,
       origin_table_agg(origin_table) AS origin_table,
       inventory_pool_id,
       user_id,
