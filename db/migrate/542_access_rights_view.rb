@@ -6,13 +6,13 @@ class AccessRightsView < ActiveRecord::Migration[5.0]
 
       dir.up do
         execute IO.read(
-          Pathname(__FILE__).dirname.join("541_unified_access_rights_view.sql"))
+          Pathname(__FILE__).dirname.join("542_unified_access_rights_view.sql"))
         execute IO.read(
-          Pathname(__FILE__).dirname.join("541_access_rights_view_up.sql"))
+          Pathname(__FILE__).dirname.join("542_access_rights_view_up.sql"))
       end
 
       dir.down do
-        execute IO.read( Pathname(__FILE__).dirname.join("541_access_rights_view_down.sql"))
+        execute IO.read( Pathname(__FILE__).dirname.join("542_access_rights_view_down.sql"))
         execute <<-SQL.strip_heredoc
           DROP VIEW IF EXISTS unified_access_rights;
         SQL
