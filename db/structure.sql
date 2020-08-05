@@ -1463,7 +1463,7 @@ CREATE TABLE public.direct_access_rights (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     role character varying NOT NULL,
-    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY ((ARRAY['customer'::character varying, 'group_manager'::character varying, 'lending_manager'::character varying, 'inventory_manager'::character varying])::text[])))
+    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY (ARRAY[('customer'::character varying)::text, ('group_manager'::character varying)::text, ('lending_manager'::character varying)::text, ('inventory_manager'::character varying)::text])))
 );
 
 
@@ -1739,7 +1739,7 @@ CREATE TABLE public.authentication_systems (
     external_sign_out_url text,
     sign_up_email_match text,
     CONSTRAINT check_shortcut_sing_in CHECK (((shortcut_sign_in_enabled = false) OR ((type)::text = 'external'::text))),
-    CONSTRAINT check_valid_type CHECK (((type)::text = ANY ((ARRAY['password'::character varying, 'external'::character varying])::text[]))),
+    CONSTRAINT check_valid_type CHECK (((type)::text = ANY (ARRAY[('password'::character varying)::text, ('external'::character varying)::text]))),
     CONSTRAINT simple_id CHECK (((id)::text ~ '^[a-z][a-z0-9_-]*$'::text))
 );
 
@@ -3666,13 +3666,6 @@ CREATE INDEX index_group_access_rights_on_group_id ON public.group_access_rights
 
 
 --
--- Name: index_group_access_rights_on_group_id_and_role; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_group_access_rights_on_group_id_and_role ON public.group_access_rights USING btree (group_id, role);
-
-
---
 -- Name: index_group_access_rights_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4755,19 +4748,19 @@ ALTER TABLE ONLY public.reservations
 
 
 --
--- Name: entitlement_groups_users fk_rails_4e63edbd27; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.entitlement_groups_users
-    ADD CONSTRAINT fk_rails_4e63edbd27 FOREIGN KEY (entitlement_group_id) REFERENCES public.entitlement_groups(id);
-
-
---
 -- Name: groups_users fk_rails_4e63edbd27; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.groups_users
     ADD CONSTRAINT fk_rails_4e63edbd27 FOREIGN KEY (group_id) REFERENCES public.groups(id) ON DELETE CASCADE;
+
+
+--
+-- Name: entitlement_groups_users fk_rails_4e63edbd27; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.entitlement_groups_users
+    ADD CONSTRAINT fk_rails_4e63edbd27 FOREIGN KEY (entitlement_group_id) REFERENCES public.entitlement_groups(id);
 
 
 --
@@ -4815,7 +4808,7 @@ ALTER TABLE ONLY public.authentication_systems_users
 --
 
 ALTER TABLE ONLY public.models
-    ADD CONSTRAINT fk_rails_5aa4f56a65 FOREIGN KEY (cover_image_id) REFERENCES public.images(id);
+    ADD CONSTRAINT fk_rails_5aa4f56a65 FOREIGN KEY (cover_image_id) REFERENCES public.images(id) ON DELETE CASCADE;
 
 
 --
@@ -4907,19 +4900,19 @@ ALTER TABLE ONLY public.audited_requests
 
 
 --
--- Name: entitlement_groups_users fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.entitlement_groups_users
-    ADD CONSTRAINT fk_rails_8546c71994 FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
---
 -- Name: groups_users fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.groups_users
     ADD CONSTRAINT fk_rails_8546c71994 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: entitlement_groups_users fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.entitlement_groups_users
+    ADD CONSTRAINT fk_rails_8546c71994 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -5506,6 +5499,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('542'),
 ('543'),
 ('544'),
+('545'),
 ('6'),
 ('7'),
 ('8'),
