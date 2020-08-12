@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 10.13
--- Dumped by pg_dump version 10.13
+-- Dumped by pg_dump version 11.8
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -15,20 +15,6 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
-
---
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: -
---
-
-CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
-
-
---
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
-
 
 --
 -- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
@@ -2492,6 +2478,7 @@ CREATE TABLE public.reservations (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     order_id uuid,
+    line_purpose text,
     CONSTRAINT check_order_id_for_different_statuses_of_item_line CHECK (((((type)::text = 'ItemLine'::text) AND (((status = 'unsubmitted'::public.reservation_status) AND (order_id IS NULL)) OR ((status = ANY (ARRAY['submitted'::public.reservation_status, 'rejected'::public.reservation_status])) AND (order_id IS NOT NULL)) OR (status = ANY (ARRAY['approved'::public.reservation_status, 'signed'::public.reservation_status, 'closed'::public.reservation_status])))) OR (((type)::text = 'OptionLine'::text) AND (status = ANY (ARRAY['approved'::public.reservation_status, 'signed'::public.reservation_status, 'closed'::public.reservation_status]))))),
     CONSTRAINT check_valid_status_and_contract_id CHECK ((((status = ANY (ARRAY['unsubmitted'::public.reservation_status, 'submitted'::public.reservation_status, 'approved'::public.reservation_status, 'rejected'::public.reservation_status])) AND (contract_id IS NULL)) OR ((status = ANY (ARRAY['signed'::public.reservation_status, 'closed'::public.reservation_status])) AND (contract_id IS NOT NULL))))
 );
@@ -4748,19 +4735,19 @@ ALTER TABLE ONLY public.reservations
 
 
 --
--- Name: groups_users fk_rails_4e63edbd27; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.groups_users
-    ADD CONSTRAINT fk_rails_4e63edbd27 FOREIGN KEY (group_id) REFERENCES public.groups(id) ON DELETE CASCADE;
-
-
---
 -- Name: entitlement_groups_users fk_rails_4e63edbd27; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.entitlement_groups_users
     ADD CONSTRAINT fk_rails_4e63edbd27 FOREIGN KEY (entitlement_group_id) REFERENCES public.entitlement_groups(id);
+
+
+--
+-- Name: groups_users fk_rails_4e63edbd27; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.groups_users
+    ADD CONSTRAINT fk_rails_4e63edbd27 FOREIGN KEY (group_id) REFERENCES public.groups(id) ON DELETE CASCADE;
 
 
 --
@@ -4900,19 +4887,19 @@ ALTER TABLE ONLY public.audited_requests
 
 
 --
--- Name: groups_users fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.groups_users
-    ADD CONSTRAINT fk_rails_8546c71994 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-
-
---
 -- Name: entitlement_groups_users fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.entitlement_groups_users
     ADD CONSTRAINT fk_rails_8546c71994 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: groups_users fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.groups_users
+    ADD CONSTRAINT fk_rails_8546c71994 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -5500,6 +5487,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('543'),
 ('544'),
 ('545'),
+('546'),
 ('6'),
 ('7'),
 ('8'),
