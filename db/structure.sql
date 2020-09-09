@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 10.13
--- Dumped by pg_dump version 11.8
+-- Dumped by pg_dump version 10.13
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -15,6 +15,20 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
 
 --
 -- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
@@ -2660,6 +2674,7 @@ CREATE TABLE public.users (
     is_admin boolean DEFAULT false NOT NULL,
     extended_info jsonb,
     searchable text DEFAULT ''::text NOT NULL,
+    secondary_email text,
     CONSTRAINT email_must_contain_at_sign CHECK (((email)::text ~~* '%@%'::text)),
     CONSTRAINT login_may_not_contain_at_sign CHECK (((login)::text !~~* '%@%'::text))
 );
@@ -4185,6 +4200,13 @@ CREATE INDEX users_searchable_idx ON public.users USING gin (searchable public.g
 
 
 --
+-- Name: users_secondary_email_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX users_secondary_email_idx ON public.users USING btree (lower(secondary_email));
+
+
+--
 -- Name: users_to_tsvector_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4795,7 +4817,7 @@ ALTER TABLE ONLY public.authentication_systems_users
 --
 
 ALTER TABLE ONLY public.models
-    ADD CONSTRAINT fk_rails_5aa4f56a65 FOREIGN KEY (cover_image_id) REFERENCES public.images(id) ON DELETE CASCADE;
+    ADD CONSTRAINT fk_rails_5aa4f56a65 FOREIGN KEY (cover_image_id) REFERENCES public.images(id);
 
 
 --
@@ -5488,6 +5510,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('544'),
 ('545'),
 ('546'),
+('547'),
 ('6'),
 ('7'),
 ('8'),
