@@ -1,4 +1,8 @@
 class AddSecondaryEmailToUsers < ActiveRecord::Migration[5.0]
+  class MigrationUser < ActiveRecord::Base
+    self.table_name = :users
+  end
+
   def change
     add_column :users, :secondary_email, :text
     add_index :users, 'lower(secondary_email)',
@@ -7,7 +11,7 @@ class AddSecondaryEmailToUsers < ActiveRecord::Migration[5.0]
     # extract ZHdK specific "private" email from extended_info if available
     reversible do |dir|
       dir.up do
-        User.where.not(extended_info: nil).in_batches do |users|
+        MigrationUser.where.not(extended_info: nil).in_batches do |users|
           users.each do |user|
             if secondary_email = \
                 (user.extended_info.try(:[],'email_alt').presence \
