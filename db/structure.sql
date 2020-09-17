@@ -87,20 +87,6 @@ COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UU
 
 
 --
--- Name: reservation_status; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.reservation_status AS ENUM (
-    'unsubmitted',
-    'submitted',
-    'rejected',
-    'approved',
-    'signed',
-    'closed'
-);
-
-
---
 -- Name: access_rights_on_delete_f(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -2243,7 +2229,7 @@ CREATE TABLE public.procurement_budget_limits (
     budget_period_id uuid NOT NULL,
     main_category_id uuid NOT NULL,
     amount_cents integer DEFAULT 0 NOT NULL,
-    amount_currency character varying DEFAULT 'CHF'::character varying NOT NULL
+    amount_currency character varying DEFAULT 'GBP'::character varying NOT NULL
 );
 
 
@@ -2368,7 +2354,7 @@ CREATE TABLE public.procurement_requests (
     approved_quantity integer,
     order_quantity integer,
     price_cents bigint DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'CHF'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'GBP'::character varying NOT NULL,
     priority character varying DEFAULT 'normal'::character varying NOT NULL,
     replacement boolean DEFAULT true NOT NULL,
     supplier_name character varying,
@@ -2418,7 +2404,7 @@ CREATE TABLE public.procurement_templates (
     article_name text,
     article_number character varying,
     price_cents integer DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'CHF'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'GBP'::character varying NOT NULL,
     supplier_name character varying,
     category_id uuid NOT NULL,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
@@ -2480,7 +2466,7 @@ CREATE TABLE public.reservations (
     delegated_user_id uuid,
     handed_over_by_user_id uuid,
     type character varying DEFAULT 'ItemLine'::character varying NOT NULL,
-    status public.reservation_status NOT NULL,
+    status text NOT NULL,
     item_id uuid,
     model_id uuid,
     quantity integer DEFAULT 1,
@@ -2493,8 +2479,9 @@ CREATE TABLE public.reservations (
     updated_at timestamp without time zone NOT NULL,
     order_id uuid,
     line_purpose text,
-    CONSTRAINT check_order_id_for_different_statuses_of_item_line CHECK (((((type)::text = 'ItemLine'::text) AND (((status = 'unsubmitted'::public.reservation_status) AND (order_id IS NULL)) OR ((status = ANY (ARRAY['submitted'::public.reservation_status, 'rejected'::public.reservation_status])) AND (order_id IS NOT NULL)) OR (status = ANY (ARRAY['approved'::public.reservation_status, 'signed'::public.reservation_status, 'closed'::public.reservation_status])))) OR (((type)::text = 'OptionLine'::text) AND (status = ANY (ARRAY['approved'::public.reservation_status, 'signed'::public.reservation_status, 'closed'::public.reservation_status]))))),
-    CONSTRAINT check_valid_status_and_contract_id CHECK ((((status = ANY (ARRAY['unsubmitted'::public.reservation_status, 'submitted'::public.reservation_status, 'approved'::public.reservation_status, 'rejected'::public.reservation_status])) AND (contract_id IS NULL)) OR ((status = ANY (ARRAY['signed'::public.reservation_status, 'closed'::public.reservation_status])) AND (contract_id IS NOT NULL))))
+    CONSTRAINT check_allowed_statuses CHECK ((status = ANY (ARRAY['draft'::text, 'unsubmitted'::text, 'submitted'::text, 'rejected'::text, 'approved'::text, 'signed'::text, 'closed'::text]))),
+    CONSTRAINT check_order_id_for_different_statuses_of_item_line CHECK (((((type)::text = 'ItemLine'::text) AND (((status = ANY (ARRAY['draft'::text, 'unsubmitted'::text])) AND (order_id IS NULL)) OR ((status = ANY (ARRAY['submitted'::text, 'rejected'::text])) AND (order_id IS NOT NULL)) OR (status = ANY (ARRAY['approved'::text, 'signed'::text, 'closed'::text])))) OR (((type)::text = 'OptionLine'::text) AND (status = ANY (ARRAY['approved'::text, 'signed'::text, 'closed'::text]))))),
+    CONSTRAINT check_valid_status_and_contract_id CHECK ((((status = ANY (ARRAY['draft'::text, 'unsubmitted'::text, 'submitted'::text, 'approved'::text, 'rejected'::text])) AND (contract_id IS NULL)) OR ((status = ANY (ARRAY['signed'::text, 'closed'::text])) AND (contract_id IS NOT NULL))))
 );
 
 
@@ -2691,8 +2678,8 @@ CREATE VIEW public.visits AS
     visit_reservations.date,
     visit_reservations.visit_type AS type,
         CASE
-            WHEN (visit_reservations.status = 'submitted'::public.reservation_status) THEN false
-            WHEN (visit_reservations.status = ANY (ARRAY['approved'::public.reservation_status, 'signed'::public.reservation_status])) THEN true
+            WHEN (visit_reservations.status = 'submitted'::text) THEN false
+            WHEN (visit_reservations.status = ANY (ARRAY['approved'::text, 'signed'::text])) THEN true
             ELSE NULL::boolean
         END AS is_approved,
     sum(visit_reservations.quantity) AS quantity,
@@ -2703,13 +2690,13 @@ CREATE VIEW public.visits AS
             reservations.user_id,
             reservations.inventory_pool_id,
                 CASE
-                    WHEN (reservations.status = ANY (ARRAY['submitted'::public.reservation_status, 'approved'::public.reservation_status])) THEN reservations.start_date
-                    WHEN (reservations.status = 'signed'::public.reservation_status) THEN reservations.end_date
+                    WHEN (reservations.status = ANY (ARRAY['submitted'::text, 'approved'::text])) THEN reservations.start_date
+                    WHEN (reservations.status = 'signed'::text) THEN reservations.end_date
                     ELSE NULL::date
                 END AS date,
                 CASE
-                    WHEN (reservations.status = ANY (ARRAY['submitted'::public.reservation_status, 'approved'::public.reservation_status])) THEN 'hand_over'::text
-                    WHEN (reservations.status = 'signed'::public.reservation_status) THEN 'take_back'::text
+                    WHEN (reservations.status = ANY (ARRAY['submitted'::text, 'approved'::text])) THEN 'hand_over'::text
+                    WHEN (reservations.status = 'signed'::text) THEN 'take_back'::text
                     ELSE NULL::text
                 END AS visit_type,
             reservations.status,
@@ -2724,7 +2711,7 @@ CREATE VIEW public.visits AS
                      JOIN public.entitlement_groups_users ON ((entitlement_groups_users.entitlement_group_id = entitlement_groups.id)))
                   WHERE ((entitlements.model_id = reservations.model_id) AND (entitlement_groups_users.user_id = reservations.user_id) AND (entitlement_groups.is_verification_required IS TRUE)))) AS with_user_and_model_to_verify
            FROM public.reservations
-          WHERE (reservations.status = ANY (ARRAY['submitted'::public.reservation_status, 'approved'::public.reservation_status, 'signed'::public.reservation_status]))) visit_reservations
+          WHERE (reservations.status = ANY (ARRAY['submitted'::text, 'approved'::text, 'signed'::text]))) visit_reservations
   GROUP BY visit_reservations.user_id, visit_reservations.inventory_pool_id, visit_reservations.date, visit_reservations.visit_type, visit_reservations.status;
 
 
@@ -3201,6 +3188,14 @@ ALTER TABLE ONLY public.reservations
 
 ALTER TABLE ONLY public.rooms
     ADD CONSTRAINT rooms_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schema_migrations
+    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -4158,13 +4153,6 @@ CREATE UNIQUE INDEX unique_name_procurement_budget_periods ON public.procurement
 
 
 --
--- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
-
-
---
 -- Name: user_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4901,14 +4889,6 @@ ALTER TABLE ONLY public.procurement_admins
 
 
 --
--- Name: audited_requests fk_rails_83fd1038f8; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.audited_requests
-    ADD CONSTRAINT fk_rails_83fd1038f8 FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
---
 -- Name: entitlement_groups_users fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5511,6 +5491,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('545'),
 ('546'),
 ('547'),
+('548'),
 ('6'),
 ('7'),
 ('8'),
