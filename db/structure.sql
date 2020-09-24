@@ -1242,6 +1242,23 @@ CREATE FUNCTION public.hex_to_int(hexval character varying) RETURNS bigint
 
 
 --
+-- Name: increase_counter_for_new_procurement_request_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.increase_counter_for_new_procurement_request_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  UPDATE procurement_requests_counters
+  SET counter = counter + 1
+  WHERE budget_period_id = NEW.budget_period_id;
+
+  RETURN NULL;
+END;
+$$;
+
+
+--
 -- Name: insert_customer_access_rights(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1360,6 +1377,32 @@ CREATE FUNCTION public.seed_authentication_systems() RETURNS trigger
       DO UPDATE SET type = 'password';
     RETURN NEW;
   END;
+$$;
+
+
+--
+-- Name: set_short_id_for_new_procurement_request_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.set_short_id_for_new_procurement_request_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  NEW.short_id = (
+    SELECT tmp.name || '.' || CASE
+                                           WHEN tmp.counter > 999 THEN tmp.counter::text
+                                           ELSE lpad(tmp.counter::text, 3, '0')
+                                         END
+    FROM (
+      SELECT pbp.name, prc.counter + 1 AS counter
+      FROM procurement_budget_periods pbp
+      JOIN procurement_requests_counters prc ON prc.budget_period_id = pbp.id
+      WHERE pbp.id = NEW.budget_period_id
+    ) AS tmp
+  );
+
+  RETURN NEW;
+END;
 $$;
 
 
@@ -2229,7 +2272,7 @@ CREATE TABLE public.procurement_budget_limits (
     budget_period_id uuid NOT NULL,
     main_category_id uuid NOT NULL,
     amount_cents integer DEFAULT 0 NOT NULL,
-    amount_currency character varying DEFAULT 'GBP'::character varying NOT NULL
+    amount_currency character varying DEFAULT 'CHF'::character varying NOT NULL
 );
 
 
@@ -2354,7 +2397,7 @@ CREATE TABLE public.procurement_requests (
     approved_quantity integer,
     order_quantity integer,
     price_cents bigint DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'GBP'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'CHF'::character varying NOT NULL,
     priority character varying DEFAULT 'normal'::character varying NOT NULL,
     replacement boolean DEFAULT true NOT NULL,
     supplier_name character varying,
@@ -2367,6 +2410,7 @@ CREATE TABLE public.procurement_requests (
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     accounting_type character varying DEFAULT 'aquisition'::character varying NOT NULL,
     internal_order_number character varying,
+    short_id text,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
     CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
     CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
@@ -2376,6 +2420,16 @@ CREATE TABLE public.procurement_requests (
     CONSTRAINT check_max_javascript_int CHECK (((price_cents)::double precision < ((2)::double precision ^ (52)::double precision))),
     CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY (ARRAY[('aquisition'::character varying)::text, ('investment'::character varying)::text]))),
     CONSTRAINT supplier_name_is_not_blank CHECK (((supplier_name)::text !~ '^\s*$'::text))
+);
+
+
+--
+-- Name: procurement_requests_counters; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.procurement_requests_counters (
+    budget_period_id uuid NOT NULL,
+    counter integer DEFAULT 0 NOT NULL
 );
 
 
@@ -2404,7 +2458,7 @@ CREATE TABLE public.procurement_templates (
     article_name text,
     article_number character varying,
     price_cents integer DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'GBP'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'CHF'::character varying NOT NULL,
     supplier_name character varying,
     category_id uuid NOT NULL,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
@@ -3188,14 +3242,6 @@ ALTER TABLE ONLY public.reservations
 
 ALTER TABLE ONLY public.rooms
     ADD CONSTRAINT rooms_pkey PRIMARY KEY (id);
-
-
---
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -4006,6 +4052,20 @@ CREATE INDEX index_procurement_organizations_on_name_and_parent_id ON public.pro
 
 
 --
+-- Name: index_procurement_requests_counters_on_budget_period_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_procurement_requests_counters_on_budget_period_id ON public.procurement_requests_counters USING btree (budget_period_id);
+
+
+--
+-- Name: index_procurement_requests_on_short_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_procurement_requests_on_short_id ON public.procurement_requests USING btree (short_id);
+
+
+--
 -- Name: index_procurement_users_filters_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4150,6 +4210,13 @@ CREATE UNIQUE INDEX rooms_unique_name_and_building_id ON public.rooms USING btre
 --
 
 CREATE UNIQUE INDEX unique_name_procurement_budget_periods ON public.procurement_budget_periods USING btree (lower((name)::text));
+
+
+--
+-- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
 
 
 --
@@ -4314,6 +4381,13 @@ CREATE TRIGGER fields_update_check_trigger BEFORE UPDATE ON public.fields FOR EA
 
 
 --
+-- Name: procurement_requests increase_counter_for_new_procurement_request_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER increase_counter_for_new_procurement_request_t AFTER INSERT ON public.procurement_requests FOR EACH ROW EXECUTE PROCEDURE public.increase_counter_for_new_procurement_request_f();
+
+
+--
 -- Name: orders orders_insert_check_function_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4325,6 +4399,13 @@ CREATE TRIGGER orders_insert_check_function_trigger BEFORE INSERT ON public.orde
 --
 
 CREATE TRIGGER seed_authentication_systems_on_authentication_systems_users BEFORE INSERT OR UPDATE ON public.authentication_systems_users FOR EACH STATEMENT EXECUTE PROCEDURE public.seed_authentication_systems();
+
+
+--
+-- Name: procurement_requests set_short_id_for_new_procurement_request_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER set_short_id_for_new_procurement_request_t BEFORE INSERT ON public.procurement_requests FOR EACH ROW EXECUTE PROCEDURE public.set_short_id_for_new_procurement_request_f();
 
 
 --
@@ -4598,6 +4679,14 @@ ALTER TABLE ONLY public.model_links
 
 ALTER TABLE ONLY public.reservations
     ADD CONSTRAINT fk_rails_151794e412 FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id);
+
+
+--
+-- Name: procurement_requests_counters fk_rails_17fe03d4cf; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.procurement_requests_counters
+    ADD CONSTRAINT fk_rails_17fe03d4cf FOREIGN KEY (budget_period_id) REFERENCES public.procurement_budget_periods(id);
 
 
 --
@@ -4886,6 +4975,14 @@ ALTER TABLE ONLY public.attachments
 
 ALTER TABLE ONLY public.procurement_admins
     ADD CONSTRAINT fk_rails_7f23ec3f14 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: audited_requests fk_rails_83fd1038f8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audited_requests
+    ADD CONSTRAINT fk_rails_83fd1038f8 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -5492,6 +5589,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('546'),
 ('547'),
 ('548'),
+('551'),
 ('6'),
 ('7'),
 ('8'),
