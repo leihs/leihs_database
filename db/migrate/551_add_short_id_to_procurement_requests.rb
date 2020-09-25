@@ -17,7 +17,8 @@ class AddShortIdToProcurementRequests < ActiveRecord::Migration[5.0]
 
     add_foreign_key(:procurement_requests_counters,
                     :procurement_budget_periods,
-                    column: :budget_period_id)
+                    column: :budget_period_id,
+                    on_delete: :cascade)
 
     add_index(:procurement_requests_counters,
               :budget_period_id,
@@ -107,9 +108,29 @@ class AddShortIdToProcurementRequests < ActiveRecord::Migration[5.0]
       AFTER insert ON procurement_requests
       FOR EACH ROW EXECUTE PROCEDURE increase_counter_for_new_procurement_request_f();
     SQL
+
+    execute <<~SQL
+      CREATE FUNCTION insert_counter_for_new_procurement_budget_period_f()
+      RETURNS TRIGGER AS $$
+      BEGIN
+        INSERT INTO procurement_requests_counters(budget_period_id, counter)
+        VALUES (NEW.id, 0);
+
+        RETURN NULL;
+      END;
+      $$ LANGUAGE 'plpgsql';
+
+      CREATE TRIGGER insert_counter_for_new_procurement_budget_period_t
+      AFTER insert ON procurement_budget_periods
+      FOR EACH ROW EXECUTE PROCEDURE insert_counter_for_new_procurement_budget_period_f();
+    SQL
   end
 
   def down
+    execute <<~SQL
+      DROP TRIGGER insert_counter_for_new_procurement_budget_period_t ON procurement_budget_periods;
+      DROP FUNCTION insert_counter_for_new_procurement_budget_period_f();
+    SQL
     execute <<~SQL
       DROP TRIGGER increase_counter_for_new_procurement_request_t ON procurement_requests;
       DROP FUNCTION increase_counter_for_new_procurement_request_f();

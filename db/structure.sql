@@ -1259,6 +1259,22 @@ $$;
 
 
 --
+-- Name: insert_counter_for_new_procurement_budget_period_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.insert_counter_for_new_procurement_budget_period_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  INSERT INTO procurement_requests_counters(budget_period_id, counter)
+  VALUES (NEW.id, 0);
+
+  RETURN NULL;
+END;
+$$;
+
+
+--
 -- Name: insert_customer_access_rights(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4388,6 +4404,13 @@ CREATE TRIGGER increase_counter_for_new_procurement_request_t AFTER INSERT ON pu
 
 
 --
+-- Name: procurement_budget_periods insert_counter_for_new_procurement_budget_period_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER insert_counter_for_new_procurement_budget_period_t AFTER INSERT ON public.procurement_budget_periods FOR EACH ROW EXECUTE PROCEDURE public.insert_counter_for_new_procurement_budget_period_f();
+
+
+--
 -- Name: orders orders_insert_check_function_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4686,7 +4709,7 @@ ALTER TABLE ONLY public.reservations
 --
 
 ALTER TABLE ONLY public.procurement_requests_counters
-    ADD CONSTRAINT fk_rails_17fe03d4cf FOREIGN KEY (budget_period_id) REFERENCES public.procurement_budget_periods(id);
+    ADD CONSTRAINT fk_rails_17fe03d4cf FOREIGN KEY (budget_period_id) REFERENCES public.procurement_budget_periods(id) ON DELETE CASCADE;
 
 
 --
