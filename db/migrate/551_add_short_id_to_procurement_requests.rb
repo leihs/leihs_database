@@ -124,9 +124,18 @@ class AddShortIdToProcurementRequests < ActiveRecord::Migration[5.0]
       AFTER insert ON procurement_budget_periods
       FOR EACH ROW EXECUTE PROCEDURE insert_counter_for_new_procurement_budget_period_f();
     SQL
+
+    execute <<~SQL
+      ALTER TABLE procurement_budget_periods
+      ADD CONSTRAINT procurement_budget_periods_name
+      CHECK (name ~* '^[\-\_a-zA-Z0-9]+$');
+    SQL
   end
 
   def down
+    execute <<~SQL
+      ALTER TABLE procurement_budget_periods DROP CONSTRAINT procurement_budget_periods_name
+    SQL
     execute <<~SQL
       DROP TRIGGER insert_counter_for_new_procurement_budget_period_t ON procurement_budget_periods;
       DROP FUNCTION insert_counter_for_new_procurement_budget_period_f();
