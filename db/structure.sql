@@ -1250,8 +1250,13 @@ CREATE FUNCTION public.increase_counter_for_new_procurement_request_f() RETURNS 
     AS $$
 BEGIN
   UPDATE procurement_requests_counters
-  SET counter = counter + 1
-  WHERE budget_period_id = NEW.budget_period_id;
+  SET counter = tmp.counter + 1
+  FROM (
+    SELECT prc.counter, pbp.id AS budget_period_id
+    FROM procurement_requests_counters AS prc
+    JOIN procurement_budget_periods AS pbp ON prc.prefix = pbp.name
+  ) AS tmp 
+  WHERE tmp.budget_period_id = NEW.budget_period_id;
 
   RETURN NULL;
 END;
@@ -1266,8 +1271,14 @@ CREATE FUNCTION public.insert_counter_for_new_procurement_budget_period_f() RETU
     LANGUAGE plpgsql
     AS $$
 BEGIN
-  INSERT INTO procurement_requests_counters(budget_period_id, counter)
-  VALUES (NEW.id, 0);
+  IF NOT EXISTS (
+    SELECT true
+    FROM procurement_requests_counters
+    WHERE prefix = NEW.name
+  ) THEN
+    INSERT INTO procurement_requests_counters(prefix, counter, created_by_budget_period_id)
+    VALUES (NEW.name, 0, NEW.id);
+  END IF;
 
   RETURN NULL;
 END;
@@ -1405,14 +1416,14 @@ CREATE FUNCTION public.set_short_id_for_new_procurement_request_f() RETURNS trig
     AS $$
 BEGIN
   NEW.short_id = (
-    SELECT tmp.name || '.' || CASE
-                                           WHEN tmp.counter > 999 THEN tmp.counter::text
-                                           ELSE lpad(tmp.counter::text, 3, '0')
-                                         END
+    SELECT tmp.prefix || '.' || CASE
+                                             WHEN tmp.counter > 999 THEN tmp.counter::text
+                                             ELSE lpad(tmp.counter::text, 3, '0')
+                                           END
     FROM (
-      SELECT pbp.name, prc.counter + 1 AS counter
-      FROM procurement_budget_periods pbp
-      JOIN procurement_requests_counters prc ON prc.budget_period_id = pbp.id
+      SELECT prc.prefix, prc.counter + 1 AS counter
+      FROM procurement_requests_counters AS prc
+      JOIN procurement_budget_periods AS pbp ON prc.prefix = pbp.name
       WHERE pbp.id = NEW.budget_period_id
     ) AS tmp
   );
@@ -2445,8 +2456,12 @@ CREATE TABLE public.procurement_requests (
 --
 
 CREATE TABLE public.procurement_requests_counters (
-    budget_period_id uuid NOT NULL,
-    counter integer DEFAULT 0 NOT NULL
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    prefix text NOT NULL,
+    counter integer DEFAULT 0 NOT NULL,
+    created_by_budget_period_id uuid NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -3195,6 +3210,14 @@ ALTER TABLE ONLY public.procurement_main_categories
 
 ALTER TABLE ONLY public.procurement_organizations
     ADD CONSTRAINT procurement_organizations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: procurement_requests_counters procurement_requests_counters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.procurement_requests_counters
+    ADD CONSTRAINT procurement_requests_counters_pkey PRIMARY KEY (id);
 
 
 --
@@ -4077,10 +4100,10 @@ CREATE INDEX index_procurement_organizations_on_name_and_parent_id ON public.pro
 
 
 --
--- Name: index_procurement_requests_counters_on_budget_period_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_procurement_requests_counters_on_prefix; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_procurement_requests_counters_on_budget_period_id ON public.procurement_requests_counters USING btree (budget_period_id);
+CREATE UNIQUE INDEX index_procurement_requests_counters_on_prefix ON public.procurement_requests_counters USING btree (prefix);
 
 
 --
@@ -4409,7 +4432,7 @@ CREATE TRIGGER increase_counter_for_new_procurement_request_t AFTER INSERT ON pu
 -- Name: procurement_budget_periods insert_counter_for_new_procurement_budget_period_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER insert_counter_for_new_procurement_budget_period_t AFTER INSERT ON public.procurement_budget_periods FOR EACH ROW EXECUTE PROCEDURE public.insert_counter_for_new_procurement_budget_period_f();
+CREATE TRIGGER insert_counter_for_new_procurement_budget_period_t AFTER INSERT OR UPDATE ON public.procurement_budget_periods FOR EACH ROW EXECUTE PROCEDURE public.insert_counter_for_new_procurement_budget_period_f();
 
 
 --
@@ -4707,14 +4730,6 @@ ALTER TABLE ONLY public.reservations
 
 
 --
--- Name: procurement_requests_counters fk_rails_17fe03d4cf; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.procurement_requests_counters
-    ADD CONSTRAINT fk_rails_17fe03d4cf FOREIGN KEY (budget_period_id) REFERENCES public.procurement_budget_periods(id) ON DELETE CASCADE;
-
-
---
 -- Name: contracts fk_rails_1bf8633565; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4992,6 +5007,14 @@ ALTER TABLE ONLY public.reservations
 
 ALTER TABLE ONLY public.attachments
     ADD CONSTRAINT fk_rails_753607b7c1 FOREIGN KEY (item_id) REFERENCES public.items(id) ON DELETE CASCADE;
+
+
+--
+-- Name: procurement_requests_counters fk_rails_7d83a14766; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.procurement_requests_counters
+    ADD CONSTRAINT fk_rails_7d83a14766 FOREIGN KEY (created_by_budget_period_id) REFERENCES public.procurement_budget_periods(id) ON DELETE CASCADE;
 
 
 --

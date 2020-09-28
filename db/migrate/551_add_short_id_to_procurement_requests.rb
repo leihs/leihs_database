@@ -10,22 +10,20 @@ class AddShortIdToProcurementRequests < ActiveRecord::Migration[5.0]
   SEPARATOR = '.'
 
   def up
-    create_table :procurement_requests_counters, id: false do |t|
-      t.uuid :budget_period_id, null: false, default: 0
+    create_table :procurement_requests_counters, id: :uuid do |t|
+      t.text :prefix, null: false
       t.integer :counter, null: false, default: 0
+      t.uuid :created_by_budget_period_id, null: false
+      t.timestamps null: false, default: -> { 'NOW()' }
     end
 
-    add_foreign_key(:procurement_requests_counters,
-                    :procurement_budget_periods,
-                    column: :budget_period_id,
-                    on_delete: :cascade)
-
-    add_index(:procurement_requests_counters,
-              :budget_period_id,
-              unique: true)
-
+    add_index(:procurement_requests_counters, :prefix, unique: true)
     add_column(:procurement_requests, :short_id, :text)
     add_index(:procurement_requests, :short_id, unique: true)
+    add_foreign_key(:procurement_requests_counters,
+                    :procurement_budget_periods,
+                    column: :created_by_budget_period_id,
+                    on_delete: :cascade)
 
     MigrationProcurementBudgetPeriod.all.each do |bp|
       execute <<~SQL
@@ -39,11 +37,9 @@ class AddShortIdToProcurementRequests < ActiveRecord::Migration[5.0]
                      ELSE lpad(row_number() OVER ()::text, 3, '0')
                    END AS short_id
           FROM (
-            SELECT procurement_requests.id,
-                   procurement_budget_periods.name,
-                   procurement_requests.created_at
+            SELECT procurement_requests.id, procurement_budget_periods.name
             FROM procurement_requests
-            INNER JOIN procurement_budget_periods
+            JOIN procurement_budget_periods
               ON procurement_budget_periods.id = procurement_requests.budget_period_id
             WHERE procurement_budget_periods.id = '#{bp.id}'
             ORDER BY procurement_requests.created_at ASC
@@ -61,8 +57,8 @@ class AddShortIdToProcurementRequests < ActiveRecord::Migration[5.0]
       c = ( r ? r.short_id.split(SEPARATOR)[1].to_i : 0 )
 
       execute <<~SQL
-        INSERT INTO procurement_requests_counters(budget_period_id, counter)
-        VALUES ('#{bp.id}', #{c});
+        INSERT INTO procurement_requests_counters(prefix, counter, created_by_budget_period_id)
+        VALUES ('#{bp.name}', #{c}, '#{bp.id}');
       SQL
     end
 
@@ -71,14 +67,14 @@ class AddShortIdToProcurementRequests < ActiveRecord::Migration[5.0]
       RETURNS TRIGGER AS $$
       BEGIN
         NEW.short_id = (
-          SELECT tmp.name || '#{SEPARATOR}' || CASE
-                                                 WHEN tmp.counter > 999 THEN tmp.counter::text
-                                                 ELSE lpad(tmp.counter::text, 3, '0')
-                                               END
+          SELECT tmp.prefix || '#{SEPARATOR}' || CASE
+                                                   WHEN tmp.counter > 999 THEN tmp.counter::text
+                                                   ELSE lpad(tmp.counter::text, 3, '0')
+                                                 END
           FROM (
-            SELECT pbp.name, prc.counter + 1 AS counter
-            FROM procurement_budget_periods pbp
-            JOIN procurement_requests_counters prc ON prc.budget_period_id = pbp.id
+            SELECT prc.prefix, prc.counter + 1 AS counter
+            FROM procurement_requests_counters AS prc
+            JOIN procurement_budget_periods AS pbp ON prc.prefix = pbp.name
             WHERE pbp.id = NEW.budget_period_id
           ) AS tmp
         );
@@ -97,8 +93,13 @@ class AddShortIdToProcurementRequests < ActiveRecord::Migration[5.0]
       RETURNS TRIGGER AS $$
       BEGIN
         UPDATE procurement_requests_counters
-        SET counter = counter + 1
-        WHERE budget_period_id = NEW.budget_period_id;
+        SET counter = tmp.counter + 1
+        FROM (
+          SELECT prc.counter, pbp.id AS budget_period_id
+          FROM procurement_requests_counters AS prc
+          JOIN procurement_budget_periods AS pbp ON prc.prefix = pbp.name
+        ) AS tmp 
+        WHERE tmp.budget_period_id = NEW.budget_period_id;
 
         RETURN NULL;
       END;
@@ -113,15 +114,21 @@ class AddShortIdToProcurementRequests < ActiveRecord::Migration[5.0]
       CREATE FUNCTION insert_counter_for_new_procurement_budget_period_f()
       RETURNS TRIGGER AS $$
       BEGIN
-        INSERT INTO procurement_requests_counters(budget_period_id, counter)
-        VALUES (NEW.id, 0);
+        IF NOT EXISTS (
+          SELECT true
+          FROM procurement_requests_counters
+          WHERE prefix = NEW.name
+        ) THEN
+          INSERT INTO procurement_requests_counters(prefix, counter, created_by_budget_period_id)
+          VALUES (NEW.name, 0, NEW.id);
+        END IF;
 
         RETURN NULL;
       END;
       $$ LANGUAGE 'plpgsql';
 
       CREATE TRIGGER insert_counter_for_new_procurement_budget_period_t
-      AFTER insert ON procurement_budget_periods
+      AFTER insert OR update ON procurement_budget_periods
       FOR EACH ROW EXECUTE PROCEDURE insert_counter_for_new_procurement_budget_period_f();
     SQL
 
@@ -148,8 +155,8 @@ class AddShortIdToProcurementRequests < ActiveRecord::Migration[5.0]
       DROP TRIGGER set_short_id_for_new_procurement_request_t ON procurement_requests;
       DROP FUNCTION set_short_id_for_new_procurement_request_f();
     SQL
-    remove_index(:procurement_requests_counters, :budget_period_id)
-    remove_foreign_key(:procurement_requests_counters, column: :budget_period_id)
+    remove_foreign_key(:procurement_requests_counters, column: :created_by_budget_period_id)
+    remove_index(:procurement_requests_counters, :prefix)
     remove_index(:procurement_requests, :short_id)
     remove_column(:procurement_requests, :short_id)
     drop_table(:procurement_requests_counters)
