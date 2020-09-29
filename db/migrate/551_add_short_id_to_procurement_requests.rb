@@ -1,4 +1,6 @@
 class AddShortIdToProcurementRequests < ActiveRecord::Migration[5.0]
+  include ::Leihs::MigrationHelper
+
   class MigrationProcurementBudgetPeriod < ActiveRecord::Base
     self.table_name = 'procurement_budget_periods'
   end
@@ -14,8 +16,9 @@ class AddShortIdToProcurementRequests < ActiveRecord::Migration[5.0]
       t.text :prefix, null: false
       t.integer :counter, null: false, default: 0
       t.uuid :created_by_budget_period_id, null: false
-      t.timestamps null: false, default: -> { 'NOW()' }
     end
+
+    add_auto_timestamps :procurement_requests_counters, null: false
 
     add_index(:procurement_requests_counters, :prefix, unique: true)
     add_column(:procurement_requests, :short_id, :text)
