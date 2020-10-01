@@ -1865,7 +1865,8 @@ CREATE TABLE public.customer_orders (
     user_id uuid,
     purpose text NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    title text NOT NULL
 );
 
 
@@ -5644,6 +5645,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('547'),
 ('548'),
 ('551'),
+('552'),
 ('6'),
 ('7'),
 ('8'),
