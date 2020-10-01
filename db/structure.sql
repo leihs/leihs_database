@@ -1862,7 +1862,7 @@ CREATE TABLE public.contracts (
 
 CREATE TABLE public.customer_orders (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    user_id uuid,
+    user_id uuid NOT NULL,
     purpose text NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
@@ -5646,6 +5646,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('548'),
 ('551'),
 ('552'),
+('553'),
 ('6'),
 ('7'),
 ('8'),
