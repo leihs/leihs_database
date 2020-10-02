@@ -5647,6 +5647,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('551'),
 ('552'),
 ('553'),
+('554'),
 ('6'),
 ('7'),
 ('8'),
