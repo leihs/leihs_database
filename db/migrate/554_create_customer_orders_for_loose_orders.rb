@@ -18,5 +18,7 @@ class CreateCustomerOrdersForLooseOrders < ActiveRecord::Migration[5.0]
                                           updated_at: o.updated_at)
       o.update_attributes!(customer_order_id: co.id)
     end
+
+    change_column(:orders, :customer_order_id, :uuid, null: false)
   end
 end
