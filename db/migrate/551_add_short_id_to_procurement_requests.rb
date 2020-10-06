@@ -96,13 +96,16 @@ class AddShortIdToProcurementRequests < ActiveRecord::Migration[5.0]
       RETURNS TRIGGER AS $$
       BEGIN
         UPDATE procurement_requests_counters
-        SET counter = tmp.counter + 1
-        FROM (
-          SELECT prc.counter, pbp.id AS budget_period_id
+        SET counter = counter + 1
+        WHERE id = (
+          SELECT prc.id
           FROM procurement_requests_counters AS prc
-          JOIN procurement_budget_periods AS pbp ON prc.prefix = pbp.name
-        ) AS tmp 
-        WHERE tmp.budget_period_id = NEW.budget_period_id;
+          WHERE prc.prefix = (
+            SELECT pbp.name
+            FROM procurement_budget_periods AS pbp
+            WHERE pbp.id = NEW.budget_period_id
+          )
+        );
 
         RETURN NULL;
       END;
