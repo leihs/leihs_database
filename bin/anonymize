@@ -1,0 +1,35 @@
+# run this:
+# bundle exec rails runner ./bin/anonymize --  -h
+require 'optparse'
+
+puts ARGV[1..-1]
+
+args = {excludes: []}
+excludes = []
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: anonymize [options]"
+  opts.on("-h", "--help", "Print this help") do
+    puts opts
+    exit
+  end
+  opts.on("-x", '--exclude USER') do |user|
+    if user.presence
+      args[:excludes].append user
+    end
+  end
+end.parse!(ARGV[1..-1], into: args)
+
+puts args
+exit 0
+
+class User < ActiveRecord::Base
+end
+
+User.in_batches do |users|
+  users.each do |user|
+    puts user
+  end
+end
+
+# vi: ft=ruby
