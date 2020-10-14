@@ -10,7 +10,7 @@ FactoryBot.define do
     firstname { Faker::Name.first_name }
     lastname { Faker::Name.unique.last_name }
     email { firstname + '.' + lastname + '@' + Faker::Internet.domain_name }
-    password { Faker::Internet.password(10, 20, true, true) }
+    password { Faker::Internet.password() }
     is_admin { false }
 
     after(:create) do |user|

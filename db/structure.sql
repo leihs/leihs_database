@@ -502,6 +502,80 @@ $$;
 
 
 --
+-- Name: delegations_users_id_agg_f(uuid, uuid, uuid, uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.delegations_users_id_agg_f(id1 uuid, id2 uuid, user_id uuid, delegation_id uuid) RETURNS uuid
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF id1 IS NOT NULL AND id2 IS NOT NULL THEN
+    RETURN uuid_generate_v3(uuid_nil(), user_id::TEXT || delegation_id::TEXT);
+  ELSIF id1 IS NOT NULL THEN
+    RETURN id1;
+  ELSE
+    RETURN id2;
+  END IF;
+END;
+$$;
+
+
+--
+-- Name: delegations_users_on_delete_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.delegations_users_on_delete_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM delegations_direct_users WHERE id = OLD.id) THEN
+    RAISE EXCEPTION 'delegations_direct_users can not be deleted from delegations_users with id % when delegations_users represents mixed or group rights', NEW.id;
+  ELSE
+    DELETE FROM delegations_direct_users WHERE id = OLD.id;
+  END IF;
+  RETURN OLD;
+END;
+$$;
+
+
+--
+-- Name: delegations_users_on_insert_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.delegations_users_on_insert_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF NEW.id iS NULL then
+    NEW.id = uuid_generate_v4();
+  END IF;
+  INSERT INTO delegations_direct_users(id, user_id, delegation_id)
+    VALUES (NEW.id, NEW.user_id, NEW.delegation_id);
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: delegations_users_type_agg_f(text, text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.delegations_users_type_agg_f(tp1 text, tp2 text) RETURNS text
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF tp1 IS NOT NULL AND tp2 IS NOT NULL THEN
+    RETURN 'mixed';
+  ELSIF tp1 IS NOT NULL THEN
+    RETURN tp1;
+  ELSE
+    RETURN tp2 ;
+  END IF;
+END;
+$$;
+
+
+--
 -- Name: delete_empty_order(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -617,6 +691,80 @@ CREATE FUNCTION public.ensure_general_room_cannot_be_deleted() RETURNS trigger
         RETURN NEW;
       END;
       $$;
+
+
+--
+-- Name: entitlement_groups_users_id_agg_f(uuid, uuid, uuid, uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.entitlement_groups_users_id_agg_f(id1 uuid, id2 uuid, user_id uuid, entitlement_group_id uuid) RETURNS uuid
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF id1 IS NOT NULL AND id2 IS NOT NULL THEN
+    RETURN uuid_generate_v3(uuid_nil(), user_id::TEXT || inventory_pool_id::TEXT);
+  ELSIF id1 IS NOT NULL THEN
+    RETURN id1;
+  ELSE
+    RETURN id2;
+  END IF;
+END;
+$$;
+
+
+--
+-- Name: entitlement_groups_users_on_delete_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.entitlement_groups_users_on_delete_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM entitlement_groups_direct_users WHERE id = OLD.id) THEN
+    RAISE EXCEPTION 'entitlement_groups_direct_users can not be deleted from entitlement_groups_users with id % when entitlement_groups_users represents mixed or group rights', NEW.id;
+  ELSE
+    DELETE FROM entitlement_groups_direct_users WHERE id = OLD.id;
+  END IF;
+  RETURN OLD;
+END;
+$$;
+
+
+--
+-- Name: entitlement_groups_users_on_insert_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.entitlement_groups_users_on_insert_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF NEW.id iS NULL then
+    NEW.id = uuid_generate_v4();
+  END IF;
+  INSERT INTO entitlement_groups_direct_users(id, user_id, entitlement_group_id)
+    VALUES (NEW.id, NEW.user_id, NEW.entitlement_group_id);
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: entitlement_groups_users_type_agg_f(text, text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.entitlement_groups_users_type_agg_f(tp1 text, tp2 text) RETURNS text
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF tp1 IS NOT NULL AND tp2 IS NOT NULL THEN
+    RETURN 'mixed';
+  ELSIF tp1 IS NOT NULL THEN
+    RETURN tp1;
+  ELSE
+    RETURN tp2 ;
+  END IF;
+END;
+$$;
 
 
 --
@@ -1488,6 +1636,46 @@ CREATE AGGREGATE public.ar_uuid_agg(uuid, uuid, uuid) (
 
 
 --
+-- Name: delegations_users_id_agg(uuid, uuid, uuid); Type: AGGREGATE; Schema: public; Owner: -
+--
+
+CREATE AGGREGATE public.delegations_users_id_agg(uuid, uuid, uuid) (
+    SFUNC = public.delegations_users_id_agg_f,
+    STYPE = uuid
+);
+
+
+--
+-- Name: delegations_users_type_agg(text); Type: AGGREGATE; Schema: public; Owner: -
+--
+
+CREATE AGGREGATE public.delegations_users_type_agg(text) (
+    SFUNC = public.delegations_users_type_agg_f,
+    STYPE = text
+);
+
+
+--
+-- Name: entitlement_groups_users_id_agg(uuid, uuid, uuid); Type: AGGREGATE; Schema: public; Owner: -
+--
+
+CREATE AGGREGATE public.entitlement_groups_users_id_agg(uuid, uuid, uuid) (
+    SFUNC = public.entitlement_groups_users_id_agg_f,
+    STYPE = uuid
+);
+
+
+--
+-- Name: entitlement_groups_users_type_agg(text); Type: AGGREGATE; Schema: public; Owner: -
+--
+
+CREATE AGGREGATE public.entitlement_groups_users_type_agg(text) (
+    SFUNC = public.entitlement_groups_users_type_agg_f,
+    STYPE = text
+);
+
+
+--
 -- Name: origin_table_agg(text); Type: AGGREGATE; Schema: public; Owner: -
 --
 
@@ -1522,7 +1710,7 @@ CREATE TABLE public.direct_access_rights (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     role character varying NOT NULL,
-    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY (ARRAY[('customer'::character varying)::text, ('group_manager'::character varying)::text, ('lending_manager'::character varying)::text, ('inventory_manager'::character varying)::text])))
+    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY ((ARRAY['customer'::character varying, 'group_manager'::character varying, 'lending_manager'::character varying, 'inventory_manager'::character varying])::text[])))
 );
 
 
@@ -1532,8 +1720,8 @@ CREATE TABLE public.direct_access_rights (
 
 CREATE TABLE public.group_access_rights (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    group_id uuid,
-    inventory_pool_id uuid,
+    group_id uuid NOT NULL,
+    inventory_pool_id uuid NOT NULL,
     role text NOT NULL,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
@@ -1798,7 +1986,7 @@ CREATE TABLE public.authentication_systems (
     external_sign_out_url text,
     sign_up_email_match text,
     CONSTRAINT check_shortcut_sing_in CHECK (((shortcut_sign_in_enabled = false) OR ((type)::text = 'external'::text))),
-    CONSTRAINT check_valid_type CHECK (((type)::text = ANY (ARRAY[('password'::character varying)::text, ('external'::character varying)::text]))),
+    CONSTRAINT check_valid_type CHECK (((type)::text = ANY ((ARRAY['password'::character varying, 'external'::character varying])::text[]))),
     CONSTRAINT simple_id CHECK (((id)::text ~ '^[a-z][a-z0-9_-]*$'::text))
 );
 
@@ -1874,13 +2062,60 @@ CREATE TABLE public.customer_orders (
 
 
 --
--- Name: delegations_users; Type: TABLE; Schema: public; Owner: -
+-- Name: delegations_direct_users; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.delegations_users (
+CREATE TABLE public.delegations_direct_users (
     delegation_id uuid NOT NULL,
-    user_id uuid NOT NULL
+    user_id uuid NOT NULL,
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL
 );
+
+
+--
+-- Name: delegations_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.delegations_groups (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    group_id uuid NOT NULL,
+    delegation_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: delegations_users_unified; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.delegations_users_unified AS
+ SELECT delegations_direct_users.id,
+    'direct_delegation'::text AS type,
+    delegations_direct_users.user_id,
+    delegations_direct_users.delegation_id
+   FROM public.delegations_direct_users
+UNION
+ SELECT delegations_groups.id,
+    'group_delegation'::text AS type,
+    groups_users.user_id,
+    delegations_groups.delegation_id
+   FROM ((public.delegations_groups
+     JOIN public.groups ON ((groups.id = delegations_groups.group_id)))
+     JOIN public.groups_users ON ((groups_users.group_id = groups.id)));
+
+
+--
+-- Name: delegations_users; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.delegations_users AS
+ SELECT public.delegations_users_id_agg(delegations_users_unified.id, delegations_users_unified.user_id, delegations_users_unified.delegation_id) AS id,
+    public.delegations_users_type_agg(delegations_users_unified.type) AS type,
+    delegations_users_unified.delegation_id,
+    delegations_users_unified.user_id
+   FROM public.delegations_users_unified
+  GROUP BY delegations_users_unified.delegation_id, delegations_users_unified.user_id;
 
 
 --
@@ -1931,13 +2166,60 @@ CREATE TABLE public.entitlement_groups (
 
 
 --
--- Name: entitlement_groups_users; Type: TABLE; Schema: public; Owner: -
+-- Name: entitlement_groups_direct_users; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.entitlement_groups_users (
+CREATE TABLE public.entitlement_groups_direct_users (
     user_id uuid,
-    entitlement_group_id uuid
+    entitlement_group_id uuid,
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL
 );
+
+
+--
+-- Name: entitlement_groups_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.entitlement_groups_groups (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    group_id uuid NOT NULL,
+    entitlement_group_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: entitlement_groups_users_unified; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.entitlement_groups_users_unified AS
+ SELECT entitlement_groups_direct_users.id,
+    'direct_entitlement'::text AS type,
+    entitlement_groups_direct_users.user_id,
+    entitlement_groups_direct_users.entitlement_group_id
+   FROM public.entitlement_groups_direct_users
+UNION
+ SELECT entitlement_groups_groups.id,
+    'group_entitlement'::text AS type,
+    groups_users.user_id,
+    entitlement_groups_groups.entitlement_group_id
+   FROM ((public.entitlement_groups_groups
+     JOIN public.groups ON ((groups.id = entitlement_groups_groups.group_id)))
+     JOIN public.groups_users ON ((groups_users.group_id = groups.id)));
+
+
+--
+-- Name: entitlement_groups_users; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.entitlement_groups_users AS
+ SELECT public.entitlement_groups_users_id_agg(entitlement_groups_users_unified.id, entitlement_groups_users_unified.user_id, entitlement_groups_users_unified.entitlement_group_id) AS id,
+    public.entitlement_groups_users_type_agg(entitlement_groups_users_unified.type) AS type,
+    entitlement_groups_users_unified.entitlement_group_id,
+    entitlement_groups_users_unified.user_id
+   FROM public.entitlement_groups_users_unified
+  GROUP BY entitlement_groups_users_unified.entitlement_group_id, entitlement_groups_users_unified.user_id;
 
 
 --
@@ -2303,7 +2585,7 @@ CREATE TABLE public.procurement_budget_limits (
     budget_period_id uuid NOT NULL,
     main_category_id uuid NOT NULL,
     amount_cents integer DEFAULT 0 NOT NULL,
-    amount_currency character varying DEFAULT 'CHF'::character varying NOT NULL
+    amount_currency character varying DEFAULT 'USD'::character varying NOT NULL
 );
 
 
@@ -2429,7 +2711,7 @@ CREATE TABLE public.procurement_requests (
     approved_quantity integer,
     order_quantity integer,
     price_cents bigint DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'CHF'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
     priority character varying DEFAULT 'normal'::character varying NOT NULL,
     replacement boolean DEFAULT true NOT NULL,
     supplier_name character varying,
@@ -2444,13 +2726,13 @@ CREATE TABLE public.procurement_requests (
     internal_order_number character varying,
     short_id text,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
-    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
+    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY ((ARRAY['normal'::character varying, 'high'::character varying])::text[]))),
     CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
     CONSTRAINT check_either_supplier_id_or_supplier_name CHECK ((((supplier_id IS NOT NULL) AND (supplier_name IS NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NOT NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NULL)))),
-    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY (ARRAY[('low'::character varying)::text, ('medium'::character varying)::text, ('high'::character varying)::text, ('mandatory'::character varying)::text]))),
+    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'mandatory'::character varying])::text[]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
     CONSTRAINT check_max_javascript_int CHECK (((price_cents)::double precision < ((2)::double precision ^ (52)::double precision))),
-    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY (ARRAY[('aquisition'::character varying)::text, ('investment'::character varying)::text]))),
+    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[]))),
     CONSTRAINT supplier_name_is_not_blank CHECK (((supplier_name)::text !~ '^\s*$'::text))
 );
 
@@ -2494,7 +2776,7 @@ CREATE TABLE public.procurement_templates (
     article_name text,
     article_number character varying,
     price_cents integer DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'CHF'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
     supplier_name character varying,
     category_id uuid NOT NULL,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
@@ -2792,14 +3074,14 @@ CREATE VIEW public.visits AS
             reservations.status,
             reservations.quantity,
             (EXISTS ( SELECT 1
-                   FROM (public.entitlement_groups_users
-                     JOIN public.entitlement_groups ON ((entitlement_groups.id = entitlement_groups_users.entitlement_group_id)))
-                  WHERE ((entitlement_groups_users.user_id = reservations.user_id) AND (entitlement_groups.is_verification_required IS TRUE)))) AS with_user_to_verify,
+                   FROM (public.entitlement_groups_direct_users
+                     JOIN public.entitlement_groups ON ((entitlement_groups.id = entitlement_groups_direct_users.entitlement_group_id)))
+                  WHERE ((entitlement_groups_direct_users.user_id = reservations.user_id) AND (entitlement_groups.is_verification_required IS TRUE)))) AS with_user_to_verify,
             (EXISTS ( SELECT 1
                    FROM ((public.entitlements
                      JOIN public.entitlement_groups ON ((entitlement_groups.id = entitlements.entitlement_group_id)))
-                     JOIN public.entitlement_groups_users ON ((entitlement_groups_users.entitlement_group_id = entitlement_groups.id)))
-                  WHERE ((entitlements.model_id = reservations.model_id) AND (entitlement_groups_users.user_id = reservations.user_id) AND (entitlement_groups.is_verification_required IS TRUE)))) AS with_user_and_model_to_verify
+                     JOIN public.entitlement_groups_direct_users ON ((entitlement_groups_direct_users.entitlement_group_id = entitlement_groups.id)))
+                  WHERE ((entitlements.model_id = reservations.model_id) AND (entitlement_groups_direct_users.user_id = reservations.user_id) AND (entitlement_groups.is_verification_required IS TRUE)))) AS with_user_and_model_to_verify
            FROM public.reservations
           WHERE (reservations.status = ANY (ARRAY['submitted'::text, 'approved'::text, 'signed'::text]))) visit_reservations
   GROUP BY visit_reservations.user_id, visit_reservations.inventory_pool_id, visit_reservations.date, visit_reservations.visit_type, visit_reservations.status;
@@ -2945,6 +3227,22 @@ ALTER TABLE ONLY public.customer_orders
 
 
 --
+-- Name: delegations_direct_users delegations_direct_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delegations_direct_users
+    ADD CONSTRAINT delegations_direct_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: delegations_groups delegations_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delegations_groups
+    ADD CONSTRAINT delegations_groups_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: disabled_fields disabled_fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2958,6 +3256,22 @@ ALTER TABLE ONLY public.disabled_fields
 
 ALTER TABLE ONLY public.emails
     ADD CONSTRAINT emails_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: entitlement_groups_direct_users entitlement_groups_direct_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.entitlement_groups_direct_users
+    ADD CONSTRAINT entitlement_groups_direct_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: entitlement_groups_groups entitlement_groups_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.entitlement_groups_groups
+    ADD CONSTRAINT entitlement_groups_groups_pkey PRIMARY KEY (id);
 
 
 --
@@ -3289,6 +3603,14 @@ ALTER TABLE ONLY public.rooms
 
 
 --
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schema_migrations
+    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
 -- Name: settings settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3473,6 +3795,20 @@ CREATE UNIQUE INDEX case_insensitive_inventory_code_for_options ON public.option
 
 
 --
+-- Name: delegations_groups_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX delegations_groups_idx ON public.delegations_groups USING btree (delegation_id, group_id);
+
+
+--
+-- Name: entitlement_groups_groups_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX entitlement_groups_groups_idx ON public.entitlement_groups_groups USING btree (entitlement_group_id, group_id);
+
+
+--
 -- Name: groups_searchable_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3525,7 +3861,7 @@ CREATE UNIQUE INDEX idx_procurement_group_inspectors_uc ON public.procurement_ca
 -- Name: idx_user_egroup; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_user_egroup ON public.entitlement_groups_users USING btree (user_id, entitlement_group_id);
+CREATE UNIQUE INDEX idx_user_egroup ON public.entitlement_groups_direct_users USING btree (user_id, entitlement_group_id);
 
 
 --
@@ -3648,17 +3984,31 @@ CREATE INDEX index_contracts_on_user_id ON public.contracts USING btree (user_id
 
 
 --
+-- Name: index_delegations_groups_on_delegation_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_delegations_groups_on_delegation_id ON public.delegations_groups USING btree (delegation_id);
+
+
+--
+-- Name: index_delegations_groups_on_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_delegations_groups_on_group_id ON public.delegations_groups USING btree (group_id);
+
+
+--
 -- Name: index_delegations_users_on_delegation_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_delegations_users_on_delegation_id ON public.delegations_users USING btree (delegation_id);
+CREATE INDEX index_delegations_users_on_delegation_id ON public.delegations_direct_users USING btree (delegation_id);
 
 
 --
 -- Name: index_delegations_users_on_user_id_and_delegation_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_delegations_users_on_user_id_and_delegation_id ON public.delegations_users USING btree (user_id, delegation_id);
+CREATE UNIQUE INDEX index_delegations_users_on_user_id_and_delegation_id ON public.delegations_direct_users USING btree (user_id, delegation_id);
 
 
 --
@@ -3697,6 +4047,20 @@ CREATE INDEX index_disabled_fields_on_inventory_pool_id ON public.disabled_field
 
 
 --
+-- Name: index_entitlement_groups_groups_on_entitlement_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_entitlement_groups_groups_on_entitlement_group_id ON public.entitlement_groups_groups USING btree (entitlement_group_id);
+
+
+--
+-- Name: index_entitlement_groups_groups_on_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_entitlement_groups_groups_on_group_id ON public.entitlement_groups_groups USING btree (group_id);
+
+
+--
 -- Name: index_entitlement_groups_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3714,7 +4078,7 @@ CREATE INDEX index_entitlement_groups_on_is_verification_required ON public.enti
 -- Name: index_entitlement_groups_users_on_entitlement_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_entitlement_groups_users_on_entitlement_group_id ON public.entitlement_groups_users USING btree (entitlement_group_id);
+CREATE INDEX index_entitlement_groups_users_on_entitlement_group_id ON public.entitlement_groups_direct_users USING btree (entitlement_group_id);
 
 
 --
@@ -4257,13 +4621,6 @@ CREATE UNIQUE INDEX unique_name_procurement_budget_periods ON public.procurement
 
 
 --
--- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
-
-
---
 -- Name: user_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4408,6 +4765,34 @@ CREATE TRIGGER audited_change_on_users AFTER INSERT OR DELETE OR UPDATE ON publi
 --
 
 CREATE TRIGGER clean_email AFTER INSERT OR UPDATE ON public.users FOR EACH ROW EXECUTE PROCEDURE public.clean_email();
+
+
+--
+-- Name: delegations_users delegations_users_on_delete_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER delegations_users_on_delete_t INSTEAD OF DELETE ON public.delegations_users FOR EACH ROW EXECUTE PROCEDURE public.delegations_users_on_delete_f();
+
+
+--
+-- Name: delegations_users delegations_users_on_insert_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER delegations_users_on_insert_t INSTEAD OF INSERT ON public.delegations_users FOR EACH ROW EXECUTE PROCEDURE public.delegations_users_on_insert_f();
+
+
+--
+-- Name: entitlement_groups_users entitlement_groups_users_on_delete_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER entitlement_groups_users_on_delete_t INSTEAD OF DELETE ON public.entitlement_groups_users FOR EACH ROW EXECUTE PROCEDURE public.entitlement_groups_users_on_delete_f();
+
+
+--
+-- Name: entitlement_groups_users entitlement_groups_users_on_insert_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER entitlement_groups_users_on_insert_t INSTEAD OF INSERT ON public.entitlement_groups_users FOR EACH ROW EXECUTE PROCEDURE public.entitlement_groups_users_on_insert_f();
 
 
 --
@@ -4642,6 +5027,20 @@ CREATE TRIGGER update_updated_at_column_of_authentication_systems_users BEFORE U
 
 
 --
+-- Name: delegations_groups update_updated_at_column_of_delegations_groups; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_delegations_groups BEFORE UPDATE ON public.delegations_groups FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+
+
+--
+-- Name: entitlement_groups_groups update_updated_at_column_of_entitlement_groups_groups; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_entitlement_groups_groups BEFORE UPDATE ON public.entitlement_groups_groups FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+
+
+--
 -- Name: group_access_rights update_updated_at_column_of_group_access_rights; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4788,6 +5187,22 @@ ALTER TABLE ONLY public.orders
 
 
 --
+-- Name: entitlement_groups_groups fk_rails_34e85ae630; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.entitlement_groups_groups
+    ADD CONSTRAINT fk_rails_34e85ae630 FOREIGN KEY (entitlement_group_id) REFERENCES public.entitlement_groups(id);
+
+
+--
+-- Name: entitlement_groups_groups fk_rails_35f9f6c9e0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.entitlement_groups_groups
+    ADD CONSTRAINT fk_rails_35f9f6c9e0 FOREIGN KEY (group_id) REFERENCES public.groups(id);
+
+
+--
 -- Name: procurement_attachments fk_rails_396a61ca60; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4884,10 +5299,10 @@ ALTER TABLE ONLY public.reservations
 
 
 --
--- Name: entitlement_groups_users fk_rails_4e63edbd27; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: entitlement_groups_direct_users fk_rails_4e63edbd27; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.entitlement_groups_users
+ALTER TABLE ONLY public.entitlement_groups_direct_users
     ADD CONSTRAINT fk_rails_4e63edbd27 FOREIGN KEY (entitlement_group_id) REFERENCES public.entitlement_groups(id);
 
 
@@ -5044,10 +5459,10 @@ ALTER TABLE ONLY public.audited_requests
 
 
 --
--- Name: entitlement_groups_users fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: entitlement_groups_direct_users fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.entitlement_groups_users
+ALTER TABLE ONLY public.entitlement_groups_direct_users
     ADD CONSTRAINT fk_rails_8546c71994 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
@@ -5169,6 +5584,14 @@ ALTER TABLE ONLY public.workdays
 
 ALTER TABLE ONLY public.rooms
     ADD CONSTRAINT fk_rails_a3957b23a8 FOREIGN KEY (building_id) REFERENCES public.buildings(id) ON DELETE CASCADE;
+
+
+--
+-- Name: delegations_groups fk_rails_a507ac19bd; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delegations_groups
+    ADD CONSTRAINT fk_rails_a507ac19bd FOREIGN KEY (delegation_id) REFERENCES public.users(id);
 
 
 --
@@ -5420,6 +5843,14 @@ ALTER TABLE ONLY public.procurement_requests
 
 
 --
+-- Name: delegations_groups fk_rails_f6b29853e0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delegations_groups
+    ADD CONSTRAINT fk_rails_f6b29853e0 FOREIGN KEY (group_id) REFERENCES public.groups(id);
+
+
+--
 -- Name: attachments fk_rails_f6d36cd48e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5468,18 +5899,18 @@ ALTER TABLE ONLY public.direct_access_rights
 
 
 --
--- Name: delegations_users fkey_delegations_users_delegation_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: delegations_direct_users fkey_delegations_users_delegation_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.delegations_users
+ALTER TABLE ONLY public.delegations_direct_users
     ADD CONSTRAINT fkey_delegations_users_delegation_id FOREIGN KEY (delegation_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
--- Name: delegations_users fkey_delegations_users_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: delegations_direct_users fkey_delegations_users_user_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.delegations_users
+ALTER TABLE ONLY public.delegations_direct_users
     ADD CONSTRAINT fkey_delegations_users_user_id FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
@@ -5647,10 +6078,15 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('546'),
 ('547'),
 ('548'),
+('549'),
+('550'),
 ('551'),
 ('552'),
 ('553'),
 ('554'),
+('555'),
+('556'),
+('557'),
 ('6'),
 ('7'),
 ('8'),

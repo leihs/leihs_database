@@ -5,8 +5,8 @@ end
 
 FactoryBot.define do
   factory :access_right do
-    user
     inventory_pool
-    role 'customer'
+    role { 'customer' }
+    user
   end
 end
