@@ -245,12 +245,12 @@ CREATE FUNCTION public.check_exactly_one_default_language() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
-  IF ((SELECT count(*) FROM languages WHERE "default") != 1 OR 
+  IF ((SELECT count(*) FROM languages WHERE "default") != 1 OR
       EXISTS (SELECT TRUE FROM languages WHERE "default" and not active))
   THEN
     RAISE EXCEPTION 'There must be exactly one default language which is also active.';
   END IF;
-  RETURN NULL;
+  RETURN NEW;
 END;
 $$;
 
@@ -2383,9 +2383,8 @@ CREATE TABLE public.items (
 --
 
 CREATE TABLE public.languages (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     name character varying,
-    locale_name character varying,
+    locale character varying NOT NULL,
     "default" boolean,
     active boolean
 );
@@ -2406,6 +2405,7 @@ CREATE TABLE public.mail_templates (
     updated_at timestamp without time zone NOT NULL,
     is_template_template boolean NOT NULL,
     type text NOT NULL,
+    language_locale text NOT NULL,
     CONSTRAINT mail_templates_check CHECK ((((inventory_pool_id IS NULL) AND (is_template_template IS TRUE)) OR ((inventory_pool_id IS NOT NULL) AND (is_template_template IS FALSE))))
 );
 
@@ -3034,6 +3034,7 @@ CREATE TABLE public.users (
     extended_info jsonb,
     searchable text DEFAULT ''::text NOT NULL,
     secondary_email text,
+    language_locale text,
     CONSTRAINT email_must_contain_at_sign CHECK (((email)::text ~~* '%@%'::text)),
     CONSTRAINT login_may_not_contain_at_sign CHECK (((login)::text !~~* '%@%'::text))
 );
@@ -3359,7 +3360,7 @@ ALTER TABLE ONLY public.items
 --
 
 ALTER TABLE ONLY public.languages
-    ADD CONSTRAINT languages_pkey PRIMARY KEY (id);
+    ADD CONSTRAINT languages_pkey PRIMARY KEY (locale);
 
 
 --
@@ -4862,7 +4863,7 @@ CREATE CONSTRAINT TRIGGER trigger_check_contract_has_at_least_one_reservation AF
 -- Name: languages trigger_check_exactly_one_default_language; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER trigger_check_exactly_one_default_language AFTER INSERT OR DELETE OR UPDATE ON public.languages FOR EACH STATEMENT EXECUTE PROCEDURE public.check_exactly_one_default_language();
+CREATE CONSTRAINT TRIGGER trigger_check_exactly_one_default_language AFTER INSERT OR DELETE OR UPDATE ON public.languages DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_exactly_one_default_language();
 
 
 --
@@ -5227,27 +5228,11 @@ ALTER TABLE ONLY public.hidden_fields
 
 
 --
--- Name: mail_templates fk_rails_3e8b923972; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.mail_templates
-    ADD CONSTRAINT fk_rails_3e8b923972 FOREIGN KEY (language_id) REFERENCES public.languages(id) ON DELETE CASCADE;
-
-
---
 -- Name: entitlements fk_rails_44495fc6cf; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.entitlements
     ADD CONSTRAINT fk_rails_44495fc6cf FOREIGN KEY (entitlement_group_id) REFERENCES public.entitlement_groups(id);
-
-
---
--- Name: users fk_rails_45f4f12508; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT fk_rails_45f4f12508 FOREIGN KEY (language_id) REFERENCES public.languages(id);
 
 
 --
@@ -5288,6 +5273,14 @@ ALTER TABLE ONLY public.model_group_links
 
 ALTER TABLE ONLY public.procurement_requests
     ADD CONSTRAINT fk_rails_4c51bafad3 FOREIGN KEY (organization_id) REFERENCES public.procurement_organizations(id);
+
+
+--
+-- Name: users fk_rails_4cc2fddb7b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT fk_rails_4cc2fddb7b FOREIGN KEY (language_locale) REFERENCES public.languages(locale);
 
 
 --
@@ -5416,6 +5409,14 @@ ALTER TABLE ONLY public.inventory_pools
 
 ALTER TABLE ONLY public.inventory_pools_model_groups
     ADD CONSTRAINT fk_rails_6a7781d99f FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id);
+
+
+--
+-- Name: mail_templates fk_rails_6e53f12ad6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mail_templates
+    ADD CONSTRAINT fk_rails_6e53f12ad6 FOREIGN KEY (language_locale) REFERENCES public.languages(locale);
 
 
 --
@@ -6087,6 +6088,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('555'),
 ('556'),
 ('557'),
+('578'),
+('579'),
 ('6'),
 ('7'),
 ('8'),
