@@ -94,7 +94,7 @@ abae04c5-d767-425e-acc2-7ce04df645d1	general building	\N
 --
 
 COPY public.rooms (id, name, description, building_id, general) FROM stdin;
-11e9e182-65ff-4b0a-9c2c-4379f597acc8	general room	\N	abae04c5-d767-425e-acc2-7ce04df645d1	t
+0eaff8b9-4b88-4ee4-bae1-2582c721503f	general room	\N	abae04c5-d767-425e-acc2-7ce04df645d1	t
 \.
 
 
@@ -171,11 +171,11 @@ COPY public.audited_responses (id, txid, status, data, created_at) FROM stdin;
 --
 
 COPY public.audits (id, auditable_id, auditable_type, associated_id, associated_type, user_id, user_type, username, action, audited_changes, version, comment, remote_address, request_uuid, created_at) FROM stdin;
-c8084777-bcbe-46ea-8ca7-332a3d55e7d4	\N	Language	\N	\N	\N	\N	\N	create	---\nname: English (UK)\ndefault: true\nactive: true\n	1	\N	\N	3be9180c-567d-480b-a71d-d5af232e8a3d	2020-10-28 07:57:12.1286
-5a463fc7-32b8-45ce-850d-da0dbefa7bea	\N	Language	\N	\N	\N	\N	\N	create	---\nname: English (US)\ndefault: false\nactive: true\n	2	\N	\N	2e501322-89e0-4c27-af0e-796084025412	2020-10-28 07:57:12.161204
-a08c6340-26c7-429b-80ec-39f46a04e768	\N	Language	\N	\N	\N	\N	\N	create	---\nname: Deutsch\ndefault: false\nactive: true\n	3	\N	\N	d9fd3f0d-7629-4cb0-a044-5633f39bd266	2020-10-28 07:57:12.170231
-94d5e8d8-7a67-41c6-8f4d-f862f77da706	\N	Language	\N	\N	\N	\N	\N	create	---\nname: Züritüütsch\ndefault: false\nactive: true\n	4	\N	\N	b1eb9784-6ffe-458f-a651-839aac5cfd05	2020-10-28 07:57:12.174315
-bda5cbbd-ffc3-430f-a3ea-771f76d60aec	\N	Setting	\N	\N	\N	\N	\N	create	---\nsmtp_address: localhost\nsmtp_port: 25\nsmtp_domain: localhost\nlocal_currency_string: GBP\ncontract_terms:\ncontract_lending_party_string:\nemail_signature: Cheers,\ndefault_email: your.lending.desk@example.com\ndeliver_received_order_notifications: false\nuser_image_url:\nldap_config:\nlogo_url:\nmail_delivery_method: test\nsmtp_username:\nsmtp_password:\nsmtp_enable_starttls_auto: false\nsmtp_openssl_verify_mode: none\ntime_zone: Bern\ndisable_manage_section: false\ndisable_manage_section_message:\ndisable_borrow_section: false\ndisable_borrow_section_message:\ntext:\ntimeout_minutes: 30\nexternal_base_url:\ncustom_head_tag:\nsessions_max_lifetime_secs: 432000\nsessions_force_uniqueness: true\nsessions_force_secure: false\ndocumentation_link:\naccept_server_secret_as_universal_password: true\nmaximum_reservation_time:\nsmtp_sender_address:\nsmtp_default_from_address: noreply@example.com\nsmtp_authentication_type: plain\n	1	\N	\N	325929e3-4a8f-4eff-af8a-0f5bf74dd49f	2020-10-28 07:57:12.36823
+bf2ef65a-ea33-4920-842d-e14896209446	\N	Language	\N	\N	\N	\N	\N	create	---\nname: English (UK)\ndefault: true\nactive: true\n	1	\N	\N	3ac9d242-897a-45b2-b4df-16c5451de7b1	2020-10-28 09:31:41.075216
+67f59587-c8dc-4035-b42c-61ad4f42e2af	\N	Language	\N	\N	\N	\N	\N	create	---\nname: English (US)\ndefault: false\nactive: true\n	2	\N	\N	97621ea8-4c04-49c8-b856-b6f52e48dba8	2020-10-28 09:31:41.113217
+787ae37b-8369-4a14-8f3f-41da75e7ac30	\N	Language	\N	\N	\N	\N	\N	create	---\nname: Deutsch\ndefault: false\nactive: true\n	3	\N	\N	c0cbb830-8802-4e97-a4e5-acebd7c727a0	2020-10-28 09:31:41.121655
+2a4e80af-0e5e-489b-861b-fd9a1e2779ca	\N	Language	\N	\N	\N	\N	\N	create	---\nname: Züritüütsch\ndefault: false\nactive: true\n	4	\N	\N	15c4f769-5053-4d56-909a-d924ef9a43d8	2020-10-28 09:31:41.125503
+ca694ed0-ae60-48a1-814c-7d5bf8b9ca57	\N	Setting	\N	\N	\N	\N	\N	create	---\nsmtp_address: localhost\nsmtp_port: 25\nsmtp_domain: localhost\nlocal_currency_string: GBP\ncontract_terms:\ncontract_lending_party_string:\nemail_signature: Cheers,\ndefault_email: your.lending.desk@example.com\ndeliver_received_order_notifications: false\nuser_image_url:\nldap_config:\nlogo_url:\nmail_delivery_method: test\nsmtp_username:\nsmtp_password:\nsmtp_enable_starttls_auto: false\nsmtp_openssl_verify_mode: none\ntime_zone: Bern\ndisable_manage_section: false\ndisable_manage_section_message:\ndisable_borrow_section: false\ndisable_borrow_section_message:\ntext:\ntimeout_minutes: 30\nexternal_base_url:\ncustom_head_tag:\nsessions_max_lifetime_secs: 432000\nsessions_force_uniqueness: true\nsessions_force_secure: false\ndocumentation_link:\naccept_server_secret_as_universal_password: true\nmaximum_reservation_time:\nsmtp_sender_address:\nsmtp_default_from_address: noreply@example.com\nsmtp_authentication_type: plain\n	1	\N	\N	f1a77ce9-19b1-4dce-ba82-cef4fc411daf	2020-10-28 09:31:41.19683
 \.
 
 
@@ -634,159 +634,11 @@ COPY public.reservations (id, contract_id, inventory_pool_id, user_id, delegated
 
 
 --
--- Data for Name: schema_migrations; Type: TABLE DATA; Schema: public; Owner: nitaai
---
-
-COPY public.schema_migrations (version) FROM stdin;
-0
-1
-10
-100
-101
-102
-103
-104
-105
-106
-107
-108
-109
-11
-110
-111
-112
-113
-114
-115
-116
-117
-118
-119
-12
-120
-121
-122
-13
-2
-200
-201
-202
-203
-204
-205
-206
-207
-208
-209
-210
-211
-212
-213
-214
-215
-216
-217
-218
-219
-220
-221
-222
-223
-300
-301
-302
-303
-304
-305
-306
-307
-308
-309
-310
-311
-312
-313
-314
-315
-316
-317
-318
-319
-320
-321
-322
-4
-5
-500
-501
-502
-503
-504
-505
-506
-507
-508
-509
-510
-511
-512
-513
-514
-515
-516
-517
-518
-519
-520
-521
-522
-523
-524
-525
-526
-530
-531
-532
-533
-534
-535
-536
-537
-538
-539
-540
-541
-542
-543
-544
-545
-546
-547
-548
-549
-550
-551
-552
-553
-554
-555
-556
-557
-578
-579
-6
-7
-8
-9
-\.
-
-
---
 -- Data for Name: settings; Type: TABLE DATA; Schema: public; Owner: nitaai
 --
 
 COPY public.settings (smtp_address, smtp_port, smtp_domain, local_currency_string, contract_terms, contract_lending_party_string, email_signature, default_email, deliver_received_order_notifications, user_image_url, ldap_config, logo_url, mail_delivery_method, smtp_username, smtp_password, smtp_enable_starttls_auto, smtp_openssl_verify_mode, time_zone, disable_manage_section, disable_manage_section_message, disable_borrow_section, disable_borrow_section_message, text, timeout_minutes, external_base_url, custom_head_tag, sessions_max_lifetime_secs, sessions_force_uniqueness, sessions_force_secure, documentation_link, id, accept_server_secret_as_universal_password, created_at, updated_at, maximum_reservation_time, smtp_sender_address, smtp_default_from_address, smtp_authentication_type) FROM stdin;
-localhost	25	localhost	GBP	\N	\N	Cheers,	your.lending.desk@example.com	f	\N	\N	\N	test	\N	\N	f	none	Bern	f	\N	f	\N	\N	30	\N	\N	432000	t	f	\N	0	t	2020-10-28 08:57:12.362928+01	2020-10-28 08:57:12.362928+01	\N	\N	noreply@example.com	plain
+localhost	25	localhost	GBP	\N	\N	Cheers,	your.lending.desk@example.com	f	\N	\N	\N	test	\N	\N	f	none	Bern	f	\N	f	\N	\N	30	\N	\N	432000	t	f	\N	0	t	2020-10-28 10:31:41.191822+01	2020-10-28 10:31:41.191822+01	\N	\N	noreply@example.com	plain
 \.
 
 

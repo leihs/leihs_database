@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -eux
+
+DBNAME=leihs_seeds
+
+psql -c "DROP DATABASE IF EXISTS $DBNAME;"
+createdb $DBNAME
+
+psql -d $DBNAME -f db/structure.sql
+
+psql -d $DBNAME -c 'ALTER TABLE languages DISABLE TRIGGER trigger_check_exactly_one_default_language;'
+psql -d $DBNAME -c 'ALTER TABLE authentication_systems_users DISABLE TRIGGER seed_authentication_systems_on_authentication_systems_users;'
+psql -d $DBNAME -c 'ALTER TABLE fields DISABLE TRIGGER fields_insert_check_trigger;'
+
+psql -d $DBNAME -f db/seeds.sql
+
+psql -d $DBNAME -c 'ALTER TABLE languages ENABLE TRIGGER trigger_check_exactly_one_default_language;'
+psql -d $DBNAME -c 'ALTER TABLE authentication_systems_users ENABLE TRIGGER seed_authentication_systems_on_authentication_systems_users;'
+psql -d $DBNAME -c 'ALTER TABLE fields ENABLE TRIGGER fields_insert_check_trigger;'
