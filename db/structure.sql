@@ -2397,7 +2397,6 @@ CREATE TABLE public.languages (
 CREATE TABLE public.mail_templates (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     inventory_pool_id uuid,
-    language_id uuid NOT NULL,
     name character varying NOT NULL,
     format character varying NOT NULL,
     body text NOT NULL,
@@ -2585,7 +2584,7 @@ CREATE TABLE public.procurement_budget_limits (
     budget_period_id uuid NOT NULL,
     main_category_id uuid NOT NULL,
     amount_cents integer DEFAULT 0 NOT NULL,
-    amount_currency character varying DEFAULT 'USD'::character varying NOT NULL
+    amount_currency character varying DEFAULT 'GBP'::character varying NOT NULL
 );
 
 
@@ -2711,7 +2710,7 @@ CREATE TABLE public.procurement_requests (
     approved_quantity integer,
     order_quantity integer,
     price_cents bigint DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'GBP'::character varying NOT NULL,
     priority character varying DEFAULT 'normal'::character varying NOT NULL,
     replacement boolean DEFAULT true NOT NULL,
     supplier_name character varying,
@@ -2776,7 +2775,7 @@ CREATE TABLE public.procurement_templates (
     article_name text,
     article_number character varying,
     price_cents integer DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'GBP'::character varying NOT NULL,
     supplier_name character varying,
     category_id uuid NOT NULL,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
@@ -3019,7 +3018,6 @@ CREATE TABLE public.users (
     city character varying,
     zip character varying,
     country character varying,
-    language_id uuid,
     settings character varying(1024),
     delegator_user_id uuid,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -6090,6 +6088,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('557'),
 ('578'),
 ('579'),
+('580'),
 ('6'),
 ('7'),
 ('8'),
