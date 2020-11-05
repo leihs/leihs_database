@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -eux
+
+DATABASE_NAME=${DATABASE_NAME:-leihs_seeds}
+export DATABASE_URL="postgresql://localhost:5432/$DATABASE_NAME?min-pool-size=1&max-pool-size=16"
+export FILE=db/structure_and_seeds.pgbin
+
+bundle exec rake db:pg:terminate_connections
+psql -c "DROP DATABASE IF EXISTS \"$DATABASE_NAME\";"
+createdb $DATABASE_NAME
+###########################################
+# TODO: uncomment after merged on master
+# git checkout origin/master -- $FILE
+###########################################
+bundle exec rake db:pg:structure_and_data:restore
+bundle exec rake db:migrate
+bundle exec rake db:pg:structure_and_data:dump
+./scripts/dump-seeds

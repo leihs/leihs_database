@@ -1,0 +1,8 @@
+# borrow-scenarios:
+#   type: job
+#   job_key: borrow-scenarios
+#   states: [passed]
+# borrow-flapping-scenarios:
+#   type: job
+#   job_key: borrow-flapping-scenarios
+#   states: [passed]

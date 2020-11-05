@@ -6,10 +6,11 @@ scripts:
 
   bundle-rspec-ruby:
     exclusive_executor_resource: ruby-install_{{$RUBY}}
-    timeout: 20 Minutes
+    timeout: 5 Minutes
     body: |
       #!/usr/bin/env bash
       set -eux
+
       export PATH=~/.rubies/$RUBY/bin:$PATH
 
       if [ ! -d ~/.rubies/$RUBY ]; then

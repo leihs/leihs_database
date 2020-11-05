@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -eux
+
+DATABASE_NAME=${DATABASE_NAME:-leihs_seeds}
+
+psql -c "DROP DATABASE IF EXISTS \"$DATABASE_NAME\";"
+createdb $DATABASE_NAME
+psql -d $DATABASE_NAME -f db/structure.sql
+./scripts/restore-seeds

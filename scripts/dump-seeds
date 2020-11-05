@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -eux
+
+DATABASE_NAME=${DATABASE_NAME:-leihs_seeds}
+
+pg_dump -a $DATABASE_NAME \
+  -T schema_migrations \
+  -T audited_changes \
+  -T audits \
+  -T ar_internal_metadata \
+  > db/seeds.sql

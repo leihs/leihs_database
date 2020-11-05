@@ -1,0 +1,19 @@
+traits:
+  Ruby: true
+
+include:
+  - cider-ci/task-components/database/configure.yml
+  - cider-ci/task-components/database/delete.yml
+
+scripts:
+
+  create-database:
+    body: |
+      #!/usr/bin/env bash
+      set -eux
+      createdb "$DATABASE_NAME"
+
+  test:
+    start_when:
+      database has been created:
+        script_key: create-database

@@ -1,4 +1,42 @@
 jobs:
+  meta:
+    name: Meta
+    description: |
+      Various superordinate quality assurance tasks
+    run_when:
+      always:
+        type: branch
+        include_match: '^.*$'
+        exclude_match: '^.*(no-ci|hotspot).*$'
+    context:
+      include:
+        - cider-ci/shared/main-context.yml
+      task_defaults:
+        max_trials: 1
+        traits:
+          Ruby: true
+      tasks:
+        migration-of-seeds-dump:
+          include:
+            - cider-ci/task-components/database-no-schema.yml
+          environment_variables:
+            LEIHS_SECRET: secret
+            RAILS_ENV: test
+          name: "Check if seeds dump needs to be and has been migrated"
+          scripts:
+            test:
+              body: |
+                #!/usr/bin/env bash
+                set -exu
+                export PATH=~/.rubies/$RUBY/bin:$PATH
+                { pg_restore --version | grep -q '11.' ;} && psql -d $PGDATABASE -c "DROP SCHEMA IF EXISTS \"public\";"
+                pg_restore --disable-triggers -x -O -d $PGDATABASE db/structure_and_seeds.pgbin
+                if test $(bundle exec rake db:migrate:status | grep -c -E "\s*down\s*\d*\s*") -gt 0; then
+                  echo "Run script!"
+                  exit 1
+                else
+                  exit 0
+                fi
   specs:
     name: 'Run specs'
     run_when:
@@ -6,17 +44,18 @@ jobs:
         type: branch
         include_match: ^.*$
     context:
+      include:
+        - cider-ci/shared/main-context.yml
       generate_tasks:
         include_match: spec/.*_spec.rb
       task_defaults:
         include:
-          - cider-ci/database_task-component.yml
-          - cider-ci/ruby-bundle_task-component.yml
+          - cider-ci/task-components/database.yml
         traits:
           g2016: true
         environment_variables:
           LEIHS_DATABASE_DIR: "{{CIDER_CI_WORKING_DIR}}"
-          DATABASE_NAME: leihs_procurement_{{CIDER_CI_TRIAL_ID}}
+          DATABASE_NAME: leihs_database_{{CIDER_CI_TRIAL_ID}}
           LEIHS_DATABASE_URL: "jdbc:postgresql://localhost/{{DATABASE_NAME}}?max-pool-size=5"
           RAILS_ENV: test
           RUBY: '{{RUBY_ENGINE}}-{{RUBY_VERSION}}'
@@ -44,6 +83,10 @@ jobs:
       specs were successful:
         type: job
         job_key: specs
+        states: [passed]
+      meta checks were successful:
+        type: job
+        job_key: meta
         states: [passed]
     run_when: *GOOD_TO_MERGE_DEPENDENCIES
     context:

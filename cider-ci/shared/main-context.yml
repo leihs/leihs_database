@@ -1,0 +1,35 @@
+script_defaults:
+  template_environment_variables: true
+  timeout: 6 minutes
+
+task_defaults:
+
+  include: cider-ci/task-components/bundle-rspec-ruby.yml
+
+  git_options:
+    submodules:
+      include_match: ^.*$
+
+  environment_variables:
+    RUBY_ENGINE: ruby
+    RUBY_VERSION: 2.6.0
+    RUBY: '{{RUBY_ENGINE}}-{{RUBY_VERSION}}'
+    RAILS_ENV: test
+    DATABASE_NAME: "leihs_database_{{CIDER_CI_TRIAL_ID}}"
+
+  trial_attachments:
+    screenshots:
+      include_match: tmp\/capybara\/.*\.png$
+      content_type: image/png
+    logs:
+      include_match: log\/.*\.log$
+      content_type: text/plain
+    debugging:
+      include_match: tmp\/attach\/.*\.tar(\.gz)?$
+      content_type: application/octet-stream
+
+
+  tree_attachments:
+    deprecation-warnings:
+      include_match: tmp\/deprecation-warnings\.txt$
+      content_type: text/plain

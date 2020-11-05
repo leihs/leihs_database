@@ -1542,23 +1542,6 @@ $$;
 
 
 --
--- Name: seed_authentication_systems(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.seed_authentication_systems() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-  BEGIN
-    INSERT INTO authentication_systems(id, name, type, enabled) 
-      VALUES ('password', 'leihs password', 'password', true)
-      ON CONFLICT (id)
-      DO UPDATE SET type = 'password';
-    RETURN NEW;
-  END;
-$$;
-
-
---
 -- Name: set_short_id_for_new_procurement_request_f(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1710,7 +1693,7 @@ CREATE TABLE public.direct_access_rights (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     role character varying NOT NULL,
-    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY ((ARRAY['customer'::character varying, 'group_manager'::character varying, 'lending_manager'::character varying, 'inventory_manager'::character varying])::text[])))
+    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY (ARRAY[('customer'::character varying)::text, ('group_manager'::character varying)::text, ('lending_manager'::character varying)::text, ('inventory_manager'::character varying)::text])))
 );
 
 
@@ -1986,7 +1969,7 @@ CREATE TABLE public.authentication_systems (
     external_sign_out_url text,
     sign_up_email_match text,
     CONSTRAINT check_shortcut_sing_in CHECK (((shortcut_sign_in_enabled = false) OR ((type)::text = 'external'::text))),
-    CONSTRAINT check_valid_type CHECK (((type)::text = ANY ((ARRAY['password'::character varying, 'external'::character varying])::text[]))),
+    CONSTRAINT check_valid_type CHECK (((type)::text = ANY (ARRAY[('password'::character varying)::text, ('external'::character varying)::text]))),
     CONSTRAINT simple_id CHECK (((id)::text ~ '^[a-z][a-z0-9_-]*$'::text))
 );
 
@@ -2725,13 +2708,13 @@ CREATE TABLE public.procurement_requests (
     internal_order_number character varying,
     short_id text,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
-    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY ((ARRAY['normal'::character varying, 'high'::character varying])::text[]))),
+    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
     CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
     CONSTRAINT check_either_supplier_id_or_supplier_name CHECK ((((supplier_id IS NOT NULL) AND (supplier_name IS NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NOT NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NULL)))),
-    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'mandatory'::character varying])::text[]))),
+    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY (ARRAY[('low'::character varying)::text, ('medium'::character varying)::text, ('high'::character varying)::text, ('mandatory'::character varying)::text]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
     CONSTRAINT check_max_javascript_int CHECK (((price_cents)::double precision < ((2)::double precision ^ (52)::double precision))),
-    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[]))),
+    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY (ARRAY[('aquisition'::character varying)::text, ('investment'::character varying)::text]))),
     CONSTRAINT supplier_name_is_not_blank CHECK (((supplier_name)::text !~ '^\s*$'::text))
 );
 
@@ -4830,13 +4813,6 @@ CREATE TRIGGER orders_insert_check_function_trigger BEFORE INSERT ON public.orde
 
 
 --
--- Name: authentication_systems_users seed_authentication_systems_on_authentication_systems_users; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER seed_authentication_systems_on_authentication_systems_users BEFORE INSERT OR UPDATE ON public.authentication_systems_users FOR EACH STATEMENT EXECUTE PROCEDURE public.seed_authentication_systems();
-
-
---
 -- Name: procurement_requests set_short_id_for_new_procurement_request_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6089,6 +6065,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('578'),
 ('579'),
 ('580'),
+('581'),
 ('6'),
 ('7'),
 ('8'),

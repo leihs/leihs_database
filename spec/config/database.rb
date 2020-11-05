@@ -4,18 +4,23 @@ require 'ostruct'
 require 'sequel'
 require 'yaml'
 
+DB_ENV = ENV['LEIHS_DATABASE_URL'].presence
+
+def http_uri
+  @http_uri ||= \
+    Addressable::URI.parse DB_ENV.gsub(/^jdbc:postgresql/,'http').gsub(/^postgres/,'http')
+end
+
 def database
   @database ||= \
     Sequel.connect(
-      if (db_env = ENV['LEIHS_DATABASE_URL'].presence)
-        http_uri = Addressable::URI.parse db_env.gsub(/^jdbc:postgresql/,'http').gsub(/^postgres/,'http')
-
+      if DB_ENV
         yml_path = 'config/database.yml'
         if File.exists?(yml_path)
           yml = YAML::load(IO.read(yml_path))
           dbname_from_yml = yml.try(:[], 'test').try(:[], 'database')
         end
-        db_url = 'postgres://' \
+        'postgres://' \
           + (http_uri.user.presence || ENV['PGUSER'].presence || 'postgres') \
           + ((pw = (http_uri.password.presence || ENV['PGPASSWORD'].presence)) ? ":#{pw}" : "") \
           + '@' + (http_uri.host.presence || ENV['PGHOST'].presence || ENV['PGHOSTADDR'].presence || 'localhost') \
@@ -26,6 +31,10 @@ def database
         'postgresql://leihs:leihs@localhost:5432/leihs?pool=5'
       end)
 end
+
+################## NOTE #######################################
+database.extension :pg_json
+###############################################################
 
 def clean_db
   sql = <<-SQL
@@ -46,8 +55,6 @@ end
 RSpec.configure do |config|
   config.before(:example)  do
     clean_db
+    system("DATABASE_NAME=#{http_uri.basename} ./scripts/restore-seeds")
   end
-  # config.after(:suite) do
-  #   clean_db
-  # end
 end

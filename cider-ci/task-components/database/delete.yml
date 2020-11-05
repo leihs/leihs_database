@@ -1,0 +1,13 @@
+scripts:
+  delete-database:
+    body: |
+      #!/usr/bin/env bash
+      set -eux
+      dropdb "$DATABASE_NAME"
+    start_when:
+      test is in terminal state:
+        script_key: test
+        states: [aborted, defective, passed, failed, skipped]
+      create-database is terminal:
+        script_key: create-database
+        states: [aborted, defective, passed, failed, skipped]
