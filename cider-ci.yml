@@ -29,10 +29,10 @@ jobs:
                 #!/usr/bin/env bash
                 set -exu
                 export PATH=~/.rubies/$RUBY/bin:$PATH
-                { pg_restore --version | grep -q '11.' ;} && psql -d $PGDATABASE -c "DROP SCHEMA IF EXISTS \"public\";"
-                pg_restore --disable-triggers -x -O -d $PGDATABASE db/structure_and_seeds.pgbin
-                if test $(bundle exec rake db:migrate:status | grep -c -E "\s*down\s*\d*\s*") -gt 0; then
-                  echo "Run script!"
+                { pg_restore --version | grep -q '11.' ;} && psql -d $DATABASE_NAME -c "DROP SCHEMA IF EXISTS \"public\";"
+                pg_restore --disable-triggers -x -O -d $DATABASE_NAME db/structure_and_seeds.pgbin
+                if bundle exec rake db:migrate:status | grep -q -E "\s*down\s*\d*\s*"; then
+                  echo "Run ./scripts/migrate-and-dump-seeds"
                   exit 1
                 else
                   exit 0

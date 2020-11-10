@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -exu
+export DATABASE_NAME=leihs_seeds
+dropdb $DATABASE_NAME
+createdb $DATABASE_NAME
+{ pg_restore --version | grep -q '11.' ;} && psql -d $DATABASE_NAME -c "DROP SCHEMA IF EXISTS \"public\";"
+pg_restore --disable-triggers -x -O -d $DATABASE_NAME db/structure_and_seeds.pgbin
+if bundle exec rake db:migrate:status | grep -q -E "\s*down\s*\d*\s*"; then
+  echo "Run ./scripts/migrate-and-dump-seeds"
+  exit 1
+else
+  exit 0
+fi
