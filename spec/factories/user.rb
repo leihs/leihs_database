@@ -12,6 +12,7 @@ FactoryBot.define do
     email { firstname + '.' + lastname + '@' + Faker::Internet.domain_name }
     password { Faker::Internet.password() }
     is_admin { false }
+    protected { rand < 0.5 }
 
     after(:create) do |user|
       pw_hash  =  database["SELECT crypt(#{database.literal(user.password)}, " \

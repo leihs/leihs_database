@@ -1444,13 +1444,14 @@ CREATE FUNCTION public.insert_customer_access_rights() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
-  INSERT INTO access_rights (
-    user_id, inventory_pool_id, role
-  )
-  SELECT NEW.id, inventory_pools.id, 'customer'
-  FROM inventory_pools
-  WHERE inventory_pools.automatic_access = TRUE;
-
+  if NEW.delegator_user_id IS NULL then
+    INSERT INTO access_rights (
+      user_id, inventory_pool_id, role
+    )
+    SELECT NEW.id, inventory_pools.id, 'customer'
+    FROM inventory_pools
+    WHERE inventory_pools.automatic_access = TRUE;
+  end if;
   RETURN NULL;
 END;
 $$;
@@ -1723,7 +1724,8 @@ CREATE TABLE public.groups (
     org_id character varying,
     searchable text DEFAULT ''::text NOT NULL,
     created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now()
+    updated_at timestamp with time zone DEFAULT now(),
+    protected boolean DEFAULT false NOT NULL
 );
 
 
@@ -2938,15 +2940,6 @@ CREATE TABLE public.suspensions (
 
 
 --
--- Name: system_admin_groups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.system_admin_groups (
-    group_id uuid NOT NULL
-);
-
-
---
 -- Name: system_admin_users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3016,6 +3009,7 @@ CREATE TABLE public.users (
     searchable text DEFAULT ''::text NOT NULL,
     secondary_email text,
     language_locale text,
+    protected boolean DEFAULT false NOT NULL,
     CONSTRAINT email_must_contain_at_sign CHECK (((email)::text ~~* '%@%'::text)),
     CONSTRAINT login_may_not_contain_at_sign CHECK (((login)::text !~~* '%@%'::text))
 );
@@ -3614,14 +3608,6 @@ ALTER TABLE ONLY public.suppliers
 
 ALTER TABLE ONLY public.suspensions
     ADD CONSTRAINT suspensions_pkey PRIMARY KEY (id);
-
-
---
--- Name: system_admin_groups system_admin_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.system_admin_groups
-    ADD CONSTRAINT system_admin_groups_pkey PRIMARY KEY (group_id);
 
 
 --
@@ -4712,13 +4698,6 @@ CREATE TRIGGER audited_change_on_groups AFTER INSERT OR DELETE OR UPDATE ON publ
 --
 
 CREATE TRIGGER audited_change_on_groups_users AFTER INSERT OR DELETE OR UPDATE ON public.groups_users FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
-
-
---
--- Name: system_admin_groups audited_change_on_system_admin_groups; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER audited_change_on_system_admin_groups AFTER INSERT OR DELETE OR UPDATE ON public.system_admin_groups FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
 
 
 --
@@ -5898,14 +5877,6 @@ ALTER TABLE ONLY public.images
 
 
 --
--- Name: system_admin_groups fkey_system_admin_groups_groups; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.system_admin_groups
-    ADD CONSTRAINT fkey_system_admin_groups_groups FOREIGN KEY (group_id) REFERENCES public.groups(id) ON DELETE CASCADE;
-
-
---
 -- Name: system_admin_users fkey_system_admin_users_users; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6066,6 +6037,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('579'),
 ('580'),
 ('581'),
+('582'),
+('583'),
+('584'),
 ('6'),
 ('7'),
 ('8'),

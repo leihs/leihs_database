@@ -3,8 +3,8 @@ end
 
 FactoryBot.define do
   factory :authentication_system do
-    name { Faker::Name.last_name }
-    id { name.downcase }
+    name { Faker::Name.unique.name }
+    id { name.split(/\s+/).map{|s| s[0,1].downcase}.join }
     enabled  { true }
     type { 'external' }
     description { Faker::Lorem.sentence }

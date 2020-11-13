@@ -6,7 +6,7 @@ DATABASE_NAME=${DATABASE_NAME:-leihs_seeds}
 export DATABASE_URL="postgresql://localhost:5432/$DATABASE_NAME?min-pool-size=1&max-pool-size=16"
 export FILE=db/structure_and_seeds.pgbin
 
-bundle exec rake db:pg:terminate_connections
+set -E; bundle exec rake db:pg:terminate_connections; set -e
 psql -c "DROP DATABASE IF EXISTS \"$DATABASE_NAME\";"
 createdb $DATABASE_NAME
 git checkout origin/master -- $FILE
