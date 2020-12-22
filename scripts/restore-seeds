@@ -5,12 +5,17 @@ set -eu
 SCRIPT_DIR=$(dirname "$0")
 DATABASE_NAME=${DATABASE_NAME:-leihs_seeds}
 
-psql --quiet -d $DATABASE_NAME -c 'ALTER TABLE languages DISABLE TRIGGER trigger_check_exactly_one_default_language;'
-psql --quiet -d $DATABASE_NAME -c 'ALTER TABLE fields DISABLE TRIGGER fields_insert_check_trigger;'
 psql --quiet -d $DATABASE_NAME -c 'ALTER TABLE authentication_systems DISABLE TRIGGER audited_change_on_authentication_systems;'
+psql --quiet -d $DATABASE_NAME -c 'ALTER TABLE fields DISABLE TRIGGER fields_insert_check_trigger;'
+psql --quiet -d $DATABASE_NAME -c 'ALTER TABLE languages DISABLE TRIGGER audited_change_on_languages;'
+psql --quiet -d $DATABASE_NAME -c 'ALTER TABLE languages DISABLE TRIGGER trigger_check_exactly_one_default_language;'
+psql --quiet -d $DATABASE_NAME -c 'ALTER TABLE settings DISABLE TRIGGER audited_change_on_settings;'
 
 psql --quiet -d $DATABASE_NAME -f $SCRIPT_DIR/../db/seeds.sql -1 > /dev/null # 2>&1
 
-psql --quiet -d $DATABASE_NAME -c 'ALTER TABLE languages ENABLE TRIGGER trigger_check_exactly_one_default_language;'
-psql --quiet -d $DATABASE_NAME -c 'ALTER TABLE fields ENABLE TRIGGER fields_insert_check_trigger;'
 psql --quiet -d $DATABASE_NAME -c 'ALTER TABLE authentication_systems ENABLE TRIGGER audited_change_on_authentication_systems;'
+psql --quiet -d $DATABASE_NAME -c 'ALTER TABLE fields ENABLE TRIGGER fields_insert_check_trigger;'
+psql --quiet -d $DATABASE_NAME -c 'ALTER TABLE languages ENABLE TRIGGER audited_change_on_languages;'
+psql --quiet -d $DATABASE_NAME -c 'ALTER TABLE languages ENABLE TRIGGER trigger_check_exactly_one_default_language;'
+psql --quiet -d $DATABASE_NAME -c 'ALTER TABLE settings ENABLE TRIGGER audited_change_on_settings;'
+
