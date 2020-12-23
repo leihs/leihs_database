@@ -1,4 +1,4 @@
-class RefactoringNewAudits < ActiveRecord::Migration[5.0]
+class RefactoringAuditedChanges < ActiveRecord::Migration[5.0]
   include ::Leihs::MigrationHelper
 
   def up

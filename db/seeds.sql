@@ -138,7 +138,7 @@ COPY public.users (id, login, firstname, lastname, phone, org_id, email, badge_i
 -- Data for Name: audited_requests; Type: TABLE DATA; Schema: public; Owner: thomas
 --
 
-COPY public.audited_requests (id, txid, user_id, url, method, data, created_at) FROM stdin;
+COPY public.audited_requests (id, txid, user_id, url, method, created_at, http_uid) FROM stdin;
 \.
 
 
@@ -146,7 +146,7 @@ COPY public.audited_requests (id, txid, user_id, url, method, data, created_at) 
 -- Data for Name: audited_responses; Type: TABLE DATA; Schema: public; Owner: thomas
 --
 
-COPY public.audited_responses (id, txid, status, data, created_at) FROM stdin;
+COPY public.audited_responses (id, txid, status, created_at) FROM stdin;
 \.
 
 

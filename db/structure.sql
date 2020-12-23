@@ -1911,8 +1911,8 @@ CREATE TABLE public.audited_requests (
     user_id uuid,
     url text,
     method text,
-    data jsonb,
-    created_at timestamp with time zone DEFAULT now()
+    created_at timestamp with time zone DEFAULT now(),
+    http_uid text
 );
 
 
@@ -1924,7 +1924,6 @@ CREATE TABLE public.audited_responses (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     txid uuid NOT NULL,
     status integer NOT NULL,
-    data jsonb,
     created_at timestamp with time zone DEFAULT now()
 );
 
@@ -3698,13 +3697,6 @@ CREATE INDEX audited_changes_txid ON public.audited_changes USING btree (txid);
 
 
 --
--- Name: audited_requests_data; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX audited_requests_data ON public.audited_requests USING gin (to_tsvector('english'::regconfig, data));
-
-
---
 -- Name: audited_requests_method; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3863,6 +3855,27 @@ CREATE UNIQUE INDEX index_addresses_szcc ON public.addresses USING btree (street
 --
 
 CREATE INDEX index_attachments_on_model_id ON public.attachments USING btree (model_id);
+
+
+--
+-- Name: index_audited_changes_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_audited_changes_on_created_at ON public.audited_changes USING btree (created_at);
+
+
+--
+-- Name: index_audited_requests_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_audited_requests_on_created_at ON public.audited_requests USING btree (created_at);
+
+
+--
+-- Name: index_audited_responses_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_audited_responses_on_created_at ON public.audited_responses USING btree (created_at);
 
 
 --
@@ -6151,6 +6164,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('583'),
 ('584'),
 ('585'),
+('586'),
 ('6'),
 ('7'),
 ('8'),
