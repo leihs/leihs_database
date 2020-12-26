@@ -14,17 +14,21 @@ class RefactoringAuditedChanges < ActiveRecord::Migration[5.0]
       CREATE OR REPLACE FUNCTION jsonb_changed(jold JSONB, jnew JSONB)
       RETURNS JSONB AS $$
       DECLARE
-        result JSONB = '{}'::JSONB;
+        result JSONB := '{}'::JSONB;
         k TEXT;
         v_new JSONB;
         v_old JSONB;
       BEGIN
         FOR k IN SELECT * FROM jsonb_object_keys(jold || jnew) LOOP
-          v_new = jnew -> k;
-          v_old = jold -> k;
+          if jnew ? k
+            THEN v_new := jnew -> k;
+            ELSE v_new := 'null'::JSONB; END IF;
+          if jold ? k
+            THEN v_old := jold -> k;
+            ELSE v_old := 'null'::JSONB; END IF;
           IF k = 'updated_at' THEN CONTINUE; END IF;
           IF v_new = v_old THEN CONTINUE; END IF;
-          result = result || jsonb_build_object(k, jsonb_build_array(v_old, v_new));
+          result := result || jsonb_build_object(k, jsonb_build_array(v_old, v_new));
         END LOOP;
         RETURN result;
       END;
@@ -39,15 +43,14 @@ class RefactoringAuditedChanges < ActiveRecord::Migration[5.0]
         WHEN tg_op IN ('INSERT', 'UPDATE') THEN after->>'id'
         END ;
 
-
       CREATE OR REPLACE FUNCTION audit_change()
       RETURNS TRIGGER AS $$
         DECLARE
-          row JSONB;
           changed JSONB;
-          j_new JSONB = '{}'::JSONB;
-          j_old JSONB = '{}'::JSONB;
-          pkey_col TEXT = (
+          j_new JSONB := '{}'::JSONB;
+          j_old JSONB := '{}'::JSONB;
+          pkey TEXT;
+          pkey_col TEXT := (
                       SELECT attname
                       FROM pg_index
                       JOIN pg_attribute ON
@@ -56,17 +59,20 @@ class RefactoringAuditedChanges < ActiveRecord::Migration[5.0]
                       WHERE indrelid = TG_RELID AND indisprimary);
       BEGIN
         IF (TG_OP = 'DELETE') THEN
-          j_old = row_to_json(OLD)::JSONB;
+          j_old := row_to_json(OLD)::JSONB;
+          pkey := j_old ->> pkey_col;
         ELSIF (TG_OP = 'INSERT') THEN
-          j_new = row_to_json(NEW)::JSONB;
+          j_new := row_to_json(NEW)::JSONB;
+          pkey := j_new ->> pkey_col;
         ELSIF (TG_OP = 'UPDATE') THEN
-          j_old = row_to_json(OLD)::JSONB;
-          j_new = row_to_json(NEW)::JSONB;
+          j_old := row_to_json(OLD)::JSONB;
+          j_new := row_to_json(NEW)::JSONB;
+          pkey := j_old ->> pkey_col;
         END IF;
-        changed = jsonb_changed(j_old, j_new);
-        if ( changed <> '{}' ) THEN
+        changed := jsonb_changed(j_old, j_new);
+        if ( changed <> '{}'::JSONB ) THEN
           INSERT INTO audited_changes (tg_op, table_name, changed, pkey)
-            VALUES (TG_OP, TG_TABLE_NAME, changed, row ->> pkey_col);
+            VALUES (TG_OP, TG_TABLE_NAME, changed, pkey);
         END IF;
         RETURN NEW;
       END;
