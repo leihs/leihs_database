@@ -2879,9 +2879,6 @@ CREATE TABLE public.schema_migrations (
 --
 
 CREATE TABLE public.settings (
-    smtp_address character varying,
-    smtp_port integer,
-    smtp_domain character varying,
     local_currency_string character varying,
     contract_terms text,
     contract_lending_party_string text,
@@ -2891,11 +2888,6 @@ CREATE TABLE public.settings (
     user_image_url character varying,
     ldap_config character varying,
     logo_url character varying,
-    mail_delivery_method character varying,
-    smtp_username character varying,
-    smtp_password character varying,
-    smtp_enable_starttls_auto boolean DEFAULT false NOT NULL,
-    smtp_openssl_verify_mode character varying DEFAULT 'none'::character varying NOT NULL,
     time_zone character varying DEFAULT 'Bern'::character varying NOT NULL,
     disable_manage_section boolean DEFAULT false NOT NULL,
     disable_manage_section_message text,
@@ -2903,20 +2895,33 @@ CREATE TABLE public.settings (
     disable_borrow_section_message text,
     text text,
     timeout_minutes integer DEFAULT 30 NOT NULL,
-    external_base_url character varying,
     custom_head_tag text,
-    sessions_max_lifetime_secs integer DEFAULT 432000,
-    sessions_force_uniqueness boolean DEFAULT true NOT NULL,
-    sessions_force_secure boolean DEFAULT false NOT NULL,
     documentation_link character varying DEFAULT ''::character varying,
     id integer DEFAULT 0 NOT NULL,
-    accept_server_secret_as_universal_password boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
     maximum_reservation_time integer,
-    smtp_sender_address text,
-    smtp_default_from_address text DEFAULT 'noreply@example.com'::text NOT NULL,
-    smtp_authentication_type text DEFAULT 'plain'::text,
+    CONSTRAINT id_is_zero CHECK ((id = 0))
+);
+
+
+--
+-- Name: smtp_settings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.smtp_settings (
+    id integer DEFAULT 0 NOT NULL,
+    enabled boolean DEFAULT false NOT NULL,
+    address text,
+    authentication_type text DEFAULT 'plain'::text,
+    default_from_address text DEFAULT 'noreply'::text NOT NULL,
+    domain text,
+    enable_starttls_auto boolean DEFAULT false NOT NULL,
+    openssl_verify_mode text DEFAULT 'none'::text NOT NULL,
+    password text,
+    port integer,
+    sender_address text,
+    username text,
     CONSTRAINT id_is_zero CHECK ((id = 0))
 );
 
@@ -2955,6 +2960,21 @@ CREATE TABLE public.suspensions (
 
 CREATE TABLE public.system_admin_users (
     user_id uuid NOT NULL
+);
+
+
+--
+-- Name: system_and_security_settings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_and_security_settings (
+    id integer DEFAULT 0 NOT NULL,
+    accept_server_secret_as_universal_password boolean DEFAULT true NOT NULL,
+    external_base_url character varying,
+    sessions_force_secure boolean DEFAULT false NOT NULL,
+    sessions_force_uniqueness boolean DEFAULT true NOT NULL,
+    sessions_max_lifetime_secs integer DEFAULT 432000,
+    CONSTRAINT id_is_zero CHECK ((id = 0))
 );
 
 
@@ -3605,6 +3625,14 @@ ALTER TABLE ONLY public.settings
 
 
 --
+-- Name: smtp_settings smtp_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.smtp_settings
+    ADD CONSTRAINT smtp_settings_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: suppliers suppliers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3626,6 +3654,14 @@ ALTER TABLE ONLY public.suspensions
 
 ALTER TABLE ONLY public.system_admin_users
     ADD CONSTRAINT system_admin_users_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: system_and_security_settings system_and_security_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_and_security_settings
+    ADD CONSTRAINT system_and_security_settings_pkey PRIMARY KEY (id);
 
 
 --
@@ -4823,6 +4859,13 @@ CREATE TRIGGER audited_change_on_settings AFTER INSERT OR DELETE OR UPDATE ON pu
 
 
 --
+-- Name: smtp_settings audited_change_on_smtp_settings; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_smtp_settings AFTER INSERT OR DELETE OR UPDATE ON public.smtp_settings FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+
+
+--
 -- Name: suspensions audited_change_on_suspensions; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4834,6 +4877,13 @@ CREATE TRIGGER audited_change_on_suspensions AFTER INSERT OR DELETE OR UPDATE ON
 --
 
 CREATE TRIGGER audited_change_on_system_admin_users AFTER INSERT OR DELETE OR UPDATE ON public.system_admin_users FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+
+
+--
+-- Name: system_and_security_settings audited_change_on_system_and_security_settings; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_system_and_security_settings AFTER INSERT OR DELETE OR UPDATE ON public.system_and_security_settings FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
 
 
 --
@@ -6178,6 +6228,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('584'),
 ('585'),
 ('586'),
+('587'),
+('588'),
 ('6'),
 ('7'),
 ('8'),

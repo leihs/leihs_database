@@ -4,7 +4,9 @@ require 'ostruct'
 require 'sequel'
 require 'yaml'
 
-DB_ENV = ENV['LEIHS_DATABASE_URL'].presence
+
+DB_ENV = ENV['LEIHS_DATABASE_URL'].presence || \
+  "postgresql://localhost:5432/leihs?max-pool-size=5"
 
 def http_uri
   @http_uri ||= \

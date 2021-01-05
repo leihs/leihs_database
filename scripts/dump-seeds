@@ -5,6 +5,8 @@ set -eux
 DATABASE_NAME=${DATABASE_NAME:-leihs_seeds}
 
 pg_dump -a $DATABASE_NAME \
+  --column-inserts \
+  --disable-triggers \
   -T schema_migrations \
   -T audited_changes \
   -T audits \
