@@ -2052,7 +2052,9 @@ CREATE TABLE public.customer_orders (
     purpose text NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    title text NOT NULL
+    title text NOT NULL,
+    CONSTRAINT non_blank_purpose CHECK ((purpose !~ '^ *$'::text)),
+    CONSTRAINT non_blank_title CHECK ((title !~ '^ *$'::text))
 );
 
 
@@ -2972,7 +2974,7 @@ CREATE TABLE public.system_and_security_settings (
     accept_server_secret_as_universal_password boolean DEFAULT true NOT NULL,
     external_base_url character varying,
     sessions_force_secure boolean DEFAULT false NOT NULL,
-    sessions_force_uniqueness boolean DEFAULT true NOT NULL,
+    sessions_force_uniqueness boolean DEFAULT false NOT NULL,
     sessions_max_lifetime_secs integer DEFAULT 432000,
     CONSTRAINT id_is_zero CHECK ((id = 0))
 );
@@ -6230,6 +6232,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('586'),
 ('587'),
 ('588'),
+('589'),
 ('6'),
 ('7'),
 ('8'),
