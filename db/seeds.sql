@@ -747,7 +747,7 @@ ALTER TABLE public.reservations ENABLE TRIGGER ALL;
 
 ALTER TABLE public.settings DISABLE TRIGGER ALL;
 
-INSERT INTO public.settings (local_currency_string, contract_terms, contract_lending_party_string, email_signature, default_email, deliver_received_order_notifications, user_image_url, ldap_config, logo_url, time_zone, disable_manage_section, disable_manage_section_message, disable_borrow_section, disable_borrow_section_message, text, timeout_minutes, custom_head_tag, documentation_link, id, created_at, updated_at, maximum_reservation_time) VALUES ('GBP', NULL, NULL, 'Cheers,', 'your.lending.desk@example.com', false, NULL, NULL, NULL, 'Bern', false, NULL, false, NULL, NULL, 30, NULL, NULL, 0, '2020-11-05 13:50:29.190792+01', '2020-11-05 13:50:29.190792+01', NULL);
+INSERT INTO public.settings (local_currency_string, contract_lending_party_string, email_signature, deliver_received_order_notifications, user_image_url, ldap_config, logo_url, time_zone, disable_manage_section, disable_manage_section_message, disable_borrow_section, disable_borrow_section_message, text, timeout_minutes, custom_head_tag, documentation_link, id, created_at, updated_at, maximum_reservation_time) VALUES ('GBP', NULL, 'Cheers,', false, NULL, NULL, NULL, 'Bern', false, NULL, false, NULL, NULL, 30, NULL, NULL, 0, '2020-11-05 13:50:29.190792+01', '2020-11-05 13:50:29.190792+01', NULL);
 
 
 ALTER TABLE public.settings ENABLE TRIGGER ALL;
@@ -758,7 +758,7 @@ ALTER TABLE public.settings ENABLE TRIGGER ALL;
 
 ALTER TABLE public.smtp_settings DISABLE TRIGGER ALL;
 
-INSERT INTO public.smtp_settings (id, enabled, address, authentication_type, default_from_address, domain, enable_starttls_auto, openssl_verify_mode, password, port, sender_address, username) VALUES (0, false, 'localhost', 'plain', 'noreply@example.com', 'localhost', false, 'none', NULL, 25, NULL, NULL);
+INSERT INTO public.smtp_settings (id, enabled, address, authentication_type, default_from_address, domain, enable_starttls_auto, openssl_verify_mode, password, port, sender_address, username) VALUES (0, false, 'localhost', 'plain', 'your.lending.desk@example.com', 'localhost', false, 'none', NULL, 25, NULL, NULL);
 
 
 ALTER TABLE public.smtp_settings ENABLE TRIGGER ALL;

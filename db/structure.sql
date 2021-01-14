@@ -2882,10 +2882,8 @@ CREATE TABLE public.schema_migrations (
 
 CREATE TABLE public.settings (
     local_currency_string character varying,
-    contract_terms text,
     contract_lending_party_string text,
     email_signature character varying,
-    default_email character varying,
     deliver_received_order_notifications boolean,
     user_image_url character varying,
     ldap_config character varying,
@@ -6233,6 +6231,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('587'),
 ('588'),
 ('589'),
+('590'),
 ('6'),
 ('7'),
 ('8'),
