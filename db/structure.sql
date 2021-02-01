@@ -1753,7 +1753,12 @@ CREATE TABLE public.groups (
     searchable text DEFAULT ''::text NOT NULL,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
-    protected boolean DEFAULT false NOT NULL
+    admin_protected boolean DEFAULT false NOT NULL,
+    system_admin_protected boolean DEFAULT false NOT NULL,
+    organization text DEFAULT 'leihs-local'::text NOT NULL,
+    CONSTRAINT check_org_domain_like CHECK ((organization ~ '^[A-Za-z0-9]+[A-Za-z0-9.-]+[A-Za-z0-9]+$'::text)),
+    CONSTRAINT groups_org_id_may_not_contain_at_sign CHECK (((org_id)::text !~~* '%@%'::text)),
+    CONSTRAINT groups_protected_hierarchy CHECK ((NOT ((system_admin_protected = true) AND (admin_protected = false))))
 );
 
 
@@ -2969,15 +2974,6 @@ CREATE TABLE public.suspensions (
 
 
 --
--- Name: system_admin_users; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.system_admin_users (
-    user_id uuid NOT NULL
-);
-
-
---
 -- Name: system_and_security_settings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3053,9 +3049,17 @@ CREATE TABLE public.users (
     searchable text DEFAULT ''::text NOT NULL,
     secondary_email text,
     language_locale text,
-    protected boolean DEFAULT false NOT NULL,
+    admin_protected boolean DEFAULT false NOT NULL,
+    is_system_admin boolean DEFAULT false NOT NULL,
+    pool_protected boolean DEFAULT false NOT NULL,
+    system_admin_protected boolean DEFAULT false NOT NULL,
+    organization text DEFAULT 'leihs-local'::text NOT NULL,
+    CONSTRAINT check_org_domain_like CHECK ((organization ~ '^[A-Za-z0-9]+[A-Za-z0-9.-]+[A-Za-z0-9]+$'::text)),
     CONSTRAINT email_must_contain_at_sign CHECK (((email)::text ~~* '%@%'::text)),
-    CONSTRAINT login_may_not_contain_at_sign CHECK (((login)::text !~~* '%@%'::text))
+    CONSTRAINT login_is_simple CHECK (((login)::text ~ '^[a-z0-9]+$'::text)),
+    CONSTRAINT users_admin_hierarchy CHECK ((NOT ((is_system_admin = true) AND (is_admin = false)))),
+    CONSTRAINT users_org_id_may_not_contain_at_sign CHECK (((org_id)::text !~~* '%@%'::text)),
+    CONSTRAINT users_protected_hierarchy CHECK ((NOT ((system_admin_protected = true) AND (admin_protected = false))))
 );
 
 
@@ -3663,14 +3667,6 @@ ALTER TABLE ONLY public.suspensions
 
 
 --
--- Name: system_admin_users system_admin_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.system_admin_users
-    ADD CONSTRAINT system_admin_users_pkey PRIMARY KEY (user_id);
-
-
---
 -- Name: system_and_security_settings system_and_security_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3851,6 +3847,13 @@ CREATE UNIQUE INDEX idx_group_name ON public.groups USING btree (lower((name)::t
 
 
 --
+-- Name: idx_groups_organization_org_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_groups_organization_org_id ON public.groups USING btree ((((organization || '_'::text) || (org_id)::text)));
+
+
+--
 -- Name: idx_procurement_category_viewers_uc; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3869,6 +3872,13 @@ CREATE UNIQUE INDEX idx_procurement_group_inspectors_uc ON public.procurement_ca
 --
 
 CREATE UNIQUE INDEX idx_user_egroup ON public.entitlement_groups_direct_users USING btree (user_id, entitlement_group_id);
+
+
+--
+-- Name: idx_users_organization_org_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_users_organization_org_id ON public.users USING btree ((((organization || '_'::text) || (org_id)::text)));
 
 
 --
@@ -4163,13 +4173,6 @@ CREATE INDEX index_group_access_rights_on_inventory_pool_id ON public.group_acce
 --
 
 CREATE UNIQUE INDEX index_group_access_rights_on_inventory_pool_id_and_group_id ON public.group_access_rights USING btree (inventory_pool_id, group_id);
-
-
---
--- Name: index_groups_on_org_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_groups_on_org_id ON public.groups USING btree (org_id);
 
 
 --
@@ -4677,13 +4680,6 @@ CREATE UNIQUE INDEX users_login_idx ON public.users USING btree (lower((login)::
 
 
 --
--- Name: users_org_id_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX users_org_id_idx ON public.users USING btree (org_id);
-
-
---
 -- Name: users_searchable_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4884,13 +4880,6 @@ CREATE TRIGGER audited_change_on_smtp_settings AFTER INSERT OR DELETE OR UPDATE 
 --
 
 CREATE TRIGGER audited_change_on_suspensions AFTER INSERT OR DELETE OR UPDATE ON public.suspensions FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
-
-
---
--- Name: system_admin_users audited_change_on_system_admin_users; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER audited_change_on_system_admin_users AFTER INSERT OR DELETE OR UPDATE ON public.system_admin_users FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
 
 
 --
@@ -5612,14 +5601,6 @@ ALTER TABLE ONLY public.procurement_admins
 
 
 --
--- Name: audited_requests fk_rails_83fd1038f8; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.audited_requests
-    ADD CONSTRAINT fk_rails_83fd1038f8 FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
---
 -- Name: entitlement_groups_direct_users fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6084,14 +6065,6 @@ ALTER TABLE ONLY public.images
 
 
 --
--- Name: system_admin_users fkey_system_admin_users_users; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.system_admin_users
-    ADD CONSTRAINT fkey_system_admin_users_users FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-
-
---
 -- Name: users fkey_users_delegators; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6254,6 +6227,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('589'),
 ('590'),
 ('591'),
+('592'),
 ('6'),
 ('7'),
 ('8'),

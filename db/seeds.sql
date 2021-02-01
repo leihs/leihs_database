@@ -17,7 +17,7 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Data for Name: images; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: images; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 SET SESSION AUTHORIZATION DEFAULT;
@@ -29,7 +29,7 @@ ALTER TABLE public.images DISABLE TRIGGER ALL;
 ALTER TABLE public.images ENABLE TRIGGER ALL;
 
 --
--- Data for Name: models; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: models; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.models DISABLE TRIGGER ALL;
@@ -39,7 +39,7 @@ ALTER TABLE public.models DISABLE TRIGGER ALL;
 ALTER TABLE public.models ENABLE TRIGGER ALL;
 
 --
--- Data for Name: accessories; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: accessories; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.accessories DISABLE TRIGGER ALL;
@@ -49,7 +49,7 @@ ALTER TABLE public.accessories DISABLE TRIGGER ALL;
 ALTER TABLE public.accessories ENABLE TRIGGER ALL;
 
 --
--- Data for Name: addresses; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: addresses; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.addresses DISABLE TRIGGER ALL;
@@ -59,7 +59,7 @@ ALTER TABLE public.addresses DISABLE TRIGGER ALL;
 ALTER TABLE public.addresses ENABLE TRIGGER ALL;
 
 --
--- Data for Name: inventory_pools; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: inventory_pools; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.inventory_pools DISABLE TRIGGER ALL;
@@ -69,7 +69,7 @@ ALTER TABLE public.inventory_pools DISABLE TRIGGER ALL;
 ALTER TABLE public.inventory_pools ENABLE TRIGGER ALL;
 
 --
--- Data for Name: accessories_inventory_pools; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: accessories_inventory_pools; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.accessories_inventory_pools DISABLE TRIGGER ALL;
@@ -79,7 +79,7 @@ ALTER TABLE public.accessories_inventory_pools DISABLE TRIGGER ALL;
 ALTER TABLE public.accessories_inventory_pools ENABLE TRIGGER ALL;
 
 --
--- Data for Name: api_tokens; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: api_tokens; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.api_tokens DISABLE TRIGGER ALL;
@@ -89,7 +89,7 @@ ALTER TABLE public.api_tokens DISABLE TRIGGER ALL;
 ALTER TABLE public.api_tokens ENABLE TRIGGER ALL;
 
 --
--- Data for Name: buildings; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: buildings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.buildings DISABLE TRIGGER ALL;
@@ -100,7 +100,7 @@ INSERT INTO public.buildings (id, name, code) VALUES ('abae04c5-d767-425e-acc2-7
 ALTER TABLE public.buildings ENABLE TRIGGER ALL;
 
 --
--- Data for Name: rooms; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: rooms; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.rooms DISABLE TRIGGER ALL;
@@ -111,7 +111,7 @@ INSERT INTO public.rooms (id, name, description, building_id, general) VALUES ('
 ALTER TABLE public.rooms ENABLE TRIGGER ALL;
 
 --
--- Data for Name: suppliers; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: suppliers; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.suppliers DISABLE TRIGGER ALL;
@@ -121,7 +121,7 @@ ALTER TABLE public.suppliers DISABLE TRIGGER ALL;
 ALTER TABLE public.suppliers ENABLE TRIGGER ALL;
 
 --
--- Data for Name: items; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: items; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.items DISABLE TRIGGER ALL;
@@ -131,7 +131,7 @@ ALTER TABLE public.items DISABLE TRIGGER ALL;
 ALTER TABLE public.items ENABLE TRIGGER ALL;
 
 --
--- Data for Name: attachments; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: attachments; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.attachments DISABLE TRIGGER ALL;
@@ -141,7 +141,59 @@ ALTER TABLE public.attachments DISABLE TRIGGER ALL;
 ALTER TABLE public.attachments ENABLE TRIGGER ALL;
 
 --
--- Data for Name: languages; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: audited_requests; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+ALTER TABLE public.audited_requests DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.audited_requests ENABLE TRIGGER ALL;
+
+--
+-- Data for Name: audited_responses; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+ALTER TABLE public.audited_responses DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.audited_responses ENABLE TRIGGER ALL;
+
+--
+-- Data for Name: authentication_systems; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+ALTER TABLE public.authentication_systems DISABLE TRIGGER ALL;
+
+INSERT INTO public.authentication_systems (id, name, description, type, enabled, priority, internal_private_key, internal_public_key, external_public_key, external_sign_in_url, send_email, send_org_id, send_login, shortcut_sign_in_enabled, created_at, updated_at, external_sign_out_url, sign_up_email_match) VALUES ('password', 'leihs password', NULL, 'password', true, 0, NULL, NULL, NULL, NULL, true, false, false, false, '2020-11-05 13:50:39.546594+01', '2020-11-05 13:50:39.546594+01', NULL, NULL);
+
+
+ALTER TABLE public.authentication_systems ENABLE TRIGGER ALL;
+
+--
+-- Data for Name: groups; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+ALTER TABLE public.groups DISABLE TRIGGER ALL;
+
+INSERT INTO public.groups (id, name, description, org_id, searchable, created_at, updated_at, admin_protected, system_admin_protected, organization) VALUES ('4dd87663-f731-5766-b97d-9494889ca66c', 'All users', NULL, 'all-users', 'All users all-users', '2021-02-05 11:10:30.049292+01', '2021-02-07 22:40:03.205751+01', true, false, 'leihs-core');
+
+
+ALTER TABLE public.groups ENABLE TRIGGER ALL;
+
+--
+-- Data for Name: authentication_systems_groups; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+ALTER TABLE public.authentication_systems_groups DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.authentication_systems_groups ENABLE TRIGGER ALL;
+
+--
+-- Data for Name: languages; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.languages DISABLE TRIGGER ALL;
@@ -155,7 +207,7 @@ INSERT INTO public.languages (name, locale, "default", active) VALUES ('Züritü
 ALTER TABLE public.languages ENABLE TRIGGER ALL;
 
 --
--- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.users DISABLE TRIGGER ALL;
@@ -165,59 +217,7 @@ ALTER TABLE public.users DISABLE TRIGGER ALL;
 ALTER TABLE public.users ENABLE TRIGGER ALL;
 
 --
--- Data for Name: audited_requests; Type: TABLE DATA; Schema: public; Owner: nitaai
---
-
-ALTER TABLE public.audited_requests DISABLE TRIGGER ALL;
-
-
-
-ALTER TABLE public.audited_requests ENABLE TRIGGER ALL;
-
---
--- Data for Name: audited_responses; Type: TABLE DATA; Schema: public; Owner: nitaai
---
-
-ALTER TABLE public.audited_responses DISABLE TRIGGER ALL;
-
-
-
-ALTER TABLE public.audited_responses ENABLE TRIGGER ALL;
-
---
--- Data for Name: authentication_systems; Type: TABLE DATA; Schema: public; Owner: nitaai
---
-
-ALTER TABLE public.authentication_systems DISABLE TRIGGER ALL;
-
-INSERT INTO public.authentication_systems (id, name, description, type, enabled, priority, internal_private_key, internal_public_key, external_public_key, external_sign_in_url, send_email, send_org_id, send_login, shortcut_sign_in_enabled, created_at, updated_at, external_sign_out_url, sign_up_email_match) VALUES ('password', 'leihs password', NULL, 'password', true, 0, NULL, NULL, NULL, NULL, true, false, false, false, '2020-11-05 13:50:39.546594+01', '2020-11-05 13:50:39.546594+01', NULL, NULL);
-
-
-ALTER TABLE public.authentication_systems ENABLE TRIGGER ALL;
-
---
--- Data for Name: groups; Type: TABLE DATA; Schema: public; Owner: nitaai
---
-
-ALTER TABLE public.groups DISABLE TRIGGER ALL;
-
-INSERT INTO public.groups (id, name, description, org_id, searchable, created_at, updated_at, protected) VALUES ('4dd87663-f731-5766-b97d-9494889ca66c', 'All users', NULL, NULL, 'All users ', '2021-02-05 11:10:30.049292+01', '2021-02-05 11:10:30.049292+01', true);
-
-
-ALTER TABLE public.groups ENABLE TRIGGER ALL;
-
---
--- Data for Name: authentication_systems_groups; Type: TABLE DATA; Schema: public; Owner: nitaai
---
-
-ALTER TABLE public.authentication_systems_groups DISABLE TRIGGER ALL;
-
-
-
-ALTER TABLE public.authentication_systems_groups ENABLE TRIGGER ALL;
-
---
--- Data for Name: authentication_systems_users; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: authentication_systems_users; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.authentication_systems_users DISABLE TRIGGER ALL;
@@ -227,7 +227,7 @@ ALTER TABLE public.authentication_systems_users DISABLE TRIGGER ALL;
 ALTER TABLE public.authentication_systems_users ENABLE TRIGGER ALL;
 
 --
--- Data for Name: contracts; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: contracts; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.contracts DISABLE TRIGGER ALL;
@@ -237,7 +237,7 @@ ALTER TABLE public.contracts DISABLE TRIGGER ALL;
 ALTER TABLE public.contracts ENABLE TRIGGER ALL;
 
 --
--- Data for Name: customer_orders; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: customer_orders; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.customer_orders DISABLE TRIGGER ALL;
@@ -247,7 +247,7 @@ ALTER TABLE public.customer_orders DISABLE TRIGGER ALL;
 ALTER TABLE public.customer_orders ENABLE TRIGGER ALL;
 
 --
--- Data for Name: delegations_direct_users; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: delegations_direct_users; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.delegations_direct_users DISABLE TRIGGER ALL;
@@ -257,7 +257,7 @@ ALTER TABLE public.delegations_direct_users DISABLE TRIGGER ALL;
 ALTER TABLE public.delegations_direct_users ENABLE TRIGGER ALL;
 
 --
--- Data for Name: delegations_groups; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: delegations_groups; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.delegations_groups DISABLE TRIGGER ALL;
@@ -267,7 +267,7 @@ ALTER TABLE public.delegations_groups DISABLE TRIGGER ALL;
 ALTER TABLE public.delegations_groups ENABLE TRIGGER ALL;
 
 --
--- Data for Name: direct_access_rights; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: direct_access_rights; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.direct_access_rights DISABLE TRIGGER ALL;
@@ -277,7 +277,7 @@ ALTER TABLE public.direct_access_rights DISABLE TRIGGER ALL;
 ALTER TABLE public.direct_access_rights ENABLE TRIGGER ALL;
 
 --
--- Data for Name: fields; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: fields; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.fields DISABLE TRIGGER ALL;
@@ -333,7 +333,7 @@ INSERT INTO public.fields (id, active, "position", data, dynamic) VALUES ('attac
 ALTER TABLE public.fields ENABLE TRIGGER ALL;
 
 --
--- Data for Name: disabled_fields; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: disabled_fields; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.disabled_fields DISABLE TRIGGER ALL;
@@ -343,7 +343,7 @@ ALTER TABLE public.disabled_fields DISABLE TRIGGER ALL;
 ALTER TABLE public.disabled_fields ENABLE TRIGGER ALL;
 
 --
--- Data for Name: emails; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: emails; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.emails DISABLE TRIGGER ALL;
@@ -353,7 +353,7 @@ ALTER TABLE public.emails DISABLE TRIGGER ALL;
 ALTER TABLE public.emails ENABLE TRIGGER ALL;
 
 --
--- Data for Name: entitlement_groups; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: entitlement_groups; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.entitlement_groups DISABLE TRIGGER ALL;
@@ -363,7 +363,7 @@ ALTER TABLE public.entitlement_groups DISABLE TRIGGER ALL;
 ALTER TABLE public.entitlement_groups ENABLE TRIGGER ALL;
 
 --
--- Data for Name: entitlement_groups_direct_users; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: entitlement_groups_direct_users; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.entitlement_groups_direct_users DISABLE TRIGGER ALL;
@@ -373,7 +373,7 @@ ALTER TABLE public.entitlement_groups_direct_users DISABLE TRIGGER ALL;
 ALTER TABLE public.entitlement_groups_direct_users ENABLE TRIGGER ALL;
 
 --
--- Data for Name: entitlement_groups_groups; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: entitlement_groups_groups; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.entitlement_groups_groups DISABLE TRIGGER ALL;
@@ -383,7 +383,7 @@ ALTER TABLE public.entitlement_groups_groups DISABLE TRIGGER ALL;
 ALTER TABLE public.entitlement_groups_groups ENABLE TRIGGER ALL;
 
 --
--- Data for Name: entitlements; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: entitlements; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.entitlements DISABLE TRIGGER ALL;
@@ -393,7 +393,7 @@ ALTER TABLE public.entitlements DISABLE TRIGGER ALL;
 ALTER TABLE public.entitlements ENABLE TRIGGER ALL;
 
 --
--- Data for Name: favorite_models; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: favorite_models; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.favorite_models DISABLE TRIGGER ALL;
@@ -403,7 +403,7 @@ ALTER TABLE public.favorite_models DISABLE TRIGGER ALL;
 ALTER TABLE public.favorite_models ENABLE TRIGGER ALL;
 
 --
--- Data for Name: group_access_rights; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: group_access_rights; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.group_access_rights DISABLE TRIGGER ALL;
@@ -413,7 +413,7 @@ ALTER TABLE public.group_access_rights DISABLE TRIGGER ALL;
 ALTER TABLE public.group_access_rights ENABLE TRIGGER ALL;
 
 --
--- Data for Name: groups_users; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: groups_users; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.groups_users DISABLE TRIGGER ALL;
@@ -423,7 +423,7 @@ ALTER TABLE public.groups_users DISABLE TRIGGER ALL;
 ALTER TABLE public.groups_users ENABLE TRIGGER ALL;
 
 --
--- Data for Name: hidden_fields; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: hidden_fields; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.hidden_fields DISABLE TRIGGER ALL;
@@ -433,7 +433,7 @@ ALTER TABLE public.hidden_fields DISABLE TRIGGER ALL;
 ALTER TABLE public.hidden_fields ENABLE TRIGGER ALL;
 
 --
--- Data for Name: holidays; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: holidays; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.holidays DISABLE TRIGGER ALL;
@@ -443,7 +443,7 @@ ALTER TABLE public.holidays DISABLE TRIGGER ALL;
 ALTER TABLE public.holidays ENABLE TRIGGER ALL;
 
 --
--- Data for Name: model_groups; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: model_groups; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.model_groups DISABLE TRIGGER ALL;
@@ -453,7 +453,7 @@ ALTER TABLE public.model_groups DISABLE TRIGGER ALL;
 ALTER TABLE public.model_groups ENABLE TRIGGER ALL;
 
 --
--- Data for Name: inventory_pools_model_groups; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: inventory_pools_model_groups; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.inventory_pools_model_groups DISABLE TRIGGER ALL;
@@ -463,7 +463,7 @@ ALTER TABLE public.inventory_pools_model_groups DISABLE TRIGGER ALL;
 ALTER TABLE public.inventory_pools_model_groups ENABLE TRIGGER ALL;
 
 --
--- Data for Name: mail_templates; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: mail_templates; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.mail_templates DISABLE TRIGGER ALL;
@@ -473,7 +473,7 @@ ALTER TABLE public.mail_templates DISABLE TRIGGER ALL;
 ALTER TABLE public.mail_templates ENABLE TRIGGER ALL;
 
 --
--- Data for Name: model_group_links; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: model_group_links; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.model_group_links DISABLE TRIGGER ALL;
@@ -483,7 +483,7 @@ ALTER TABLE public.model_group_links DISABLE TRIGGER ALL;
 ALTER TABLE public.model_group_links ENABLE TRIGGER ALL;
 
 --
--- Data for Name: model_links; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: model_links; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.model_links DISABLE TRIGGER ALL;
@@ -493,7 +493,7 @@ ALTER TABLE public.model_links DISABLE TRIGGER ALL;
 ALTER TABLE public.model_links ENABLE TRIGGER ALL;
 
 --
--- Data for Name: models_compatibles; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: models_compatibles; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.models_compatibles DISABLE TRIGGER ALL;
@@ -503,7 +503,7 @@ ALTER TABLE public.models_compatibles DISABLE TRIGGER ALL;
 ALTER TABLE public.models_compatibles ENABLE TRIGGER ALL;
 
 --
--- Data for Name: notifications; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: notifications; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.notifications DISABLE TRIGGER ALL;
@@ -513,7 +513,7 @@ ALTER TABLE public.notifications DISABLE TRIGGER ALL;
 ALTER TABLE public.notifications ENABLE TRIGGER ALL;
 
 --
--- Data for Name: numerators; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: numerators; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.numerators DISABLE TRIGGER ALL;
@@ -523,7 +523,7 @@ ALTER TABLE public.numerators DISABLE TRIGGER ALL;
 ALTER TABLE public.numerators ENABLE TRIGGER ALL;
 
 --
--- Data for Name: old_empty_contracts; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: old_empty_contracts; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.old_empty_contracts DISABLE TRIGGER ALL;
@@ -533,7 +533,7 @@ ALTER TABLE public.old_empty_contracts DISABLE TRIGGER ALL;
 ALTER TABLE public.old_empty_contracts ENABLE TRIGGER ALL;
 
 --
--- Data for Name: options; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: options; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.options DISABLE TRIGGER ALL;
@@ -543,7 +543,7 @@ ALTER TABLE public.options DISABLE TRIGGER ALL;
 ALTER TABLE public.options ENABLE TRIGGER ALL;
 
 --
--- Data for Name: orders; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: orders; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.orders DISABLE TRIGGER ALL;
@@ -553,7 +553,7 @@ ALTER TABLE public.orders DISABLE TRIGGER ALL;
 ALTER TABLE public.orders ENABLE TRIGGER ALL;
 
 --
--- Data for Name: procurement_admins; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: procurement_admins; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.procurement_admins DISABLE TRIGGER ALL;
@@ -563,7 +563,7 @@ ALTER TABLE public.procurement_admins DISABLE TRIGGER ALL;
 ALTER TABLE public.procurement_admins ENABLE TRIGGER ALL;
 
 --
--- Data for Name: procurement_budget_periods; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: procurement_budget_periods; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.procurement_budget_periods DISABLE TRIGGER ALL;
@@ -573,7 +573,7 @@ ALTER TABLE public.procurement_budget_periods DISABLE TRIGGER ALL;
 ALTER TABLE public.procurement_budget_periods ENABLE TRIGGER ALL;
 
 --
--- Data for Name: procurement_main_categories; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: procurement_main_categories; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.procurement_main_categories DISABLE TRIGGER ALL;
@@ -583,7 +583,7 @@ ALTER TABLE public.procurement_main_categories DISABLE TRIGGER ALL;
 ALTER TABLE public.procurement_main_categories ENABLE TRIGGER ALL;
 
 --
--- Data for Name: procurement_categories; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: procurement_categories; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.procurement_categories DISABLE TRIGGER ALL;
@@ -593,7 +593,7 @@ ALTER TABLE public.procurement_categories DISABLE TRIGGER ALL;
 ALTER TABLE public.procurement_categories ENABLE TRIGGER ALL;
 
 --
--- Data for Name: procurement_organizations; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: procurement_organizations; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.procurement_organizations DISABLE TRIGGER ALL;
@@ -603,7 +603,7 @@ ALTER TABLE public.procurement_organizations DISABLE TRIGGER ALL;
 ALTER TABLE public.procurement_organizations ENABLE TRIGGER ALL;
 
 --
--- Data for Name: procurement_templates; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: procurement_templates; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.procurement_templates DISABLE TRIGGER ALL;
@@ -613,7 +613,7 @@ ALTER TABLE public.procurement_templates DISABLE TRIGGER ALL;
 ALTER TABLE public.procurement_templates ENABLE TRIGGER ALL;
 
 --
--- Data for Name: procurement_requests; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: procurement_requests; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.procurement_requests DISABLE TRIGGER ALL;
@@ -623,7 +623,7 @@ ALTER TABLE public.procurement_requests DISABLE TRIGGER ALL;
 ALTER TABLE public.procurement_requests ENABLE TRIGGER ALL;
 
 --
--- Data for Name: procurement_attachments; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: procurement_attachments; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.procurement_attachments DISABLE TRIGGER ALL;
@@ -633,7 +633,7 @@ ALTER TABLE public.procurement_attachments DISABLE TRIGGER ALL;
 ALTER TABLE public.procurement_attachments ENABLE TRIGGER ALL;
 
 --
--- Data for Name: procurement_budget_limits; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: procurement_budget_limits; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.procurement_budget_limits DISABLE TRIGGER ALL;
@@ -643,7 +643,7 @@ ALTER TABLE public.procurement_budget_limits DISABLE TRIGGER ALL;
 ALTER TABLE public.procurement_budget_limits ENABLE TRIGGER ALL;
 
 --
--- Data for Name: procurement_category_inspectors; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: procurement_category_inspectors; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.procurement_category_inspectors DISABLE TRIGGER ALL;
@@ -653,7 +653,7 @@ ALTER TABLE public.procurement_category_inspectors DISABLE TRIGGER ALL;
 ALTER TABLE public.procurement_category_inspectors ENABLE TRIGGER ALL;
 
 --
--- Data for Name: procurement_category_viewers; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: procurement_category_viewers; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.procurement_category_viewers DISABLE TRIGGER ALL;
@@ -663,7 +663,7 @@ ALTER TABLE public.procurement_category_viewers DISABLE TRIGGER ALL;
 ALTER TABLE public.procurement_category_viewers ENABLE TRIGGER ALL;
 
 --
--- Data for Name: procurement_images; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: procurement_images; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.procurement_images DISABLE TRIGGER ALL;
@@ -673,7 +673,7 @@ ALTER TABLE public.procurement_images DISABLE TRIGGER ALL;
 ALTER TABLE public.procurement_images ENABLE TRIGGER ALL;
 
 --
--- Data for Name: procurement_requesters_organizations; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: procurement_requesters_organizations; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.procurement_requesters_organizations DISABLE TRIGGER ALL;
@@ -683,7 +683,7 @@ ALTER TABLE public.procurement_requesters_organizations DISABLE TRIGGER ALL;
 ALTER TABLE public.procurement_requesters_organizations ENABLE TRIGGER ALL;
 
 --
--- Data for Name: procurement_requests_counters; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: procurement_requests_counters; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.procurement_requests_counters DISABLE TRIGGER ALL;
@@ -693,7 +693,7 @@ ALTER TABLE public.procurement_requests_counters DISABLE TRIGGER ALL;
 ALTER TABLE public.procurement_requests_counters ENABLE TRIGGER ALL;
 
 --
--- Data for Name: procurement_settings; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: procurement_settings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.procurement_settings DISABLE TRIGGER ALL;
@@ -703,7 +703,7 @@ ALTER TABLE public.procurement_settings DISABLE TRIGGER ALL;
 ALTER TABLE public.procurement_settings ENABLE TRIGGER ALL;
 
 --
--- Data for Name: procurement_uploads; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: procurement_uploads; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.procurement_uploads DISABLE TRIGGER ALL;
@@ -713,7 +713,7 @@ ALTER TABLE public.procurement_uploads DISABLE TRIGGER ALL;
 ALTER TABLE public.procurement_uploads ENABLE TRIGGER ALL;
 
 --
--- Data for Name: procurement_users_filters; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: procurement_users_filters; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.procurement_users_filters DISABLE TRIGGER ALL;
@@ -723,7 +723,7 @@ ALTER TABLE public.procurement_users_filters DISABLE TRIGGER ALL;
 ALTER TABLE public.procurement_users_filters ENABLE TRIGGER ALL;
 
 --
--- Data for Name: properties; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: properties; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.properties DISABLE TRIGGER ALL;
@@ -733,7 +733,7 @@ ALTER TABLE public.properties DISABLE TRIGGER ALL;
 ALTER TABLE public.properties ENABLE TRIGGER ALL;
 
 --
--- Data for Name: reservations; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: reservations; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.reservations DISABLE TRIGGER ALL;
@@ -743,7 +743,7 @@ ALTER TABLE public.reservations DISABLE TRIGGER ALL;
 ALTER TABLE public.reservations ENABLE TRIGGER ALL;
 
 --
--- Data for Name: settings; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: settings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.settings DISABLE TRIGGER ALL;
@@ -754,7 +754,7 @@ INSERT INTO public.settings (local_currency_string, contract_lending_party_strin
 ALTER TABLE public.settings ENABLE TRIGGER ALL;
 
 --
--- Data for Name: smtp_settings; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: smtp_settings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.smtp_settings DISABLE TRIGGER ALL;
@@ -765,7 +765,7 @@ INSERT INTO public.smtp_settings (id, enabled, address, authentication_type, def
 ALTER TABLE public.smtp_settings ENABLE TRIGGER ALL;
 
 --
--- Data for Name: suspensions; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: suspensions; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.suspensions DISABLE TRIGGER ALL;
@@ -775,17 +775,7 @@ ALTER TABLE public.suspensions DISABLE TRIGGER ALL;
 ALTER TABLE public.suspensions ENABLE TRIGGER ALL;
 
 --
--- Data for Name: system_admin_users; Type: TABLE DATA; Schema: public; Owner: nitaai
---
-
-ALTER TABLE public.system_admin_users DISABLE TRIGGER ALL;
-
-
-
-ALTER TABLE public.system_admin_users ENABLE TRIGGER ALL;
-
---
--- Data for Name: system_and_security_settings; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: system_and_security_settings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.system_and_security_settings DISABLE TRIGGER ALL;
@@ -796,7 +786,7 @@ INSERT INTO public.system_and_security_settings (id, accept_server_secret_as_uni
 ALTER TABLE public.system_and_security_settings ENABLE TRIGGER ALL;
 
 --
--- Data for Name: user_password_resets; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: user_password_resets; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.user_password_resets DISABLE TRIGGER ALL;
@@ -806,7 +796,7 @@ ALTER TABLE public.user_password_resets DISABLE TRIGGER ALL;
 ALTER TABLE public.user_password_resets ENABLE TRIGGER ALL;
 
 --
--- Data for Name: user_sessions; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: user_sessions; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.user_sessions DISABLE TRIGGER ALL;
@@ -816,7 +806,7 @@ ALTER TABLE public.user_sessions DISABLE TRIGGER ALL;
 ALTER TABLE public.user_sessions ENABLE TRIGGER ALL;
 
 --
--- Data for Name: workdays; Type: TABLE DATA; Schema: public; Owner: nitaai
+-- Data for Name: workdays; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 ALTER TABLE public.workdays DISABLE TRIGGER ALL;

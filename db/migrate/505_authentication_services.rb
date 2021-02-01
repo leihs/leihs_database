@@ -27,16 +27,16 @@ class AuthenticationServices < ActiveRecord::Migration[5.0]
     end
 
     execute <<-SQL.strip_heredoc
-      ALTER TABLE authentication_systems ADD 
-        CONSTRAINT simple_id 
+      ALTER TABLE authentication_systems ADD
+        CONSTRAINT simple_id
         CHECK (id ~ '^[a-z][a-z0-9_-]*$');
 
       ALTER TABLE authentication_systems
-        ADD CONSTRAINT check_valid_type 
+        ADD CONSTRAINT check_valid_type
         CHECK (type IN ('password', 'external'));
 
       ALTER TABLE authentication_systems
-        ADD CONSTRAINT check_shortcut_sing_in 
+        ADD CONSTRAINT check_shortcut_sing_in
         CHECK (shortcut_sign_in_enabled = false OR type = 'external');
     SQL
 
@@ -60,10 +60,10 @@ class AuthenticationServices < ActiveRecord::Migration[5.0]
 
 
     execute <<-SQL.strip_heredoc
-      CREATE FUNCTION seed_authentication_systems() 
+      CREATE FUNCTION seed_authentication_systems()
       RETURNS trigger AS $$
         BEGIN
-          INSERT INTO authentication_systems(id, name, type, enabled) 
+          INSERT INTO authentication_systems(id, name, type, enabled)
             VALUES ('password', 'leihs password', 'password', true)
             ON CONFLICT (id)
             DO UPDATE SET type = 'password';

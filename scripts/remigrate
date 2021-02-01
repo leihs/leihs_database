@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -eux
+
+#bin/rails db:environment:set RAILS_ENV=development
+set -E;
+#bundle exec rake db:pg:terminate_connections;
+bundle exec rake db:drop db:create
+set -e
+bundle exec rake db:migrate VERSION=591

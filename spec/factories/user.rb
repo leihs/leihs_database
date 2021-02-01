@@ -11,8 +11,8 @@ FactoryBot.define do
     lastname { Faker::Name.unique.last_name }
     email { firstname + '.' + lastname + '@' + Faker::Internet.domain_name }
     password { Faker::Internet.password() }
-    is_admin { false }
-    protected { rand < 0.5 }
+    admin_protected { rand < 0.5 }
+    system_admin_protected { admin_protected && (rand < 0.5) }
 
     after(:create) do |user|
       pw_hash  =  database["SELECT crypt(#{database.literal(user.password)}, " \
@@ -29,9 +29,7 @@ FactoryBot.define do
 
     factory :system_admin do
       is_admin { true }
-      after(:create) do |user|
-        database[:system_admin_users].insert user_id: user.id
-      end
+      is_system_admin { true }
     end
 
   end
