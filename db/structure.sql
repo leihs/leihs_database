@@ -1446,27 +1446,6 @@ $$;
 
 
 --
--- Name: insert_customer_access_rights(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.insert_customer_access_rights() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-  if NEW.delegator_user_id IS NULL then
-    INSERT INTO access_rights (
-      user_id, inventory_pool_id, role
-    )
-    SELECT NEW.id, inventory_pools.id, 'customer'
-    FROM inventory_pools
-    WHERE inventory_pools.automatic_access = TRUE;
-  end if;
-  RETURN NULL;
-END;
-$$;
-
-
---
 -- Name: jsonb_changed(jsonb, jsonb); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1528,6 +1507,42 @@ BEGIN
   ELSE
     RETURN ot2 ;
   END IF;
+END;
+$$;
+
+
+--
+-- Name: populate_all_users_group_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.populate_all_users_group_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+      BEGIN
+        INSERT INTO groups_users(group_id, user_id)
+SELECT '4dd87663-f731-5766-b97d-9494889ca66c', id
+FROM users
+WHERE delegator_user_id IS NULL
+ON CONFLICT DO NOTHING;
+
+        RETURN NULL;
+      END;
+      $$;
+
+
+--
+-- Name: prevent_deleting_all_users_group_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.prevent_deleting_all_users_group_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF ( OLD.id = '4dd87663-f731-5766-b97d-9494889ca66c' )
+  THEN
+    RAISE EXCEPTION 'Deleting this specific group is not allowed.';
+  END IF;
+  RETURN OLD;
 END;
 $$;
 
@@ -2320,7 +2335,6 @@ CREATE TABLE public.inventory_pools (
     address_id uuid,
     automatic_suspension boolean DEFAULT false NOT NULL,
     automatic_suspension_reason text,
-    automatic_access boolean,
     required_purpose boolean DEFAULT true,
     is_active boolean DEFAULT true NOT NULL
 );
@@ -4978,6 +4992,20 @@ CREATE TRIGGER orders_insert_check_function_trigger BEFORE INSERT ON public.orde
 
 
 --
+-- Name: users populate_all_users_group_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER populate_all_users_group_t AFTER INSERT ON public.users FOR EACH STATEMENT EXECUTE PROCEDURE public.populate_all_users_group_f();
+
+
+--
+-- Name: groups prevent_deleting_all_users_group_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER prevent_deleting_all_users_group_t BEFORE DELETE ON public.groups FOR EACH ROW EXECUTE PROCEDURE public.prevent_deleting_all_users_group_f();
+
+
+--
 -- Name: procurement_requests set_short_id_for_new_procurement_request_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -5122,13 +5150,6 @@ CREATE CONSTRAINT TRIGGER trigger_ensure_general_room_cannot_be_deleted AFTER DE
 --
 
 CREATE TRIGGER trigger_fields_delete_check_function BEFORE DELETE ON public.fields FOR EACH ROW EXECUTE PROCEDURE public.fields_delete_check_function();
-
-
---
--- Name: users trigger_insert_customer_access_rights; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER trigger_insert_customer_access_rights AFTER INSERT ON public.users FOR EACH ROW EXECUTE PROCEDURE public.insert_customer_access_rights();
 
 
 --
@@ -6232,6 +6253,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('588'),
 ('589'),
 ('590'),
+('591'),
 ('6'),
 ('7'),
 ('8'),

@@ -14,8 +14,8 @@ class RemoveUnusedSettings < ActiveRecord::Migration[5.0]
     misc = MigrationSettings.first
     smtp = MigrationSmtpSettings.first
 
-    if misc.default_email.presence
-      smtp.update_attributes!(default_from_address: misc.default_email)
+    if email = misc.try(:default_email).presence
+      smtp.update_attributes!(default_from_address: email)
     end
 
     remove_column(:settings, :default_email)

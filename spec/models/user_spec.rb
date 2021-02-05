@@ -1,22 +1,38 @@
 require 'spec_helper'
+require_relative '../../lib/leihs/constants'
 
 describe 'user' do
-  context 'create' do
-    example 'trigger insert into access rights' do
-      FactoryBot.create(:access_right)
+  example 'insert into users table puts all users into all users group' do
+    all_users_group = Group.find(id: Leihs::Constants::ALL_USERS_GROUP_UUID)
 
-      ip_without_automatic_access = FactoryBot.create(:inventory_pool)
-      ip_with_automatic_access = FactoryBot.create(:inventory_pool,
-                                                   automatic_access: true)
+    user_1 = FactoryBot.create(:user)
 
-      user = FactoryBot.create(:user)
+    expect(
+      GroupUser.find(user_id: user_1.id,
+                     group_id: Leihs::Constants::ALL_USERS_GROUP_UUID)
+    ).to be
+    GroupUser.find(user_id: user_1.id,
+                   group_id: Leihs::Constants::ALL_USERS_GROUP_UUID)
+      .delete
 
-      expect(AccessRight.count).to eq(2)
-      expect(
-        AccessRight.find(user: user,
-                         inventory_pool: ip_with_automatic_access,
-                         role: 'customer')
-      ).to be
-    end
+    user_2 = FactoryBot.create(:user)
+
+    delegation = FactoryBot.create(:user, delegator_user_id: user_2.id)
+
+    user_3 = FactoryBot.create(:user)
+
+    expect(GroupUser.count).to eq 3
+    expect(
+      GroupUser.find(user_id: user_1.id,
+                     group_id: Leihs::Constants::ALL_USERS_GROUP_UUID)
+    ).to be
+    expect(
+      GroupUser.find(user_id: user_2.id,
+                     group_id: Leihs::Constants::ALL_USERS_GROUP_UUID)
+    ).to be
+    expect(
+      GroupUser.find(user_id: user_3.id,
+                     group_id: Leihs::Constants::ALL_USERS_GROUP_UUID)
+    ).to be
   end
 end
