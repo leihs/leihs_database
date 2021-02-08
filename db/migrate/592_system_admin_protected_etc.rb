@@ -73,17 +73,18 @@ class SystemAdminProtectedEtc < ActiveRecord::Migration[5.0]
       ALTER TABLE groups ADD CONSTRAINT groups_org_id_may_not_contain_at_sign
         CHECK (((org_id)::text !~~* '%@%'::text));
 
-      UPDATE users SET organization = 'zhdk.ch'
+      UPDATE users SET organization = 'zhdk.ch', admin_protected = true
         WHERE org_id IS NOT NULL
         AND EXISTS (SELECT true FROM system_and_security_settings
                     WHERE external_base_url IN ('https://leihs.zhdk.ch', 'http://localhost:3000'));
 
-      UPDATE groups SET organization = 'zhdk.ch'
+      UPDATE groups SET organization = 'zhdk.ch', admin_protected = true
         WHERE org_id IS NOT NULL
         AND EXISTS (SELECT true FROM system_and_security_settings
                     WHERE external_base_url IN ('https://leihs.zhdk.ch', 'http://localhost:3000'));
 
-      UPDATE groups set organization = 'leihs-core', org_id = 'all-users'
+      UPDATE groups SET organization = 'leihs-core',
+        org_id = 'all-users', admin_protected = true, system_admin_protected = true
         WHERE id = '#{::Leihs::Constants::ALL_USERS_GROUP_UUID}';
 
     SQL
@@ -99,9 +100,12 @@ class SystemAdminProtectedEtc < ActiveRecord::Migration[5.0]
         ON groups USING btree ((organization|| '_' || org_id));
     SQL
 
-
     execute <<-SQL.strip_heredoc
       ALTER TABLE audited_requests DROP CONSTRAINT IF EXISTS fk_rails_83fd1038f8;
+    SQL
+
+    execute <<-SQL.strip_heredoc
+      UPDATE system_and_security_settings SET sessions_force_uniqueness = false;
     SQL
 
   end

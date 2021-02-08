@@ -177,7 +177,7 @@ ALTER TABLE public.authentication_systems ENABLE TRIGGER ALL;
 
 ALTER TABLE public.groups DISABLE TRIGGER ALL;
 
-INSERT INTO public.groups (id, name, description, org_id, searchable, created_at, updated_at, admin_protected, system_admin_protected, organization) VALUES ('4dd87663-f731-5766-b97d-9494889ca66c', 'All users', NULL, 'all-users', 'All users all-users', '2021-02-05 11:10:30.049292+01', '2021-02-07 22:40:03.205751+01', true, false, 'leihs-core');
+INSERT INTO public.groups (id, name, description, org_id, searchable, created_at, updated_at, admin_protected, system_admin_protected, organization) VALUES ('4dd87663-f731-5766-b97d-9494889ca66c', 'All users', NULL, 'all-users', 'All users all-users', '2021-02-08 20:06:02.117998+01', '2021-02-08 20:06:02.132124+01', true, true, 'leihs-core');
 
 
 ALTER TABLE public.groups ENABLE TRIGGER ALL;

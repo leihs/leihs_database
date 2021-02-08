@@ -2982,7 +2982,7 @@ CREATE TABLE public.system_and_security_settings (
     accept_server_secret_as_universal_password boolean DEFAULT true NOT NULL,
     external_base_url character varying,
     sessions_force_secure boolean DEFAULT false NOT NULL,
-    sessions_force_uniqueness boolean DEFAULT false NOT NULL,
+    sessions_force_uniqueness boolean DEFAULT true NOT NULL,
     sessions_max_lifetime_secs integer DEFAULT 432000,
     CONSTRAINT id_is_zero CHECK ((id = 0))
 );

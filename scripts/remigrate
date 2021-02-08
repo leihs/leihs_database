@@ -2,9 +2,9 @@
 
 set -eux
 
-#bin/rails db:environment:set RAILS_ENV=development
+bin/rails db:environment:set RAILS_ENV=development
 set -E;
-#bundle exec rake db:pg:terminate_connections;
+bundle exec rake db:pg:terminate_connections;
 bundle exec rake db:drop db:create
 set -e
-bundle exec rake db:migrate VERSION=591
+bundle exec rake db:migrate
