@@ -37,6 +37,8 @@ class AutomaticAccessWithAllUsersGroup < ActiveRecord::Migration[5.0]
     MigrationInventoryPool.where(automatic_access: true).each do |pool|
       MigrationDirectAccessRight
         .where(inventory_pool_id: pool.id, role: 'customer')
+        .join(:user)
+        .where(user: { delegator_user_id: nil })
         .delete_all
 
       MigrationGroupAccessRight.create!(inventory_pool_id: pool.id,
@@ -65,7 +67,7 @@ class AutomaticAccessWithAllUsersGroup < ActiveRecord::Migration[5.0]
       FOR EACH STATEMENT
       EXECUTE PROCEDURE populate_all_users_group_f();
     SQL
-    
+
     execute <<-SQL.strip_heredoc
       CREATE FUNCTION prevent_deleting_all_users_group_f()
       RETURNS TRIGGER AS $$

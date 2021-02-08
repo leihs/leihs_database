@@ -21,6 +21,8 @@ class SystemAdminProtectedEtc < ActiveRecord::Migration[5.0]
     rename_column :users, :protected, :admin_protected
 
     execute <<-SQL.strip_heredoc
+      UPDATE users SET is_admin = true WHERE is_system_admin = true;
+
       ALTER TABLE users ADD CONSTRAINT users_protected_hierarchy
         CHECK (NOT (system_admin_protected = true AND admin_protected = false));
     SQL
@@ -76,13 +78,13 @@ class SystemAdminProtectedEtc < ActiveRecord::Migration[5.0]
         AND EXISTS (SELECT true FROM system_and_security_settings
                     WHERE external_base_url IN ('https://leihs.zhdk.ch', 'http://localhost:3000'));
 
-      UPDATE groups set organization = 'leihs-core', org_id = 'all-users'
-        WHERE id = '#{::Leihs::Constants::ALL_USERS_GROUP_UUID}';
-
       UPDATE groups SET organization = 'zhdk.ch'
         WHERE org_id IS NOT NULL
         AND EXISTS (SELECT true FROM system_and_security_settings
                     WHERE external_base_url IN ('https://leihs.zhdk.ch', 'http://localhost:3000'));
+
+      UPDATE groups set organization = 'leihs-core', org_id = 'all-users'
+        WHERE id = '#{::Leihs::Constants::ALL_USERS_GROUP_UUID}';
 
     SQL
 
