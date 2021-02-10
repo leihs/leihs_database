@@ -55,9 +55,9 @@ class SystemAdminProtectedEtc < ActiveRecord::Migration[5.0]
     ### organization ##########################################################
 
     add_column :users, :organization, :text,
-      default: 'leihs-local', limit: 63, index: true, null: false
+      default: 'local', limit: 63, index: true, null: false
     add_column :groups, :organization, :text,
-      default: 'leihs-local', limit: 63, index: true, null: false
+      default: 'local', limit: 63, index: true, null: false
 
     execute <<-SQL.strip_heredoc
 
@@ -104,9 +104,9 @@ class SystemAdminProtectedEtc < ActiveRecord::Migration[5.0]
       ALTER TABLE audited_requests DROP CONSTRAINT IF EXISTS fk_rails_83fd1038f8;
     SQL
 
-    execute <<-SQL.strip_heredoc
-      UPDATE system_and_security_settings SET sessions_force_uniqueness = false;
-    SQL
+    # execute <<-SQL.strip_heredoc
+    #   UPDATE system_and_security_settings SET sessions_force_uniqueness = false;
+    # SQL
 
   end
 

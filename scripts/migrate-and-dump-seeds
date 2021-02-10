@@ -9,7 +9,7 @@ export FILE=db/structure_and_seeds.pgbin
 set -E; bundle exec rake db:pg:terminate_connections; set -e
 psql -c "DROP DATABASE IF EXISTS \"$DATABASE_NAME\";"
 createdb $DATABASE_NAME
-git checkout origin/master -- $FILE
+git checkout af3d9df -- $FILE
 bundle exec rake db:pg:structure_and_data:restore
 bundle exec rake db:migrate
 bundle exec rake db:pg:structure_and_data:dump
