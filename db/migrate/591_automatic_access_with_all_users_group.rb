@@ -36,11 +36,11 @@ class AutomaticAccessWithAllUsersGroup < ActiveRecord::Migration[5.0]
 
     MigrationInventoryPool.where(automatic_access: true).each do |pool|
 
-      <<-SQL.strip_heredoc
+      execute <<-SQL.strip_heredoc
         DELETE FROM direct_access_rights
-          WHERE inventory_pool_id = '#{pool.id}'
-          AND role = 'customer'
-          AND user_id IN (SELECT id FROM users WHERE delegator_user_id IS NULL);
+        WHERE inventory_pool_id = '#{pool.id}'
+        AND role = 'customer'
+        AND user_id IN (SELECT id FROM users WHERE delegator_user_id IS NULL);
       SQL
 
       MigrationGroupAccessRight.create!(inventory_pool_id: pool.id,
