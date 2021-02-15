@@ -1722,7 +1722,7 @@ CREATE TABLE public.direct_access_rights (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     role character varying NOT NULL,
-    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY ((ARRAY['customer'::character varying, 'group_manager'::character varying, 'lending_manager'::character varying, 'inventory_manager'::character varying])::text[])))
+    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY (ARRAY[('customer'::character varying)::text, ('group_manager'::character varying)::text, ('lending_manager'::character varying)::text, ('inventory_manager'::character varying)::text])))
 );
 
 
@@ -2001,7 +2001,7 @@ CREATE TABLE public.authentication_systems (
     external_sign_out_url text,
     sign_up_email_match text,
     CONSTRAINT check_shortcut_sing_in CHECK (((shortcut_sign_in_enabled = false) OR ((type)::text = 'external'::text))),
-    CONSTRAINT check_valid_type CHECK (((type)::text = ANY ((ARRAY['password'::character varying, 'external'::character varying])::text[]))),
+    CONSTRAINT check_valid_type CHECK (((type)::text = ANY (ARRAY[('password'::character varying)::text, ('external'::character varying)::text]))),
     CONSTRAINT simple_id CHECK (((id)::text ~ '^[a-z][a-z0-9_-]*$'::text))
 );
 
@@ -2600,7 +2600,7 @@ CREATE TABLE public.procurement_budget_limits (
     budget_period_id uuid NOT NULL,
     main_category_id uuid NOT NULL,
     amount_cents integer DEFAULT 0 NOT NULL,
-    amount_currency character varying DEFAULT 'USD'::character varying NOT NULL
+    amount_currency character varying DEFAULT 'GBP'::character varying NOT NULL
 );
 
 
@@ -2726,7 +2726,7 @@ CREATE TABLE public.procurement_requests (
     approved_quantity integer,
     order_quantity integer,
     price_cents bigint DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'GBP'::character varying NOT NULL,
     priority character varying DEFAULT 'normal'::character varying NOT NULL,
     replacement boolean DEFAULT true NOT NULL,
     supplier_name character varying,
@@ -2741,13 +2741,13 @@ CREATE TABLE public.procurement_requests (
     internal_order_number character varying,
     short_id text,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
-    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY ((ARRAY['normal'::character varying, 'high'::character varying])::text[]))),
+    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
     CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
     CONSTRAINT check_either_supplier_id_or_supplier_name CHECK ((((supplier_id IS NOT NULL) AND (supplier_name IS NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NOT NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NULL)))),
-    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'mandatory'::character varying])::text[]))),
+    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY (ARRAY[('low'::character varying)::text, ('medium'::character varying)::text, ('high'::character varying)::text, ('mandatory'::character varying)::text]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
     CONSTRAINT check_max_javascript_int CHECK (((price_cents)::double precision < ((2)::double precision ^ (52)::double precision))),
-    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[]))),
+    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY (ARRAY[('aquisition'::character varying)::text, ('investment'::character varying)::text]))),
     CONSTRAINT supplier_name_is_not_blank CHECK (((supplier_name)::text !~ '^\s*$'::text))
 );
 
@@ -2791,7 +2791,7 @@ CREATE TABLE public.procurement_templates (
     article_name text,
     article_number character varying,
     price_cents integer DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'GBP'::character varying NOT NULL,
     supplier_name character varying,
     category_id uuid NOT NULL,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
@@ -3057,6 +3057,7 @@ CREATE TABLE public.users (
     CONSTRAINT check_org_domain_like CHECK ((organization ~ '^[A-Za-z0-9]+[A-Za-z0-9.-]+[A-Za-z0-9]+$'::text)),
     CONSTRAINT email_must_contain_at_sign CHECK (((email)::text ~~* '%@%'::text)),
     CONSTRAINT login_is_simple CHECK (((login)::text ~ '^[a-z0-9]+$'::text)),
+    CONSTRAINT organization_prefix CHECK ((organization !~* '^leihs-'::text)),
     CONSTRAINT users_admin_hierarchy CHECK ((NOT ((is_system_admin = true) AND (is_admin = false)))),
     CONSTRAINT users_org_id_may_not_contain_at_sign CHECK (((org_id)::text !~~* '%@%'::text)),
     CONSTRAINT users_protected_hierarchy CHECK ((NOT ((system_admin_protected = true) AND (admin_protected = false))))
@@ -6228,6 +6229,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('590'),
 ('591'),
 ('592'),
+('593'),
 ('6'),
 ('7'),
 ('8'),
