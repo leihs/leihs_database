@@ -1757,7 +1757,6 @@ CREATE TABLE public.groups (
     system_admin_protected boolean DEFAULT false NOT NULL,
     organization text DEFAULT 'local'::text NOT NULL,
     CONSTRAINT check_org_domain_like CHECK ((organization ~ '^[A-Za-z0-9]+[A-Za-z0-9.-]+[A-Za-z0-9]+$'::text)),
-    CONSTRAINT groups_org_id_may_not_contain_at_sign CHECK (((org_id)::text !~~* '%@%'::text)),
     CONSTRAINT groups_protected_hierarchy CHECK ((NOT ((system_admin_protected = true) AND (admin_protected = false))))
 );
 
@@ -3056,10 +3055,10 @@ CREATE TABLE public.users (
     organization text DEFAULT 'local'::text NOT NULL,
     CONSTRAINT check_org_domain_like CHECK ((organization ~ '^[A-Za-z0-9]+[A-Za-z0-9.-]+[A-Za-z0-9]+$'::text)),
     CONSTRAINT email_must_contain_at_sign CHECK (((email)::text ~~* '%@%'::text)),
-    CONSTRAINT login_is_simple CHECK (((login)::text ~ '^[a-z0-9]+$'::text)),
+    CONSTRAINT login_may_not_contain_at_sign CHECK (((login)::text !~~* '%@%'::text)),
+    CONSTRAINT login_may_not_contain_pipe_sign CHECK (((login)::text !~~* '%|%'::text)),
     CONSTRAINT organization_prefix CHECK ((organization !~* '^leihs-'::text)),
     CONSTRAINT users_admin_hierarchy CHECK ((NOT ((is_system_admin = true) AND (is_admin = false)))),
-    CONSTRAINT users_org_id_may_not_contain_at_sign CHECK (((org_id)::text !~~* '%@%'::text)),
     CONSTRAINT users_protected_hierarchy CHECK ((NOT ((system_admin_protected = true) AND (admin_protected = false))))
 );
 
@@ -3848,13 +3847,6 @@ CREATE UNIQUE INDEX idx_group_name ON public.groups USING btree (lower((name)::t
 
 
 --
--- Name: idx_groups_organization_org_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX idx_groups_organization_org_id ON public.groups USING btree ((((organization || '_'::text) || (org_id)::text)));
-
-
---
 -- Name: idx_procurement_category_viewers_uc; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3873,13 +3865,6 @@ CREATE UNIQUE INDEX idx_procurement_group_inspectors_uc ON public.procurement_ca
 --
 
 CREATE UNIQUE INDEX idx_user_egroup ON public.entitlement_groups_direct_users USING btree (user_id, entitlement_group_id);
-
-
---
--- Name: idx_users_organization_org_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX idx_users_organization_org_id ON public.users USING btree ((((organization || '_'::text) || (org_id)::text)));
 
 
 --
@@ -4174,6 +4159,13 @@ CREATE INDEX index_group_access_rights_on_inventory_pool_id ON public.group_acce
 --
 
 CREATE UNIQUE INDEX index_group_access_rights_on_inventory_pool_id_and_group_id ON public.group_access_rights USING btree (inventory_pool_id, group_id);
+
+
+--
+-- Name: index_groups_on_organization_and_org_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_groups_on_organization_and_org_id ON public.groups USING btree (organization, org_id);
 
 
 --
@@ -4629,6 +4621,13 @@ CREATE UNIQUE INDEX index_user_sessions_on_token_hash ON public.user_sessions US
 --
 
 CREATE INDEX index_user_sessions_on_user_id ON public.user_sessions USING btree (user_id);
+
+
+--
+-- Name: index_users_on_organization_and_org_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_users_on_organization_and_org_id ON public.users USING btree (organization, org_id);
 
 
 --
