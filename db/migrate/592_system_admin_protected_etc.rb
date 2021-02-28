@@ -44,11 +44,12 @@ class SystemAdminProtectedEtc < ActiveRecord::Migration[5.0]
     ### login #################################################################
 
     execute <<-SQL.strip_heredoc
-      ALTER TABLE users DROP CONSTRAINT login_may_not_contain_at_sign;
 
-      UPDATE users SET login = NULL WHERE login !~ '^[a-z0-9]+$';
+      UPDATE users SET login = NULL WHERE login ILIKE '%|%';
 
-      ALTER TABLE users ADD CONSTRAINT login_is_simple CHECK ( login ~ '^[a-z0-9]+$'::text);
+      ALTER TABLE users ADD CONSTRAINT login_may_not_contain_pipe_sign
+        CHECK (login NOT ILIKE '%|%');
+
     SQL
 
 
@@ -66,12 +67,6 @@ class SystemAdminProtectedEtc < ActiveRecord::Migration[5.0]
 
       ALTER TABLE groups ADD CONSTRAINT check_org_domain_like
         CHECK ( organization ~ '^[A-Za-z0-9]+[A-Za-z0-9.\-]+[A-Za-z0-9]+$'::text);
-
-      ALTER TABLE users ADD CONSTRAINT users_org_id_may_not_contain_at_sign
-        CHECK (((org_id)::text !~~* '%@%'::text));
-
-      ALTER TABLE groups ADD CONSTRAINT groups_org_id_may_not_contain_at_sign
-        CHECK (((org_id)::text !~~* '%@%'::text));
 
       UPDATE users SET organization = 'zhdk.ch', admin_protected = true
         WHERE org_id IS NOT NULL
@@ -92,13 +87,8 @@ class SystemAdminProtectedEtc < ActiveRecord::Migration[5.0]
     remove_index :users, :org_id
     remove_index :groups, :org_id
 
-    execute <<-SQL.strip_heredoc
-      CREATE UNIQUE INDEX idx_users_organization_org_id
-        ON users USING btree ((organization || '_' || org_id));
-
-      CREATE UNIQUE INDEX idx_groups_organization_org_id
-        ON groups USING btree ((organization|| '_' || org_id));
-    SQL
+    add_index :users, [:organization, :org_id], unique: true
+    add_index :groups, [:organization, :org_id], unique: true
 
     execute <<-SQL.strip_heredoc
       ALTER TABLE audited_requests DROP CONSTRAINT IF EXISTS fk_rails_83fd1038f8;
