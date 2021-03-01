@@ -45,7 +45,7 @@ class SystemAdminProtectedEtc < ActiveRecord::Migration[5.0]
 
     execute <<-SQL.strip_heredoc
 
-      UPDATE users SET login = NULL WHERE login ~ '\|';
+      UPDATE users SET login = NULL WHERE login ILIKE '%|%';
 
       ALTER TABLE users ADD CONSTRAINT login_may_not_contain_pipe_sign
         CHECK (login NOT ILIKE '%|%');
