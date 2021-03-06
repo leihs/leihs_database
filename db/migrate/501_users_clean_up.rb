@@ -19,7 +19,7 @@ class UsersCleanUp < ActiveRecord::Migration[5.0]
 
       user_id = duplicate_ids.shift
       duplicate_ids.each do |duplicate_id|
-        ['access_rights', 'reservations', 'orders', 'contracts', 'entitlement_groups_users'].each do |table|
+        ['access_rights', 'reservations', 'orders', 'contracts'].each do |table|
           execute <<-SQL.strip_heredoc
             UPDATE #{table}
               SET user_id = '#{user_id}'
@@ -36,6 +36,19 @@ class UsersCleanUp < ActiveRecord::Migration[5.0]
             end
           end
         end
+
+        execute <<-SQL.strip_heredoc
+          INSERT INTO entitlement_groups_users
+          SELECT '#{user_id}', entitlement_group_id
+          FROM entitlement_groups_users
+          WHERE user_id = '#{duplicate_id}'
+          ON CONFLICT DO NOTHING
+        SQL
+
+        execute <<-SQL.strip_heredoc
+          DELETE FROM entitlement_groups_users
+          WHERE user_id = '#{duplicate_id}'
+        SQL
 
         execute <<-SQL.strip_heredoc
           DELETE FROM users WHERE id = '#{duplicate_id}';
