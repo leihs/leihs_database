@@ -1642,6 +1642,20 @@ $$;
 
 
 --
+-- Name: users_set_last_sign_in_at(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.users_set_last_sign_in_at() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  UPDATE users SET last_sign_in_at = now() WHERE id = NEW.user_id;
+  RETURN NULL;
+END;
+$$;
+
+
+--
 -- Name: users_update_searchable_column(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -3072,6 +3086,7 @@ CREATE TABLE public.users (
     system_admin_protected boolean DEFAULT false NOT NULL,
     organization text DEFAULT 'local'::text NOT NULL,
     account_disabled_at timestamp with time zone,
+    last_sign_in_at timestamp with time zone,
     CONSTRAINT check_org_domain_like CHECK ((organization ~ '^[A-Za-z0-9]+[A-Za-z0-9.-]+[A-Za-z0-9]+$'::text)),
     CONSTRAINT email_must_contain_at_sign CHECK (((email)::text ~~* '%@%'::text)),
     CONSTRAINT login_may_not_contain_at_sign CHECK (((login)::text !~~* '%@%'::text)),
@@ -5259,6 +5274,13 @@ CREATE TRIGGER users_set_account_disabled_at BEFORE UPDATE ON public.users FOR E
 
 
 --
+-- Name: user_sessions users_set_last_sign_in_at; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER users_set_last_sign_in_at AFTER INSERT ON public.user_sessions FOR EACH ROW EXECUTE PROCEDURE public.users_set_last_sign_in_at();
+
+
+--
 -- Name: hidden_fields fk_rails_00a4ef0c4f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6257,6 +6279,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('593'),
 ('594'),
 ('595'),
+('596'),
 ('6'),
 ('7'),
 ('8'),
