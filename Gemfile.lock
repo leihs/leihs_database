@@ -67,7 +67,7 @@ GEM
     globalid (0.4.1)
       activesupport (>= 4.2.0)
     i18n (0.8.6)
-    json (2.1.0)
+    json (2.5.1)
     loofah (2.9.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
