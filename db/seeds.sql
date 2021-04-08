@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.13
--- Dumped by pg_dump version 10.13
+-- Dumped from database version 10.16
+-- Dumped by pg_dump version 10.16
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1400,7 +1400,7 @@ ALTER TABLE public.reservations ENABLE TRIGGER ALL;
 
 ALTER TABLE public.settings DISABLE TRIGGER ALL;
 
-INSERT INTO public.settings (local_currency_string, contract_lending_party_string, email_signature, deliver_received_order_notifications, user_image_url, ldap_config, logo_url, time_zone, disable_manage_section, disable_manage_section_message, disable_borrow_section, disable_borrow_section_message, text, timeout_minutes, custom_head_tag, documentation_link, id, created_at, updated_at, maximum_reservation_time) VALUES ('GBP', NULL, 'Cheers,', false, NULL, NULL, NULL, 'Bern', false, NULL, false, NULL, NULL, 30, NULL, NULL, 0, '2020-11-05 13:50:29.190792+01', '2020-11-05 13:50:29.190792+01', NULL);
+INSERT INTO public.settings (local_currency_string, contract_lending_party_string, email_signature, deliver_received_order_notifications, user_image_url, ldap_config, logo_url, time_zone, disable_manage_section, disable_manage_section_message, disable_borrow_section, disable_borrow_section_message, text, timeout_minutes, custom_head_tag, documentation_link, id, created_at, updated_at, maximum_reservation_time, lending_terms_acceptance_required_for_order, lending_terms_url) VALUES ('GBP', NULL, 'Cheers,', false, NULL, NULL, NULL, 'Bern', false, NULL, false, NULL, NULL, 30, NULL, NULL, 0, '2020-11-05 13:50:29.190792+01', '2020-11-05 13:50:29.190792+01', NULL, false, NULL);
 
 
 ALTER TABLE public.settings ENABLE TRIGGER ALL;
