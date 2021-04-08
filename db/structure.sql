@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.13
--- Dumped by pg_dump version 10.13
+-- Dumped from database version 10.16
+-- Dumped by pg_dump version 10.16
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2104,6 +2104,7 @@ CREATE TABLE public.customer_orders (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     title text NOT NULL,
+    lending_terms_accepted boolean,
     CONSTRAINT non_blank_purpose CHECK ((purpose !~ '^ *$'::text)),
     CONSTRAINT non_blank_title CHECK ((title !~ '^ *$'::text))
 );
@@ -2591,6 +2592,7 @@ CREATE TABLE public.orders (
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     reject_reason character varying,
     customer_order_id uuid NOT NULL,
+    lending_terms_accepted boolean,
     CONSTRAINT check_state_and_reject_reason_consistency CHECK ((((state = ANY (ARRAY['submitted'::text, 'approved'::text, 'rejected'::text])) AND (reject_reason IS NULL)) OR ((state = 'rejected'::text) AND (reject_reason IS NOT NULL)))),
     CONSTRAINT check_valid_state CHECK ((state = ANY (ARRAY['submitted'::text, 'approved'::text, 'rejected'::text])))
 );
@@ -2951,6 +2953,8 @@ CREATE TABLE public.settings (
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
     maximum_reservation_time integer,
+    lending_terms_acceptance_required_for_order boolean DEFAULT false NOT NULL,
+    lending_terms_url text,
     CONSTRAINT id_is_zero CHECK ((id = 0))
 );
 
@@ -6285,6 +6289,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('598'),
 ('599'),
 ('6'),
+('600'),
 ('7'),
 ('8'),
 ('9');
