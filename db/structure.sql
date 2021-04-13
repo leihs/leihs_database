@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.16
--- Dumped by pg_dump version 10.16
+-- Dumped from database version 10.13
+-- Dumped by pg_dump version 10.13
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2955,7 +2955,8 @@ CREATE TABLE public.settings (
     maximum_reservation_time integer,
     lending_terms_acceptance_required_for_order boolean DEFAULT false NOT NULL,
     lending_terms_url text,
-    CONSTRAINT id_is_zero CHECK ((id = 0))
+    CONSTRAINT id_is_zero CHECK ((id = 0)),
+    CONSTRAINT lending_terms_consistency_check CHECK (((lending_terms_acceptance_required_for_order AND (lending_terms_url IS NOT NULL) AND (lending_terms_url !~ '^ *$'::text)) OR ((NOT lending_terms_acceptance_required_for_order) AND (lending_terms_url IS NULL))))
 );
 
 
