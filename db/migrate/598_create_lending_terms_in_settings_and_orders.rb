@@ -6,11 +6,9 @@ class CreateLendingTermsInSettingsAndOrders < ActiveRecord::Migration[5.0]
         ADD COLUMN "lending_terms_acceptance_required_for_order" boolean NOT NULL DEFAULT false,
         ADD COLUMN "lending_terms_url" text,
         ADD CONSTRAINT lending_terms_consistency_check
-          CHECK ((lending_terms_acceptance_required_for_order AND
-                    lending_terms_url IS NOT NULL AND
-                    lending_terms_url !~ '^\s*$')
-                 OR
-                 (NOT lending_terms_acceptance_required_for_order AND lending_terms_url IS NULL));
+          CHECK (lending_terms_url !~ '^\s*$'
+                 AND ((lending_terms_acceptance_required_for_order AND lending_terms_url IS NOT NULL)
+                      OR NOT lending_terms_acceptance_required_for_order));
 
       ALTER TABLE "customer_orders" 
         ADD COLUMN "lending_terms_accepted" bool;

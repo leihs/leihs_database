@@ -2956,7 +2956,7 @@ CREATE TABLE public.settings (
     lending_terms_acceptance_required_for_order boolean DEFAULT false NOT NULL,
     lending_terms_url text,
     CONSTRAINT id_is_zero CHECK ((id = 0)),
-    CONSTRAINT lending_terms_consistency_check CHECK (((lending_terms_acceptance_required_for_order AND (lending_terms_url IS NOT NULL) AND (lending_terms_url !~ '^ *$'::text)) OR ((NOT lending_terms_acceptance_required_for_order) AND (lending_terms_url IS NULL))))
+    CONSTRAINT lending_terms_consistency_check CHECK (((lending_terms_url !~ '^ *$'::text) AND ((lending_terms_acceptance_required_for_order AND (lending_terms_url IS NOT NULL)) OR (NOT lending_terms_acceptance_required_for_order))))
 );
 
 
