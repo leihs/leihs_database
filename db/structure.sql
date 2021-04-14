@@ -5337,6 +5337,14 @@ ALTER TABLE ONLY public.reservations
 
 
 --
+-- Name: entitlement_groups_direct_users fk_rails_182b7bf29a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.entitlement_groups_direct_users
+    ADD CONSTRAINT fk_rails_182b7bf29a FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
 -- Name: contracts fk_rails_1bf8633565; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5489,14 +5497,6 @@ ALTER TABLE ONLY public.reservations
 
 
 --
--- Name: entitlement_groups_direct_users fk_rails_4e63edbd27; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.entitlement_groups_direct_users
-    ADD CONSTRAINT fk_rails_4e63edbd27 FOREIGN KEY (entitlement_group_id) REFERENCES public.entitlement_groups(id);
-
-
---
 -- Name: groups_users fk_rails_4e63edbd27; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5550,6 +5550,14 @@ ALTER TABLE ONLY public.authentication_systems_users
 
 ALTER TABLE ONLY public.models
     ADD CONSTRAINT fk_rails_5aa4f56a65 FOREIGN KEY (cover_image_id) REFERENCES public.images(id);
+
+
+--
+-- Name: entitlement_groups_direct_users fk_rails_5b79dda9e6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.entitlement_groups_direct_users
+    ADD CONSTRAINT fk_rails_5b79dda9e6 FOREIGN KEY (entitlement_group_id) REFERENCES public.entitlement_groups(id) ON DELETE CASCADE;
 
 
 --
@@ -5646,14 +5654,6 @@ ALTER TABLE ONLY public.procurement_requests_counters
 
 ALTER TABLE ONLY public.procurement_admins
     ADD CONSTRAINT fk_rails_7f23ec3f14 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-
-
---
--- Name: entitlement_groups_direct_users fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.entitlement_groups_direct_users
-    ADD CONSTRAINT fk_rails_8546c71994 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -6281,6 +6281,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('595'),
 ('596'),
 ('597'),
+('598'),
 ('6'),
 ('7'),
 ('8'),
