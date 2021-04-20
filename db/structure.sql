@@ -3015,6 +3015,7 @@ CREATE TABLE public.system_and_security_settings (
     sessions_force_secure boolean DEFAULT false NOT NULL,
     sessions_force_uniqueness boolean DEFAULT false NOT NULL,
     sessions_max_lifetime_secs integer DEFAULT 432000,
+    instance_element text,
     CONSTRAINT id_is_zero CHECK ((id = 0))
 );
 
@@ -5909,7 +5910,7 @@ ALTER TABLE ONLY public.orders
 --
 
 ALTER TABLE ONLY public.group_access_rights
-    ADD CONSTRAINT fk_rails_c74a24670e FOREIGN KEY (group_id) REFERENCES public.groups(id);
+    ADD CONSTRAINT fk_rails_c74a24670e FOREIGN KEY (group_id) REFERENCES public.groups(id) ON DELETE CASCADE;
 
 
 --
@@ -6282,6 +6283,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('596'),
 ('597'),
 ('598'),
+('599'),
 ('6'),
 ('7'),
 ('8'),

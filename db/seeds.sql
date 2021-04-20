@@ -780,7 +780,7 @@ ALTER TABLE public.suspensions ENABLE TRIGGER ALL;
 
 ALTER TABLE public.system_and_security_settings DISABLE TRIGGER ALL;
 
-INSERT INTO public.system_and_security_settings (id, accept_server_secret_as_universal_password, external_base_url, sessions_force_secure, sessions_force_uniqueness, sessions_max_lifetime_secs) VALUES (0, true, NULL, false, false, 432000);
+INSERT INTO public.system_and_security_settings (id, accept_server_secret_as_universal_password, external_base_url, sessions_force_secure, sessions_force_uniqueness, sessions_max_lifetime_secs, instance_element) VALUES (0, true, NULL, false, false, 432000, NULL);
 
 
 ALTER TABLE public.system_and_security_settings ENABLE TRIGGER ALL;
