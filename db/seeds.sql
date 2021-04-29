@@ -247,6 +247,16 @@ ALTER TABLE public.customer_orders DISABLE TRIGGER ALL;
 ALTER TABLE public.customer_orders ENABLE TRIGGER ALL;
 
 --
+-- Data for Name: default_translations; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+ALTER TABLE public.default_translations DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.default_translations ENABLE TRIGGER ALL;
+
+--
 -- Data for Name: delegations_direct_users; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -441,6 +451,16 @@ ALTER TABLE public.holidays DISABLE TRIGGER ALL;
 
 
 ALTER TABLE public.holidays ENABLE TRIGGER ALL;
+
+--
+-- Data for Name: instance_translations; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+ALTER TABLE public.instance_translations DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.instance_translations ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: model_groups; Type: TABLE DATA; Schema: public; Owner: -
@@ -1456,6 +1476,16 @@ ALTER TABLE public.user_sessions DISABLE TRIGGER ALL;
 
 
 ALTER TABLE public.user_sessions ENABLE TRIGGER ALL;
+
+--
+-- Data for Name: user_translations; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+ALTER TABLE public.user_translations DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.user_translations ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: workdays; Type: TABLE DATA; Schema: public; Owner: -
