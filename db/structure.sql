@@ -2955,6 +2955,7 @@ CREATE TABLE public.settings (
     maximum_reservation_time integer,
     lending_terms_acceptance_required_for_order boolean DEFAULT false NOT NULL,
     lending_terms_url text,
+    include_customer_email_in_contracts boolean DEFAULT false NOT NULL,
     CONSTRAINT id_is_zero CHECK ((id = 0))
 );
 
@@ -6290,6 +6291,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('599'),
 ('6'),
 ('600'),
+('601'),
 ('7'),
 ('8'),
 ('9');
