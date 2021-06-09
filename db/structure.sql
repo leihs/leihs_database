@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.16
--- Dumped by pg_dump version 10.16
+-- Dumped from database version 10.13
+-- Dumped by pg_dump version 10.13
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1369,6 +1369,35 @@ CREATE FUNCTION public.fields_update_check_function() RETURNS trigger
 
 
 --
+-- Name: get_translations(uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.get_translations(u_id uuid DEFAULT NULL::uuid) RETURNS TABLE(key text, language_locale text, translation text)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  RETURN QUERY
+  SELECT rtw.key, rtw.language_locale, rtw.ranked_translation_winner[2]
+  FROM (
+    SELECT rt.key, rt.language_locale, MAX(rt.ranked_translation) AS ranked_translation_winner
+    FROM (
+      SELECT ut.key, ut.language_locale, ARRAY['3', ut.translation] AS ranked_translation
+      FROM translations_user AS ut
+      WHERE ut.user_id = u_id
+      UNION
+      SELECT it.key, it.language_locale, ARRAY['2', it.translation] as ranked_translation
+      FROM translations_instance AS it
+      UNION
+      SELECT dt.key, dt.language_locale, ARRAY['1', dt.translation] AS ranked_translation
+      FROM translations_default AS dt
+    ) AS rt
+    GROUP BY rt.key, rt.language_locale
+  ) AS rtw;
+END
+$$;
+
+
+--
 -- Name: groups_update_searchable_column(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1470,6 +1499,23 @@ BEGIN
     result := result || jsonb_build_object(k, jsonb_build_array(v_old, v_new));
   END LOOP;
   RETURN result;
+END;
+$$;
+
+
+--
+-- Name: leihs_translate(text, text, uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.leihs_translate(k text, l text, u_id uuid DEFAULT NULL::uuid) RETURNS text
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  RETURN COALESCE(
+    ( SELECT translation FROM translations_user WHERE key = k AND user_id = u_id AND language_locale = l ),
+    ( SELECT translation FROM translations_instance WHERE key = k AND language_locale = l ),
+    ( SELECT translation FROM translations_default WHERE key = k AND language_locale = l )
+  );
 END;
 $$;
 
@@ -3026,6 +3072,43 @@ CREATE TABLE public.system_and_security_settings (
 
 
 --
+-- Name: translations_default; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.translations_default (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    key text NOT NULL,
+    translation text NOT NULL,
+    language_locale text NOT NULL
+);
+
+
+--
+-- Name: translations_instance; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.translations_instance (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    key text NOT NULL,
+    translation text NOT NULL,
+    language_locale text NOT NULL
+);
+
+
+--
+-- Name: translations_user; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.translations_user (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    key text NOT NULL,
+    translation text NOT NULL,
+    language_locale text NOT NULL,
+    user_id uuid NOT NULL
+);
+
+
+--
 -- Name: user_password_resets; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3712,6 +3795,30 @@ ALTER TABLE ONLY public.suspensions
 
 ALTER TABLE ONLY public.system_and_security_settings
     ADD CONSTRAINT system_and_security_settings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: translations_default translations_default_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.translations_default
+    ADD CONSTRAINT translations_default_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: translations_instance translations_instance_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.translations_instance
+    ADD CONSTRAINT translations_instance_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: translations_user translations_user_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.translations_user
+    ADD CONSTRAINT translations_user_pkey PRIMARY KEY (id);
 
 
 --
@@ -4643,6 +4750,27 @@ CREATE UNIQUE INDEX index_suspensions_on_user_id_and_inventory_pool_id ON public
 
 
 --
+-- Name: index_translations_default_on_key_and_language_locale; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_translations_default_on_key_and_language_locale ON public.translations_default USING btree (key, language_locale);
+
+
+--
+-- Name: index_translations_instance_on_key_and_language_locale; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_translations_instance_on_key_and_language_locale ON public.translations_instance USING btree (key, language_locale);
+
+
+--
+-- Name: index_translations_user_on_key_and_language_locale_and_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_translations_user_on_key_and_language_locale_and_user_id ON public.translations_user USING btree (key, language_locale, user_id);
+
+
+--
 -- Name: index_user_password_resets_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5463,6 +5591,14 @@ ALTER TABLE ONLY public.procurement_templates
 
 
 --
+-- Name: translations_default fk_rails_47f65135ab; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.translations_default
+    ADD CONSTRAINT fk_rails_47f65135ab FOREIGN KEY (language_locale) REFERENCES public.languages(locale) ON DELETE CASCADE;
+
+
+--
 -- Name: reservations fk_rails_48a92fce51; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5476,6 +5612,14 @@ ALTER TABLE ONLY public.reservations
 
 ALTER TABLE ONLY public.model_group_links
     ADD CONSTRAINT fk_rails_48e1ccdd03 FOREIGN KEY (child_id) REFERENCES public.model_groups(id) ON DELETE CASCADE;
+
+
+--
+-- Name: translations_instance fk_rails_4baaeb0972; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.translations_instance
+    ADD CONSTRAINT fk_rails_4baaeb0972 FOREIGN KEY (language_locale) REFERENCES public.languages(locale) ON DELETE CASCADE;
 
 
 --
@@ -5596,6 +5740,14 @@ ALTER TABLE ONLY public.mail_templates
 
 ALTER TABLE ONLY public.procurement_images
     ADD CONSTRAINT fk_rails_62917a6a8f FOREIGN KEY (main_category_id) REFERENCES public.procurement_main_categories(id) ON DELETE CASCADE;
+
+
+--
+-- Name: translations_user fk_rails_66889d9252; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.translations_user
+    ADD CONSTRAINT fk_rails_66889d9252 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -5932,6 +6084,14 @@ ALTER TABLE ONLY public.user_password_resets
 
 ALTER TABLE ONLY public.inventory_pools_model_groups
     ADD CONSTRAINT fk_rails_cb04742a0b FOREIGN KEY (model_group_id) REFERENCES public.model_groups(id);
+
+
+--
+-- Name: translations_user fk_rails_d0fb6c59ec; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.translations_user
+    ADD CONSTRAINT fk_rails_d0fb6c59ec FOREIGN KEY (language_locale) REFERENCES public.languages(locale) ON DELETE CASCADE;
 
 
 --
@@ -6292,6 +6452,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('6'),
 ('600'),
 ('601'),
+('602'),
 ('7'),
 ('8'),
 ('9');

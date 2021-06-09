@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.16
--- Dumped by pg_dump version 10.16
+-- Dumped from database version 10.13
+-- Dumped by pg_dump version 10.13
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1436,6 +1436,36 @@ INSERT INTO public.system_and_security_settings (id, accept_server_secret_as_uni
 
 
 ALTER TABLE public.system_and_security_settings ENABLE TRIGGER ALL;
+
+--
+-- Data for Name: translations_default; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+ALTER TABLE public.translations_default DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.translations_default ENABLE TRIGGER ALL;
+
+--
+-- Data for Name: translations_instance; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+ALTER TABLE public.translations_instance DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.translations_instance ENABLE TRIGGER ALL;
+
+--
+-- Data for Name: translations_user; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+ALTER TABLE public.translations_user DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.translations_user ENABLE TRIGGER ALL;
 
 --
 -- Data for Name: user_password_resets; Type: TABLE DATA; Schema: public; Owner: -
