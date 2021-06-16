@@ -2151,6 +2151,7 @@ CREATE TABLE public.customer_orders (
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     title text NOT NULL,
     lending_terms_accepted boolean,
+    contact_details character varying(1000),
     CONSTRAINT non_blank_purpose CHECK ((purpose !~ '^ *$'::text)),
     CONSTRAINT non_blank_title CHECK ((title !~ '^ *$'::text))
 );
@@ -3002,6 +3003,7 @@ CREATE TABLE public.settings (
     lending_terms_acceptance_required_for_order boolean DEFAULT false NOT NULL,
     lending_terms_url text,
     include_customer_email_in_contracts boolean DEFAULT false NOT NULL,
+    show_contact_details_on_customer_order boolean DEFAULT false,
     CONSTRAINT id_is_zero CHECK ((id = 0))
 );
 
@@ -6453,6 +6455,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('600'),
 ('601'),
 ('602'),
+('603'),
 ('7'),
 ('8'),
 ('9');
