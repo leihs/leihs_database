@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.13
--- Dumped by pg_dump version 10.13
+-- Dumped from database version 10.16
+-- Dumped by pg_dump version 10.16
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -468,7 +468,7 @@ ALTER TABLE public.inventory_pools_model_groups ENABLE TRIGGER ALL;
 
 ALTER TABLE public.mail_templates DISABLE TRIGGER ALL;
 
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('91b0fff1-1264-429a-ba5c-a628641bf2b5', NULL, 'reminder', 'text', 'Dear {{ user.name }},
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('55458de5-93a1-4e95-93b2-5b337282113d', NULL, 'reminder', 'text', 'Dear {{ user.name }},
 
 ** This is an automatically generated response **
 
@@ -498,8 +498,207 @@ Kind regards,
 --
 {{ inventory_pool.name }}
 {{ inventory_pool.description }}
-', '2021-04-21 11:18:46.66507', '2021-04-21 11:18:46.66507', true, 'user', 'en-GB');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('6d22d1c8-38ad-4be0-8b03-7dada8ee0e03', NULL, 'reminder', 'text', 'Dear {{ user.name }},
+', '2021-06-17 18:55:13.465836', '2021-06-17 18:55:13.465836', true, 'user', 'en-GB');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('dd1cbfa9-c979-489f-857f-0a58a120fb52', NULL, 'deadline_soon_reminder', 'text', 'Dear {{ user.name }},
+
+** This is an automatically generated response **
+
+The following items are due to be returned tomorrow or need to be inspected:
+
+{{ quantity }} item(s) due on {{ due_date | date: ''%d/%m/%Y'' }} at the inventory pool {{ inventory_pool.name }}
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }} ({{ l.item_inventory_code }}), {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+== Are any of the above items your personal computer?
+
+We kindly ask you to contact us as soon as possible. Your computer might need an update.
+
+== "Are any of the above borrowed items?
+
+We are just sending you this little reminder because someone else is already waiting for some of these items.
+
+In the interest of all our clients we ask you to observe the return dates.
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2021-06-17 18:55:13.480334', '2021-06-17 18:55:13.480334', true, 'user', 'gsw-CH');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('e2179885-fbf1-4882-a04f-dbafe41dfd7e', NULL, 'received', 'text', 'Dear leihs manager,
+
+** This is an automatically generated response **
+
+An order for the following items listed below was received in an inventory pool you are responsible for.
+
+Inventory pool: {{ inventory_pool.name }}
+User: {{ user.name }}
+
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+Purpose:
+{{ purpose }}
+
+Link: {{ order_url }}
+
+This order is still pending. Please log in to your leihs system and either approve or reject it.
+
+The user who placed this order has received a similar e-mail message informing them that the order first needs to be approved before it is valid.
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2021-06-17 18:55:13.481963', '2021-06-17 18:55:13.481963', true, 'order', 'en-GB');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('4d0a9029-f2fc-418a-9ea2-e6a62de57d97', NULL, 'received', 'text', 'Dear leihs manager,
+
+** This is an automatically generated response **
+
+An order for the following items listed below was received in an inventory pool you are responsible for.
+
+Inventory pool: {{ inventory_pool.name }}
+User: {{ user.name }}
+
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+Purpose:
+{{ purpose }}
+
+Link: {{ order_url }}
+
+This order is still pending. Please log in to your leihs system and either approve or reject it.
+
+The user who placed this order has received a similar e-mail message informing them that the order first needs to be approved before it is valid.
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2021-06-17 18:55:13.483412', '2021-06-17 18:55:13.483412', true, 'order', 'en-US');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('862c626c-1911-421b-b54a-c0cf24d94cd8', NULL, 'received', 'text', 'Dear leihs manager,
+
+** This is an automatically generated response **
+
+An order for the following items listed below was received in an inventory pool you are responsible for.
+
+Inventory pool: {{ inventory_pool.name }}
+User: {{ user.name }}
+
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+Purpose:
+{{ purpose }}
+
+Link: {{ order_url }}
+
+This order is still pending. Please log in to your leihs system and either approve or reject it.
+
+The user who placed this order has received a similar e-mail message informing them that the order first needs to be approved before it is valid.
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2021-06-17 18:55:13.484654', '2021-06-17 18:55:13.484654', true, 'order', 'de-CH');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('c58be6bf-5d06-4171-a443-fd76ad3bf284', NULL, 'received', 'text', 'Dear leihs manager,
+
+** This is an automatically generated response **
+
+An order for the following items listed below was received in an inventory pool you are responsible for.
+
+Inventory pool: {{ inventory_pool.name }}
+User: {{ user.name }}
+
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+Purpose:
+{{ purpose }}
+
+Link: {{ order_url }}
+
+This order is still pending. Please log in to your leihs system and either approve or reject it.
+
+The user who placed this order has received a similar e-mail message informing them that the order first needs to be approved before it is valid.
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2021-06-17 18:55:13.485883', '2021-06-17 18:55:13.485883', true, 'order', 'gsw-CH');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('701dcbd9-9463-45e5-a0ec-3dc20d204663', NULL, 'submitted', 'text', 'Dear {{ user.name }},
+
+** This is an automatically generated response **
+
+Your order for the following items listed below was successfully submitted.
+
+Inventory pool: {{ inventory_pool.name }}
+
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+Purpose:
+{{ purpose }}
+
+Unfortunately your order is still pending, but you will soon receive a confirmation of order by separate e-mail. You can view the status of your order through your leihs account.
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2021-06-17 18:55:13.487512', '2021-06-17 18:55:13.487512', true, 'order', 'en-GB');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('28ca7dd2-0bd3-4ff3-894b-263c0e58c2f5', NULL, 'submitted', 'text', 'Dear {{ user.name }},
+
+** This is an automatically generated response **
+
+Your order for the following items listed below was successfully submitted.
+
+Inventory pool: {{ inventory_pool.name }}
+
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+Purpose:
+{{ purpose }}
+
+Unfortunately your order is still pending, but you will soon receive a confirmation of order by separate e-mail. You can view the status of your order through your leihs account.
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2021-06-17 18:55:13.488723', '2021-06-17 18:55:13.488723', true, 'order', 'en-US');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('06a97f8e-f2a1-4e70-95ad-f498d2ef9574', NULL, 'reminder', 'text', 'Dear {{ user.name }},
 
 ** This is an automatically generated response **
 
@@ -529,8 +728,8 @@ Kind regards,
 --
 {{ inventory_pool.name }}
 {{ inventory_pool.description }}
-', '2021-04-21 11:18:46.672173', '2021-04-21 11:18:46.672173', true, 'user', 'en-US');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('872a30d5-b0c9-4100-b915-8d83445191e4', NULL, 'reminder', 'text', 'Dear {{ user.name }},
+', '2021-06-17 18:55:13.47132', '2021-06-17 18:55:13.47132', true, 'user', 'en-US');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('27e5d27f-7a09-47e2-8ce3-76478993b4f3', NULL, 'reminder', 'text', 'Dear {{ user.name }},
 
 ** This is an automatically generated response **
 
@@ -560,8 +759,8 @@ Kind regards,
 --
 {{ inventory_pool.name }}
 {{ inventory_pool.description }}
-', '2021-04-21 11:18:46.675096', '2021-04-21 11:18:46.675096', true, 'user', 'de-CH');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('1399c847-28bf-4778-9584-2127fd17733d', NULL, 'reminder', 'text', 'Dear {{ user.name }},
+', '2021-06-17 18:55:13.473174', '2021-06-17 18:55:13.473174', true, 'user', 'de-CH');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('aa03a1cc-15cb-4ace-bde9-c0bac386be9a', NULL, 'reminder', 'text', 'Dear {{ user.name }},
 
 ** This is an automatically generated response **
 
@@ -591,8 +790,8 @@ Kind regards,
 --
 {{ inventory_pool.name }}
 {{ inventory_pool.description }}
-', '2021-04-21 11:18:46.677886', '2021-04-21 11:18:46.677886', true, 'user', 'gsw-CH');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('a1bb0ddf-e1df-42ad-9dbd-ce6978af3a8e', NULL, 'deadline_soon_reminder', 'text', 'Dear {{ user.name }},
+', '2021-06-17 18:55:13.47463', '2021-06-17 18:55:13.47463', true, 'user', 'gsw-CH');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('bc74c01b-f183-4324-9641-8553d4ec60e9', NULL, 'deadline_soon_reminder', 'text', 'Dear {{ user.name }},
 
 ** This is an automatically generated response **
 
@@ -620,8 +819,8 @@ Kind regards,
 --
 {{ inventory_pool.name }}
 {{ inventory_pool.description }}
-', '2021-04-21 11:18:46.681011', '2021-04-21 11:18:46.681011', true, 'user', 'en-GB');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('f305ada7-3a1c-4171-9e7a-27b417978fc4', NULL, 'deadline_soon_reminder', 'text', 'Dear {{ user.name }},
+', '2021-06-17 18:55:13.476422', '2021-06-17 18:55:13.476422', true, 'user', 'en-GB');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('b7a1b135-3683-41df-a513-18aaa287bd13', NULL, 'deadline_soon_reminder', 'text', 'Dear {{ user.name }},
 
 ** This is an automatically generated response **
 
@@ -649,8 +848,8 @@ Kind regards,
 --
 {{ inventory_pool.name }}
 {{ inventory_pool.description }}
-', '2021-04-21 11:18:46.683518', '2021-04-21 11:18:46.683518', true, 'user', 'en-US');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('8cf51778-26ac-4cae-af42-2c769b95b639', NULL, 'deadline_soon_reminder', 'text', 'Dear {{ user.name }},
+', '2021-06-17 18:55:13.477856', '2021-06-17 18:55:13.477856', true, 'user', 'en-US');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('0d44d566-4ee8-4361-8d2c-00d7f2141ffe', NULL, 'deadline_soon_reminder', 'text', 'Dear {{ user.name }},
 
 ** This is an automatically generated response **
 
@@ -678,149 +877,8 @@ Kind regards,
 --
 {{ inventory_pool.name }}
 {{ inventory_pool.description }}
-', '2021-04-21 11:18:46.685905', '2021-04-21 11:18:46.685905', true, 'user', 'de-CH');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('29f61894-ffa8-41d1-a3f4-031448e25c89', NULL, 'deadline_soon_reminder', 'text', 'Dear {{ user.name }},
-
-** This is an automatically generated response **
-
-The following items are due to be returned tomorrow or need to be inspected:
-
-{{ quantity }} item(s) due on {{ due_date | date: ''%d/%m/%Y'' }} at the inventory pool {{ inventory_pool.name }}
-{% for l in reservations %}
-* {{ l.quantity }} {{ l.model_name }} ({{ l.item_inventory_code }}), {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
-{% endfor %}
-
-== Are any of the above items your personal computer?
-
-We kindly ask you to contact us as soon as possible. Your computer might need an update.
-
-== "Are any of the above borrowed items?
-
-We are just sending you this little reminder because someone else is already waiting for some of these items.
-
-In the interest of all our clients we ask you to observe the return dates.
-
-Kind regards,
-
-{{ email_signature }}
-
---
-{{ inventory_pool.name }}
-{{ inventory_pool.description }}
-', '2021-04-21 11:18:46.688424', '2021-04-21 11:18:46.688424', true, 'user', 'gsw-CH');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('98757b9e-9891-4363-b74f-3a2110931195', NULL, 'received', 'text', 'Dear leihs manager,
-
-** This is an automatically generated response **
-
-An order for the following items listed below was received in an inventory pool you are responsible for.
-
-Inventory pool: {{ inventory_pool.name }}
-User: {{ user.name }}
-
-{% for l in reservations %}
-* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
-{% endfor %}
-
-Purpose:
-{{ purpose }}
-
-This order is still pending. Please log in to your leihs system and either approve or reject it.
-
-The user who placed this order has received a similar e-mail message informing them that the order first needs to be approved before it is valid.
-
-Kind regards,
-
-{{ email_signature }}
-
---
-{{ inventory_pool.name }}
-{{ inventory_pool.description }}
-', '2021-04-21 11:18:46.691262', '2021-04-21 11:18:46.691262', true, 'order', 'en-GB');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('2865004b-00b4-4815-a4f6-4f39c48617bf', NULL, 'received', 'text', 'Dear leihs manager,
-
-** This is an automatically generated response **
-
-An order for the following items listed below was received in an inventory pool you are responsible for.
-
-Inventory pool: {{ inventory_pool.name }}
-User: {{ user.name }}
-
-{% for l in reservations %}
-* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
-{% endfor %}
-
-Purpose:
-{{ purpose }}
-
-This order is still pending. Please log in to your leihs system and either approve or reject it.
-
-The user who placed this order has received a similar e-mail message informing them that the order first needs to be approved before it is valid.
-
-Kind regards,
-
-{{ email_signature }}
-
---
-{{ inventory_pool.name }}
-{{ inventory_pool.description }}
-', '2021-04-21 11:18:46.69381', '2021-04-21 11:18:46.69381', true, 'order', 'en-US');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('00f6c4fa-9d85-4736-a51b-54a890d0d492', NULL, 'received', 'text', 'Dear leihs manager,
-
-** This is an automatically generated response **
-
-An order for the following items listed below was received in an inventory pool you are responsible for.
-
-Inventory pool: {{ inventory_pool.name }}
-User: {{ user.name }}
-
-{% for l in reservations %}
-* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
-{% endfor %}
-
-Purpose:
-{{ purpose }}
-
-This order is still pending. Please log in to your leihs system and either approve or reject it.
-
-The user who placed this order has received a similar e-mail message informing them that the order first needs to be approved before it is valid.
-
-Kind regards,
-
-{{ email_signature }}
-
---
-{{ inventory_pool.name }}
-{{ inventory_pool.description }}
-', '2021-04-21 11:18:46.696546', '2021-04-21 11:18:46.696546', true, 'order', 'de-CH');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('01841af3-fc44-4b43-8e44-f9b8edbf1c42', NULL, 'received', 'text', 'Dear leihs manager,
-
-** This is an automatically generated response **
-
-An order for the following items listed below was received in an inventory pool you are responsible for.
-
-Inventory pool: {{ inventory_pool.name }}
-User: {{ user.name }}
-
-{% for l in reservations %}
-* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
-{% endfor %}
-
-Purpose:
-{{ purpose }}
-
-This order is still pending. Please log in to your leihs system and either approve or reject it.
-
-The user who placed this order has received a similar e-mail message informing them that the order first needs to be approved before it is valid.
-
-Kind regards,
-
-{{ email_signature }}
-
---
-{{ inventory_pool.name }}
-{{ inventory_pool.description }}
-', '2021-04-21 11:18:46.699276', '2021-04-21 11:18:46.699276', true, 'order', 'gsw-CH');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('17570c6d-5888-409f-bfbb-49d667fb7dda', NULL, 'submitted', 'text', 'Dear {{ user.name }},
+', '2021-06-17 18:55:13.479123', '2021-06-17 18:55:13.479123', true, 'user', 'de-CH');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('5a6e1a63-f617-463a-afa6-e34ee1ce77d6', NULL, 'submitted', 'text', 'Dear {{ user.name }},
 
 ** This is an automatically generated response **
 
@@ -844,8 +902,8 @@ Kind regards,
 --
 {{ inventory_pool.name }}
 {{ inventory_pool.description }}
-', '2021-04-21 11:18:46.702694', '2021-04-21 11:18:46.702694', true, 'order', 'en-GB');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('5f75b6d3-60dd-4693-bff1-a055282b11b1', NULL, 'submitted', 'text', 'Dear {{ user.name }},
+', '2021-06-17 18:55:13.489862', '2021-06-17 18:55:13.489862', true, 'order', 'de-CH');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('5c482324-2a87-424b-9a3d-d10a696cdbac', NULL, 'submitted', 'text', 'Dear {{ user.name }},
 
 ** This is an automatically generated response **
 
@@ -869,58 +927,8 @@ Kind regards,
 --
 {{ inventory_pool.name }}
 {{ inventory_pool.description }}
-', '2021-04-21 11:18:46.705521', '2021-04-21 11:18:46.705521', true, 'order', 'en-US');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('09a59f8c-97ad-4b66-9b82-da9423822046', NULL, 'submitted', 'text', 'Dear {{ user.name }},
-
-** This is an automatically generated response **
-
-Your order for the following items listed below was successfully submitted.
-
-Inventory pool: {{ inventory_pool.name }}
-
-{% for l in reservations %}
-* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
-{% endfor %}
-
-Purpose:
-{{ purpose }}
-
-Unfortunately your order is still pending, but you will soon receive a confirmation of order by separate e-mail. You can view the status of your order through your leihs account.
-
-Kind regards,
-
-{{ email_signature }}
-
---
-{{ inventory_pool.name }}
-{{ inventory_pool.description }}
-', '2021-04-21 11:18:46.708533', '2021-04-21 11:18:46.708533', true, 'order', 'de-CH');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('96f1bfd3-fb9e-4489-ac8e-2135c685034d', NULL, 'submitted', 'text', 'Dear {{ user.name }},
-
-** This is an automatically generated response **
-
-Your order for the following items listed below was successfully submitted.
-
-Inventory pool: {{ inventory_pool.name }}
-
-{% for l in reservations %}
-* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
-{% endfor %}
-
-Purpose:
-{{ purpose }}
-
-Unfortunately your order is still pending, but you will soon receive a confirmation of order by separate e-mail. You can view the status of your order through your leihs account.
-
-Kind regards,
-
-{{ email_signature }}
-
---
-{{ inventory_pool.name }}
-{{ inventory_pool.description }}
-', '2021-04-21 11:18:46.711856', '2021-04-21 11:18:46.711856', true, 'order', 'gsw-CH');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('a3248d8a-c153-4573-bb8e-f81238c48542', NULL, 'approved', 'text', 'Dear {{ user.name }},
+', '2021-06-17 18:55:13.490992', '2021-06-17 18:55:13.490992', true, 'order', 'gsw-CH');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('432b1d98-3933-465b-a342-c0936e32a687', NULL, 'approved', 'text', 'Dear {{ user.name }},
 
 ** This is an automatically generated response **
 
@@ -947,8 +955,8 @@ Kind regards,
 --
 {{ inventory_pool.name }}
 {{ inventory_pool.description }}
-', '2021-04-21 11:18:46.716005', '2021-04-21 11:18:46.716005', true, 'order', 'en-GB');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('cc3ca99d-5d08-4816-a7f8-1d464c60e338', NULL, 'approved', 'text', 'Dear {{ user.name }},
+', '2021-06-17 18:55:13.492434', '2021-06-17 18:55:13.492434', true, 'order', 'en-GB');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('abf46d57-b8e5-457c-9d96-5eff57a848d6', NULL, 'approved', 'text', 'Dear {{ user.name }},
 
 ** This is an automatically generated response **
 
@@ -975,8 +983,8 @@ Kind regards,
 --
 {{ inventory_pool.name }}
 {{ inventory_pool.description }}
-', '2021-04-21 11:18:46.730452', '2021-04-21 11:18:46.730452', true, 'order', 'en-US');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('bc72996d-d639-436d-940a-47c0e60aceec', NULL, 'approved', 'text', 'Dear {{ user.name }},
+', '2021-06-17 18:55:13.49372', '2021-06-17 18:55:13.49372', true, 'order', 'en-US');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('a1c6cc84-a892-4600-9b72-de59c1dd7a6a', NULL, 'approved', 'text', 'Dear {{ user.name }},
 
 ** This is an automatically generated response **
 
@@ -1003,8 +1011,8 @@ Kind regards,
 --
 {{ inventory_pool.name }}
 {{ inventory_pool.description }}
-', '2021-04-21 11:18:46.733687', '2021-04-21 11:18:46.733687', true, 'order', 'de-CH');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('99d4cb9b-abbf-4629-9c14-31275d8e0c91', NULL, 'approved', 'text', 'Dear {{ user.name }},
+', '2021-06-17 18:55:13.49488', '2021-06-17 18:55:13.49488', true, 'order', 'de-CH');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('ac72f22e-0a1c-4c4a-9903-dcd3b6f32e5c', NULL, 'approved', 'text', 'Dear {{ user.name }},
 
 ** This is an automatically generated response **
 
@@ -1031,8 +1039,8 @@ Kind regards,
 --
 {{ inventory_pool.name }}
 {{ inventory_pool.description }}
-', '2021-04-21 11:18:46.736548', '2021-04-21 11:18:46.736548', true, 'order', 'gsw-CH');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('6d6ec0f8-eda3-404f-b0dd-a8d9c0f68bd2', NULL, 'rejected', 'text', 'Dear {{ user.name }},
+', '2021-06-17 18:55:13.496009', '2021-06-17 18:55:13.496009', true, 'order', 'gsw-CH');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('1ada1f7d-0a93-4538-be9b-21decd3b5760', NULL, 'rejected', 'text', 'Dear {{ user.name }},
 
 ** This is an automatically generated response **
 
@@ -1053,8 +1061,8 @@ Kind regards,
 --
 {{ inventory_pool.name }}
 {{ inventory_pool.description }}
-', '2021-04-21 11:18:46.739877', '2021-04-21 11:18:46.739877', true, 'order', 'en-GB');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('30bed262-6deb-44c0-a8ea-4d5bb4ca3b1f', NULL, 'rejected', 'text', 'Dear {{ user.name }},
+', '2021-06-17 18:55:13.4974', '2021-06-17 18:55:13.4974', true, 'order', 'en-GB');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('5d210dc3-74e3-4078-93fd-09708c63128c', NULL, 'rejected', 'text', 'Dear {{ user.name }},
 
 ** This is an automatically generated response **
 
@@ -1075,8 +1083,8 @@ Kind regards,
 --
 {{ inventory_pool.name }}
 {{ inventory_pool.description }}
-', '2021-04-21 11:18:46.742632', '2021-04-21 11:18:46.742632', true, 'order', 'en-US');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('2b8655ee-a6c9-4468-91f0-7b0268d5506c', NULL, 'rejected', 'text', 'Dear {{ user.name }},
+', '2021-06-17 18:55:13.498526', '2021-06-17 18:55:13.498526', true, 'order', 'en-US');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('e44a5838-709e-4eb9-80ec-897bcff20ef9', NULL, 'rejected', 'text', 'Dear {{ user.name }},
 
 ** This is an automatically generated response **
 
@@ -1097,8 +1105,8 @@ Kind regards,
 --
 {{ inventory_pool.name }}
 {{ inventory_pool.description }}
-', '2021-04-21 11:18:46.745393', '2021-04-21 11:18:46.745393', true, 'order', 'de-CH');
-INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('4025675b-11cf-4c00-8515-faa63fcffd90', NULL, 'rejected', 'text', 'Dear {{ user.name }},
+', '2021-06-17 18:55:13.499694', '2021-06-17 18:55:13.499694', true, 'order', 'de-CH');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('f5371a7a-0380-4063-94a8-dde96b946e3b', NULL, 'rejected', 'text', 'Dear {{ user.name }},
 
 ** This is an automatically generated response **
 
@@ -1119,7 +1127,7 @@ Kind regards,
 --
 {{ inventory_pool.name }}
 {{ inventory_pool.description }}
-', '2021-04-21 11:18:46.748278', '2021-04-21 11:18:46.748278', true, 'order', 'gsw-CH');
+', '2021-06-17 18:55:13.500925', '2021-06-17 18:55:13.500925', true, 'order', 'gsw-CH');
 
 
 ALTER TABLE public.mail_templates ENABLE TRIGGER ALL;
