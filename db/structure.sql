@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.16
--- Dumped by pg_dump version 10.16
+-- Dumped from database version 10.13
+-- Dumped by pg_dump version 10.13
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -244,6 +244,25 @@ CREATE FUNCTION public.check_contract_has_at_least_one_reservation() RETURNS tri
         RETURN NEW;
       END;
       $$;
+
+
+--
+-- Name: check_contracts_purpose_is_not_null_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_contracts_purpose_is_not_null_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF (
+    NEW.purpose IS NULL AND
+    ( SELECT required_purpose FROM inventory_pools WHERE inventory_pools.id = NEW.inventory_pool_id )
+    ) THEN
+    RAISE EXCEPTION 'Contract''s purpose can''t be NULL for this inventory pool.';
+  END IF;
+  RETURN NEW;
+END;
+$$;
 
 
 --
@@ -2134,8 +2153,9 @@ CREATE TABLE public.contracts (
     state text NOT NULL,
     user_id uuid NOT NULL,
     inventory_pool_id uuid NOT NULL,
-    purpose text NOT NULL,
-    CONSTRAINT check_valid_state CHECK ((state = ANY (ARRAY['open'::text, 'closed'::text])))
+    purpose text,
+    CONSTRAINT check_valid_state CHECK ((state = ANY (ARRAY['open'::text, 'closed'::text]))),
+    CONSTRAINT non_blank_purpose CHECK ((purpose !~ '^ *$'::text))
 );
 
 
@@ -3108,6 +3128,24 @@ CREATE TABLE public.translations_user (
     language_locale text NOT NULL,
     user_id uuid NOT NULL
 );
+
+
+--
+-- Name: unified_customer_orders; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.unified_customer_orders AS
+SELECT
+    NULL::uuid AS id,
+    NULL::uuid AS user_id,
+    NULL::text AS purpose,
+    NULL::timestamp without time zone AS created_at,
+    NULL::timestamp without time zone AS updated_at,
+    NULL::text AS title,
+    NULL::boolean AS lending_terms_accepted,
+    NULL::text AS contact_details,
+    NULL::uuid[] AS reservation_ids,
+    NULL::text AS origin_table;
 
 
 --
@@ -4871,6 +4909,58 @@ CREATE INDEX users_to_tsvector_idx ON public.users USING gin (to_tsvector('engli
 
 
 --
+-- Name: unified_customer_orders _RETURN; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE OR REPLACE VIEW public.unified_customer_orders AS
+ SELECT public.uuid_generate_v5(public.uuid_ns_dns(), ('customer_order_'::text || (cs.id)::text)) AS id,
+    cs.user_id,
+    cs.purpose,
+    cs.created_at,
+    cs.updated_at,
+    NULL::text AS title,
+    false AS lending_terms_accepted,
+    NULL::text AS contact_details,
+    ( SELECT array_agg(rs.id) AS array_agg
+           FROM public.reservations rs
+          WHERE (rs.contract_id = cs.id)) AS reservation_ids,
+    NULL::text AS origin_table
+   FROM public.contracts cs
+  WHERE (NOT (EXISTS ( SELECT 1
+           FROM public.reservations rs2
+          WHERE ((rs2.contract_id = cs.id) AND (rs2.order_id IS NOT NULL)))))
+UNION
+ SELECT public.uuid_generate_v5(public.uuid_ns_dns(), (('customer_order_'::text || (rs.user_id)::text) || (rs.inventory_pool_id)::text)) AS id,
+    rs.user_id,
+    NULL::text AS purpose,
+    min(rs.created_at) AS created_at,
+    max(rs.updated_at) AS updated_at,
+    NULL::text AS title,
+    false AS lending_terms_accepted,
+    NULL::text AS contact_details,
+    array_agg(rs.id) AS reservation_ids,
+    NULL::text AS origin_table
+   FROM public.reservations rs
+  WHERE ((rs.order_id IS NULL) AND (rs.contract_id IS NULL))
+  GROUP BY rs.user_id, rs.inventory_pool_id
+UNION
+ SELECT customer_orders.id,
+    customer_orders.user_id,
+    customer_orders.purpose,
+    customer_orders.created_at,
+    customer_orders.updated_at,
+    customer_orders.title,
+    customer_orders.lending_terms_accepted,
+    customer_orders.contact_details,
+    array_agg(reservations.id) AS reservation_ids,
+    'customer_orders'::text AS origin_table
+   FROM ((public.customer_orders
+     JOIN public.orders ON ((orders.customer_order_id = customer_orders.id)))
+     JOIN public.reservations ON ((reservations.order_id = orders.id)))
+  GROUP BY customer_orders.id;
+
+
+--
 -- Name: access_rights access_rights_on_delete_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -5078,6 +5168,13 @@ CREATE TRIGGER audited_change_on_user_sessions AFTER INSERT OR DELETE OR UPDATE 
 --
 
 CREATE TRIGGER audited_change_on_users AFTER INSERT OR DELETE OR UPDATE ON public.users FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+
+
+--
+-- Name: contracts check_contracts_purpose_is_not_null_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER check_contracts_purpose_is_not_null_t AFTER INSERT OR UPDATE ON public.contracts FOR EACH ROW EXECUTE PROCEDURE public.check_contracts_purpose_is_not_null_f();
 
 
 --
@@ -6456,6 +6553,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('601'),
 ('602'),
 ('603'),
+('604'),
+('605'),
+('606'),
 ('7'),
 ('8'),
 ('9');
