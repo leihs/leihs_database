@@ -4860,6 +4860,13 @@ CREATE UNIQUE INDEX rooms_unique_name_and_building_id ON public.rooms USING btre
 
 
 --
+-- Name: unique_model_name_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_model_name_idx ON public.models USING btree (((((product)::text || ' '::text) || (COALESCE(version, ''::character varying))::text)));
+
+
+--
 -- Name: unique_name_procurement_budget_periods; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6556,6 +6563,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('604'),
 ('605'),
 ('606'),
+('607'),
 ('7'),
 ('8'),
 ('9');
