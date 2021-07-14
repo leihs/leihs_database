@@ -310,28 +310,32 @@ CREATE FUNCTION public.check_general_building_id_for_general_room() RETURNS trig
 CREATE FUNCTION public.check_item_line_state_consistency() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
-      BEGIN
-        IF (
-          (NEW.type = 'ItemLine' AND NEW.status = 'submitted' AND EXISTS (
-            SELECT 1
-            FROM orders
-            WHERE id = NEW.order_id AND state <> 'submitted')) OR
-          (NEW.type = 'ItemLine' AND NEW.status = 'rejected' AND EXISTS (
-            SELECT 1
-            FROM orders
-            WHERE id = NEW.order_id AND state <> 'rejected')) OR
-          (NEW.type = 'ItemLine' AND NEW.status IN ('approved', 'signed', 'closed') AND EXISTS (
-            SELECT 1
-            FROM orders
-            WHERE id = NEW.order_id AND state <> 'approved'))
-        )
-        THEN
-          RAISE EXCEPTION 'state between item line and order is inconsistent';
-        END IF;
+BEGIN
+  IF (
+    (NEW.type = 'ItemLine' AND NEW.status = 'submitted' AND EXISTS (
+        SELECT 1
+        FROM orders
+        WHERE id = NEW.order_id AND state <> 'submitted')) OR
+    (NEW.type = 'ItemLine' AND NEW.status = 'rejected' AND EXISTS (
+        SELECT 1
+        FROM orders
+        WHERE id = NEW.order_id AND state <> 'rejected')) OR
+    (NEW.type = 'ItemLine' AND NEW.status = 'canceled' AND EXISTS (
+        SELECT 1
+        FROM orders
+        WHERE id = NEW.order_id AND state <> 'canceled')) OR
+    (NEW.type = 'ItemLine' AND NEW.status IN ('approved', 'signed', 'closed') AND EXISTS (
+        SELECT 1
+        FROM orders
+        WHERE id = NEW.order_id AND state <> 'approved'))
+    )
+    THEN
+      RAISE EXCEPTION 'state between item line and order is inconsistent';
+  END IF;
 
-        RETURN NEW;
-      END;
-      $$;
+  RETURN NEW;
+END;
+$$;
 
 
 --
@@ -2660,8 +2664,8 @@ CREATE TABLE public.orders (
     reject_reason character varying,
     customer_order_id uuid NOT NULL,
     lending_terms_accepted boolean,
-    CONSTRAINT check_state_and_reject_reason_consistency CHECK ((((state = ANY (ARRAY['submitted'::text, 'approved'::text, 'rejected'::text])) AND (reject_reason IS NULL)) OR ((state = 'rejected'::text) AND (reject_reason IS NOT NULL)))),
-    CONSTRAINT check_valid_state CHECK ((state = ANY (ARRAY['submitted'::text, 'approved'::text, 'rejected'::text])))
+    CONSTRAINT check_state_and_reject_reason_consistency CHECK ((((state = ANY (ARRAY['submitted'::text, 'rejected'::text, 'canceled'::text, 'approved'::text])) AND (reject_reason IS NULL)) OR ((state = 'rejected'::text) AND (reject_reason IS NOT NULL)))),
+    CONSTRAINT check_valid_state CHECK ((state = ANY (ARRAY['submitted'::text, 'rejected'::text, 'canceled'::text, 'approved'::text])))
 );
 
 
@@ -2966,9 +2970,9 @@ CREATE TABLE public.reservations (
     updated_at timestamp without time zone NOT NULL,
     order_id uuid,
     line_purpose text,
-    CONSTRAINT check_allowed_statuses CHECK ((status = ANY (ARRAY['draft'::text, 'unsubmitted'::text, 'submitted'::text, 'rejected'::text, 'approved'::text, 'signed'::text, 'closed'::text]))),
-    CONSTRAINT check_order_id_for_different_statuses_of_item_line CHECK (((((type)::text = 'ItemLine'::text) AND (((status = ANY (ARRAY['draft'::text, 'unsubmitted'::text])) AND (order_id IS NULL)) OR ((status = ANY (ARRAY['submitted'::text, 'rejected'::text])) AND (order_id IS NOT NULL)) OR (status = ANY (ARRAY['approved'::text, 'signed'::text, 'closed'::text])))) OR (((type)::text = 'OptionLine'::text) AND (status = ANY (ARRAY['approved'::text, 'signed'::text, 'closed'::text]))))),
-    CONSTRAINT check_valid_status_and_contract_id CHECK ((((status = ANY (ARRAY['draft'::text, 'unsubmitted'::text, 'submitted'::text, 'approved'::text, 'rejected'::text])) AND (contract_id IS NULL)) OR ((status = ANY (ARRAY['signed'::text, 'closed'::text])) AND (contract_id IS NOT NULL))))
+    CONSTRAINT check_allowed_statuses CHECK ((status = ANY (ARRAY['draft'::text, 'unsubmitted'::text, 'submitted'::text, 'canceled'::text, 'rejected'::text, 'approved'::text, 'signed'::text, 'closed'::text]))),
+    CONSTRAINT check_order_id_for_different_statuses_of_item_line CHECK (((((type)::text = 'ItemLine'::text) AND (((status = ANY (ARRAY['draft'::text, 'unsubmitted'::text])) AND (order_id IS NULL)) OR ((status = ANY (ARRAY['submitted'::text, 'rejected'::text, 'canceled'::text])) AND (order_id IS NOT NULL)) OR (status = ANY (ARRAY['approved'::text, 'signed'::text, 'closed'::text])))) OR (((type)::text = 'OptionLine'::text) AND (status = ANY (ARRAY['approved'::text, 'signed'::text, 'closed'::text]))))),
+    CONSTRAINT check_valid_status_and_contract_id CHECK ((((status = ANY (ARRAY['draft'::text, 'unsubmitted'::text, 'submitted'::text, 'rejected'::text, 'canceled'::text, 'approved'::text])) AND (contract_id IS NULL)) OR ((status = ANY (ARRAY['signed'::text, 'closed'::text])) AND (contract_id IS NOT NULL))))
 );
 
 
@@ -6564,6 +6568,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('605'),
 ('606'),
 ('607'),
+('608'),
 ('7'),
 ('8'),
 ('9');
