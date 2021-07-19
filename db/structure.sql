@@ -3145,6 +3145,8 @@ SELECT
     NULL::text AS purpose,
     NULL::text[] AS state,
     NULL::text AS rental_state,
+    NULL::date AS "from",
+    NULL::date AS until,
     NULL::timestamp without time zone AS created_at,
     NULL::timestamp without time zone AS updated_at,
     NULL::text AS title,
@@ -4931,6 +4933,12 @@ CREATE OR REPLACE VIEW public.unified_customer_orders AS
     cs.purpose,
     ARRAY['APPROVED'::text] AS state,
     'CLOSED'::text AS rental_state,
+    ( SELECT min(rs.start_date) AS min
+           FROM public.reservations rs
+          WHERE (rs.contract_id = cs.id)) AS "from",
+    ( SELECT max(rs.end_date) AS max
+           FROM public.reservations rs
+          WHERE (rs.contract_id = cs.id)) AS until,
     cs.created_at,
     cs.updated_at,
     NULL::text AS title,
@@ -4950,6 +4958,8 @@ UNION
     NULL::text AS purpose,
     ARRAY['APPROVED'::text] AS state,
     'OPEN'::text AS rental_state,
+    min(rs.start_date) AS "from",
+    max(rs.end_date) AS until,
     min(rs.created_at) AS created_at,
     max(rs.updated_at) AS updated_at,
     NULL::text AS title,
@@ -4969,6 +4979,8 @@ UNION
             WHEN (array_agg(DISTINCT upper(orders.state)) = '{CLOSED}'::text[]) THEN 'CLOSED'::text
             ELSE 'OPEN'::text
         END AS rental_state,
+    min(reservations.start_date) AS "from",
+    max(reservations.end_date) AS until,
     customer_orders.created_at,
     customer_orders.updated_at,
     customer_orders.title,

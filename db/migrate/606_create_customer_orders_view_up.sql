@@ -5,6 +5,8 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          cs.purpose,
          ARRAY['APPROVED'] AS state,
          'CLOSED' AS rental_state,
+         ( SELECT MIN(start_date) FROM reservations AS rs WHERE rs.contract_id = cs.id ) AS "from",
+         ( SELECT MAX(end_date) FROM reservations AS rs WHERE rs.contract_id = cs.id ) AS until,
          cs.created_at,
          cs.updated_at,
          NULL AS title,
@@ -25,6 +27,8 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          NULL AS purpose,
          ARRAY['APPROVED'] AS state,
          'OPEN' AS rental_state,
+         MIN(rs.start_date) AS "from",
+         MAX(rs.end_date) AS until,
          MIN(rs.created_at) AS created_at,
          MAX(rs.updated_at) AS updated_at,
          NULL AS title,
@@ -45,6 +49,8 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
            WHEN ARRAY_AGG(DISTINCT UPPER(orders.state)) = '{"CLOSED"}' THEN 'CLOSED'
            ELSE 'OPEN'
          END AS state,
+         MIN(reservations.start_date) AS "from",
+         MAX(reservations.end_date) AS until,
          customer_orders.created_at,
          customer_orders.updated_at,
          customer_orders.title,
