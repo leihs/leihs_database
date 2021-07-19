@@ -3144,6 +3144,7 @@ SELECT
     NULL::uuid AS user_id,
     NULL::text AS purpose,
     NULL::text[] AS state,
+    NULL::text AS rental_state,
     NULL::timestamp without time zone AS created_at,
     NULL::timestamp without time zone AS updated_at,
     NULL::text AS title,
@@ -4929,6 +4930,7 @@ CREATE OR REPLACE VIEW public.unified_customer_orders AS
     cs.user_id,
     cs.purpose,
     ARRAY['APPROVED'::text] AS state,
+    'CLOSED'::text AS rental_state,
     cs.created_at,
     cs.updated_at,
     NULL::text AS title,
@@ -4947,6 +4949,7 @@ UNION
     rs.user_id,
     NULL::text AS purpose,
     ARRAY['APPROVED'::text] AS state,
+    'OPEN'::text AS rental_state,
     min(rs.created_at) AS created_at,
     max(rs.updated_at) AS updated_at,
     NULL::text AS title,
@@ -4961,7 +4964,11 @@ UNION
  SELECT customer_orders.id,
     customer_orders.user_id,
     customer_orders.purpose,
-    array_agg(DISTINCT upper(COALESCE(orders.state, 'APPROVED'::text))) AS state,
+    array_agg(DISTINCT upper(orders.state)) AS state,
+        CASE
+            WHEN (array_agg(DISTINCT upper(orders.state)) = '{CLOSED}'::text[]) THEN 'CLOSED'::text
+            ELSE 'OPEN'::text
+        END AS rental_state,
     customer_orders.created_at,
     customer_orders.updated_at,
     customer_orders.title,

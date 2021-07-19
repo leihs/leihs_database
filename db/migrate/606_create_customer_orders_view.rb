@@ -7,6 +7,7 @@ class CreateCustomerOrdersView < ActiveRecord::Migration[5.0]
                cs.user_id,
                cs.purpose,
                ARRAY['APPROVED'] AS state,
+               'CLOSED' AS rental_state,
                cs.created_at,
                cs.updated_at,
                NULL AS title,
@@ -26,6 +27,7 @@ class CreateCustomerOrdersView < ActiveRecord::Migration[5.0]
                rs.user_id,
                NULL AS purpose,
                ARRAY['APPROVED'] AS state,
+               'OPEN' AS rental_state,
                MIN(rs.created_at) AS created_at,
                MAX(rs.updated_at) AS updated_at,
                NULL AS title,
@@ -41,7 +43,11 @@ class CreateCustomerOrdersView < ActiveRecord::Migration[5.0]
         SELECT customer_orders.id,
                customer_orders.user_id,
                customer_orders.purpose,
-               ARRAY_AGG(DISTINCT UPPER(COALESCE(orders.state, 'APPROVED'))) AS state,
+               ARRAY_AGG(DISTINCT UPPER(orders.state)) AS state,
+               CASE
+                 WHEN ARRAY_AGG(DISTINCT UPPER(orders.state)) = '{"CLOSED"}' THEN 'CLOSED'
+                 ELSE 'OPEN'
+               END AS state,
                customer_orders.created_at,
                customer_orders.updated_at,
                customer_orders.title,
