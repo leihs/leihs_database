@@ -4937,7 +4937,7 @@ CREATE OR REPLACE VIEW public.unified_customer_orders AS
     ( SELECT array_agg(rs.id) AS array_agg
            FROM public.reservations rs
           WHERE (rs.contract_id = cs.id)) AS reservation_ids,
-    NULL::text AS origin_table
+    'contracts'::text AS origin_table
    FROM public.contracts cs
   WHERE (NOT (EXISTS ( SELECT 1
            FROM public.reservations rs2
@@ -4953,7 +4953,7 @@ UNION
     false AS lending_terms_accepted,
     NULL::text AS contact_details,
     array_agg(rs.id) AS reservation_ids,
-    NULL::text AS origin_table
+    'reservations'::text AS origin_table
    FROM public.reservations rs
   WHERE ((rs.order_id IS NULL) AND (rs.contract_id IS NULL))
   GROUP BY rs.user_id, rs.inventory_pool_id

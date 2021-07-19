@@ -13,7 +13,7 @@ class CreateCustomerOrdersView < ActiveRecord::Migration[5.0]
                FALSE AS lending_terms_accepted,
                NULL AS contact_details,
                ( SELECT array_agg(id) FROM reservations AS rs WHERE rs.contract_id = cs.id ) AS reservation_ids,
-               NULL AS origin_table
+               'contracts' AS origin_table
         FROM contracts AS cs
         WHERE NOT EXISTS (
           SELECT 1
@@ -32,7 +32,7 @@ class CreateCustomerOrdersView < ActiveRecord::Migration[5.0]
                FALSE AS lending_terms_accepted,
                NULL AS contact_details,
                ARRAY_AGG(rs.id) AS reservation_ids,
-               NULL AS origin_table
+               'reservations' AS origin_table
         FROM reservations AS rs
         WHERE rs.order_id IS NULL AND rs.contract_id IS NULL
         GROUP BY rs.user_id, rs.inventory_pool_id
