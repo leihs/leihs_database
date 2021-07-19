@@ -3147,6 +3147,7 @@ SELECT
     NULL::text AS rental_state,
     NULL::date AS "from",
     NULL::date AS until,
+    NULL::uuid[] AS inventory_pool_ids,
     NULL::timestamp without time zone AS created_at,
     NULL::timestamp without time zone AS updated_at,
     NULL::text AS title,
@@ -4939,6 +4940,7 @@ CREATE OR REPLACE VIEW public.unified_customer_orders AS
     ( SELECT max(rs.end_date) AS max
            FROM public.reservations rs
           WHERE (rs.contract_id = cs.id)) AS until,
+    ARRAY[cs.inventory_pool_id] AS inventory_pool_ids,
     cs.created_at,
     cs.updated_at,
     NULL::text AS title,
@@ -4960,6 +4962,7 @@ UNION
     'OPEN'::text AS rental_state,
     min(rs.start_date) AS "from",
     max(rs.end_date) AS until,
+    array_agg(DISTINCT rs.inventory_pool_id) AS inventory_pool_ids,
     min(rs.created_at) AS created_at,
     max(rs.updated_at) AS updated_at,
     NULL::text AS title,
@@ -4981,6 +4984,7 @@ UNION
         END AS rental_state,
     min(reservations.start_date) AS "from",
     max(reservations.end_date) AS until,
+    array_agg(DISTINCT orders.inventory_pool_id) AS inventory_pool_ids,
     customer_orders.created_at,
     customer_orders.updated_at,
     customer_orders.title,
