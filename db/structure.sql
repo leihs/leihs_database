@@ -3145,8 +3145,8 @@ SELECT
     NULL::text AS purpose,
     NULL::text[] AS state,
     NULL::text AS rental_state,
-    NULL::date AS "from",
-    NULL::date AS until,
+    NULL::date AS from_date,
+    NULL::date AS until_date,
     NULL::uuid[] AS inventory_pool_ids,
     NULL::timestamp without time zone AS created_at,
     NULL::timestamp without time zone AS updated_at,
@@ -4936,10 +4936,10 @@ CREATE OR REPLACE VIEW public.unified_customer_orders AS
     'CLOSED'::text AS rental_state,
     ( SELECT min(rs.start_date) AS min
            FROM public.reservations rs
-          WHERE (rs.contract_id = cs.id)) AS "from",
+          WHERE (rs.contract_id = cs.id)) AS from_date,
     ( SELECT max(rs.end_date) AS max
            FROM public.reservations rs
-          WHERE (rs.contract_id = cs.id)) AS until,
+          WHERE (rs.contract_id = cs.id)) AS until_date,
     ARRAY[cs.inventory_pool_id] AS inventory_pool_ids,
     cs.created_at,
     cs.updated_at,
@@ -4960,8 +4960,8 @@ UNION
     NULL::text AS purpose,
     ARRAY['APPROVED'::text] AS state,
     'OPEN'::text AS rental_state,
-    min(rs.start_date) AS "from",
-    max(rs.end_date) AS until,
+    min(rs.start_date) AS from_date,
+    max(rs.end_date) AS until_date,
     array_agg(DISTINCT rs.inventory_pool_id) AS inventory_pool_ids,
     min(rs.created_at) AS created_at,
     max(rs.updated_at) AS updated_at,
@@ -4982,8 +4982,8 @@ UNION
             WHEN (array_agg(DISTINCT upper(orders.state)) = '{CLOSED}'::text[]) THEN 'CLOSED'::text
             ELSE 'OPEN'::text
         END AS rental_state,
-    min(reservations.start_date) AS "from",
-    max(reservations.end_date) AS until,
+    min(reservations.start_date) AS from_date,
+    max(reservations.end_date) AS until_date,
     array_agg(DISTINCT orders.inventory_pool_id) AS inventory_pool_ids,
     customer_orders.created_at,
     customer_orders.updated_at,
