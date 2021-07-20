@@ -3143,11 +3143,6 @@ SELECT
     NULL::uuid AS id,
     NULL::uuid AS user_id,
     NULL::text AS purpose,
-    NULL::text[] AS state,
-    NULL::text AS rental_state,
-    NULL::date AS from_date,
-    NULL::date AS until_date,
-    NULL::uuid[] AS inventory_pool_ids,
     NULL::timestamp without time zone AS created_at,
     NULL::timestamp without time zone AS updated_at,
     NULL::text AS title,
@@ -4932,15 +4927,6 @@ CREATE OR REPLACE VIEW public.unified_customer_orders AS
  SELECT public.uuid_generate_v5(public.uuid_ns_dns(), ('customer_order_'::text || (cs.id)::text)) AS id,
     cs.user_id,
     cs.purpose,
-    ARRAY['APPROVED'::text] AS state,
-    'CLOSED'::text AS rental_state,
-    ( SELECT min(rs.start_date) AS min
-           FROM public.reservations rs
-          WHERE (rs.contract_id = cs.id)) AS from_date,
-    ( SELECT max(rs.end_date) AS max
-           FROM public.reservations rs
-          WHERE (rs.contract_id = cs.id)) AS until_date,
-    ARRAY[cs.inventory_pool_id] AS inventory_pool_ids,
     cs.created_at,
     cs.updated_at,
     NULL::text AS title,
@@ -4949,7 +4935,7 @@ CREATE OR REPLACE VIEW public.unified_customer_orders AS
     ( SELECT array_agg(rs.id) AS array_agg
            FROM public.reservations rs
           WHERE (rs.contract_id = cs.id)) AS reservation_ids,
-    'contracts'::text AS origin_table
+    NULL::text AS origin_table
    FROM public.contracts cs
   WHERE (NOT (EXISTS ( SELECT 1
            FROM public.reservations rs2
@@ -4958,18 +4944,13 @@ UNION
  SELECT public.uuid_generate_v5(public.uuid_ns_dns(), (('customer_order_'::text || (rs.user_id)::text) || (rs.inventory_pool_id)::text)) AS id,
     rs.user_id,
     NULL::text AS purpose,
-    ARRAY['APPROVED'::text] AS state,
-    'OPEN'::text AS rental_state,
-    min(rs.start_date) AS from_date,
-    max(rs.end_date) AS until_date,
-    array_agg(DISTINCT rs.inventory_pool_id) AS inventory_pool_ids,
     min(rs.created_at) AS created_at,
     max(rs.updated_at) AS updated_at,
     NULL::text AS title,
     false AS lending_terms_accepted,
     NULL::text AS contact_details,
     array_agg(rs.id) AS reservation_ids,
-    'reservations'::text AS origin_table
+    NULL::text AS origin_table
    FROM public.reservations rs
   WHERE ((rs.order_id IS NULL) AND (rs.contract_id IS NULL))
   GROUP BY rs.user_id, rs.inventory_pool_id
@@ -4977,14 +4958,6 @@ UNION
  SELECT customer_orders.id,
     customer_orders.user_id,
     customer_orders.purpose,
-    array_agg(DISTINCT upper(orders.state)) AS state,
-        CASE
-            WHEN (array_agg(DISTINCT upper(orders.state)) = '{CLOSED}'::text[]) THEN 'CLOSED'::text
-            ELSE 'OPEN'::text
-        END AS rental_state,
-    min(reservations.start_date) AS from_date,
-    max(reservations.end_date) AS until_date,
-    array_agg(DISTINCT orders.inventory_pool_id) AS inventory_pool_ids,
     customer_orders.created_at,
     customer_orders.updated_at,
     customer_orders.title,
