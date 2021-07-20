@@ -4,13 +4,15 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          cs.user_id,
          cs.purpose,
          ARRAY['APPROVED'] AS state,
-         'CLOSED' AS rental_state,
+         UPPER(cs.state) AS rental_state,
          ( SELECT MIN(start_date) FROM reservations AS rs WHERE rs.contract_id = cs.id ) AS from_date,
          ( SELECT MAX(end_date) FROM reservations AS rs WHERE rs.contract_id = cs.id ) AS until_date,
          ARRAY[cs.inventory_pool_id] AS inventory_pool_ids,
          ( COALESCE(cs.purpose, '') || ' ' ||
            COALESCE(cs.note, '') || ' ' ||
            STRING_AGG(ms.product || ' ' || COALESCE(ms.version, ''), ' ') ) AS searchable,
+         FALSE AS with_pickups,
+         cs.state = 'open' AS with_returns,
          cs.created_at,
          cs.updated_at,
          NULL AS title,
@@ -34,6 +36,8 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          MAX(rs.end_date) AS until_date,
          ARRAY_AGG(DISTINCT rs.inventory_pool_id) AS inventory_pool_ids,
          STRING_AGG(ms.product || ' ' || COALESCE(ms.version, '') , ' ') AS searchable,
+         TRUE AS with_pickups,
+         FALSE AS with_returns,
          MIN(rs.created_at) AS created_at,
          MAX(rs.updated_at) AS updated_at,
          NULL AS title,
@@ -44,6 +48,7 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
   FROM reservations AS rs
   JOIN models AS ms ON rs.model_id = ms.id
   WHERE rs.order_id IS NULL AND rs.contract_id IS NULL
+    AND rs.status = 'approved'
   GROUP BY rs.user_id, rs.inventory_pool_id
   UNION
   -- customer orders
@@ -54,7 +59,7 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          CASE
            WHEN ARRAY_AGG(DISTINCT UPPER(os.state)) = '{"CLOSED"}' THEN 'CLOSED'
            ELSE 'OPEN'
-         END AS state,
+         END AS rental_state,
          MIN(rs.start_date) AS from_date,
          MAX(rs.end_date) AS until_date,
          ARRAY_AGG(DISTINCT os.inventory_pool_id) AS inventory_pool_ids,
@@ -63,6 +68,8 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
            COALESCE(cs.purpose, '') || ' ' ||
            COALESCE(cs.note, '') || ' ' ||
            STRING_AGG(ms.product || ' ' || COALESCE(ms.version, ''), ' ') ) AS searchable,
+        'approved' = ANY(ARRAY_AGG(rs.status)) AS with_pickups,
+        'signed' = ANY(ARRAY_AGG(rs.status)) AS with_returns,
          co.created_at,
          co.updated_at,
          co.title,
