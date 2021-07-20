@@ -3143,6 +3143,14 @@ SELECT
     NULL::uuid AS id,
     NULL::uuid AS user_id,
     NULL::text AS purpose,
+    NULL::text[] AS state,
+    NULL::text AS rental_state,
+    NULL::date AS from_date,
+    NULL::date AS until_date,
+    NULL::uuid[] AS inventory_pool_ids,
+    NULL::text AS searchable,
+    NULL::boolean AS with_pickups,
+    NULL::boolean AS with_returns,
     NULL::timestamp without time zone AS created_at,
     NULL::timestamp without time zone AS updated_at,
     NULL::text AS title,
@@ -4927,48 +4935,85 @@ CREATE OR REPLACE VIEW public.unified_customer_orders AS
  SELECT public.uuid_generate_v5(public.uuid_ns_dns(), ('customer_order_'::text || (cs.id)::text)) AS id,
     cs.user_id,
     cs.purpose,
+    ARRAY['APPROVED'::text] AS state,
+    upper(cs.state) AS rental_state,
+    ( SELECT min(rs_1.start_date) AS min
+           FROM public.reservations rs_1
+          WHERE (rs_1.contract_id = cs.id)) AS from_date,
+    ( SELECT max(rs_1.end_date) AS max
+           FROM public.reservations rs_1
+          WHERE (rs_1.contract_id = cs.id)) AS until_date,
+    ARRAY[cs.inventory_pool_id] AS inventory_pool_ids,
+    ((((((COALESCE(cs.purpose, ''::text) || ' '::text) || COALESCE(cs.note, ''::text)) || ' '::text) || string_agg((((COALESCE(ms.product, ''::character varying))::text || ' '::text) || (COALESCE(ms.version, ''::character varying))::text), ' '::text)) || ' '::text) || string_agg((((COALESCE(os.product, ''::character varying))::text || ' '::text) || (COALESCE(os.version, ''::character varying))::text), ' '::text)) AS searchable,
+    false AS with_pickups,
+    (cs.state = 'open'::text) AS with_returns,
     cs.created_at,
     cs.updated_at,
     NULL::text AS title,
     false AS lending_terms_accepted,
     NULL::text AS contact_details,
-    ( SELECT array_agg(rs.id) AS array_agg
-           FROM public.reservations rs
-          WHERE (rs.contract_id = cs.id)) AS reservation_ids,
-    NULL::text AS origin_table
-   FROM public.contracts cs
-  WHERE (NOT (EXISTS ( SELECT 1
-           FROM public.reservations rs2
-          WHERE ((rs2.contract_id = cs.id) AND (rs2.order_id IS NOT NULL)))))
+    ( SELECT array_agg(rs_1.id) AS array_agg
+           FROM public.reservations rs_1
+          WHERE (rs_1.contract_id = cs.id)) AS reservation_ids,
+    'contracts'::text AS origin_table
+   FROM (((public.contracts cs
+     JOIN public.reservations rs ON ((rs.contract_id = cs.id)))
+     LEFT JOIN public.models ms ON ((rs.model_id = ms.id)))
+     LEFT JOIN public.options os ON ((rs.option_id = os.id)))
+  GROUP BY cs.id
+ HAVING (array_agg(DISTINCT rs.order_id) = ARRAY[NULL::uuid])
 UNION
  SELECT public.uuid_generate_v5(public.uuid_ns_dns(), (('customer_order_'::text || (rs.user_id)::text) || (rs.inventory_pool_id)::text)) AS id,
     rs.user_id,
     NULL::text AS purpose,
+    ARRAY['APPROVED'::text] AS state,
+    'OPEN'::text AS rental_state,
+    min(rs.start_date) AS from_date,
+    max(rs.end_date) AS until_date,
+    array_agg(DISTINCT rs.inventory_pool_id) AS inventory_pool_ids,
+    ((string_agg((((COALESCE(ms.product, ''::character varying))::text || ' '::text) || (COALESCE(ms.version, ''::character varying))::text), ' '::text) || ' '::text) || string_agg((((COALESCE(os.product, ''::character varying))::text || ' '::text) || (COALESCE(os.version, ''::character varying))::text), ' '::text)) AS searchable,
+    true AS with_pickups,
+    false AS with_returns,
     min(rs.created_at) AS created_at,
     max(rs.updated_at) AS updated_at,
     NULL::text AS title,
     false AS lending_terms_accepted,
     NULL::text AS contact_details,
     array_agg(rs.id) AS reservation_ids,
-    NULL::text AS origin_table
-   FROM public.reservations rs
-  WHERE ((rs.order_id IS NULL) AND (rs.contract_id IS NULL))
+    'reservations'::text AS origin_table
+   FROM ((public.reservations rs
+     LEFT JOIN public.models ms ON ((rs.model_id = ms.id)))
+     LEFT JOIN public.options os ON ((rs.option_id = os.id)))
+  WHERE ((rs.order_id IS NULL) AND (rs.contract_id IS NULL) AND (rs.status = 'approved'::text))
   GROUP BY rs.user_id, rs.inventory_pool_id
 UNION
- SELECT customer_orders.id,
-    customer_orders.user_id,
-    customer_orders.purpose,
-    customer_orders.created_at,
-    customer_orders.updated_at,
-    customer_orders.title,
-    customer_orders.lending_terms_accepted,
-    customer_orders.contact_details,
-    array_agg(reservations.id) AS reservation_ids,
+ SELECT co.id,
+    co.user_id,
+    co.purpose,
+    array_agg(DISTINCT upper(os.state)) AS state,
+        CASE
+            WHEN (array_agg(DISTINCT upper(os.state)) = '{CLOSED}'::text[]) THEN 'CLOSED'::text
+            ELSE 'OPEN'::text
+        END AS rental_state,
+    min(rs.start_date) AS from_date,
+    max(rs.end_date) AS until_date,
+    array_agg(DISTINCT os.inventory_pool_id) AS inventory_pool_ids,
+    ((((((((co.purpose || ' '::text) || co.title) || ' '::text) || COALESCE(cs.purpose, ''::text)) || ' '::text) || COALESCE(cs.note, ''::text)) || ' '::text) || string_agg((((ms.product)::text || ' '::text) || (COALESCE(ms.version, ''::character varying))::text), ' '::text)) AS searchable,
+    ('approved'::text = ANY (array_agg(rs.status))) AS with_pickups,
+    ('signed'::text = ANY (array_agg(rs.status))) AS with_returns,
+    co.created_at,
+    co.updated_at,
+    co.title,
+    co.lending_terms_accepted,
+    co.contact_details,
+    array_agg(rs.id) AS reservation_ids,
     'customer_orders'::text AS origin_table
-   FROM ((public.customer_orders
-     JOIN public.orders ON ((orders.customer_order_id = customer_orders.id)))
-     JOIN public.reservations ON ((reservations.order_id = orders.id)))
-  GROUP BY customer_orders.id;
+   FROM ((((public.customer_orders co
+     JOIN public.orders os ON ((os.customer_order_id = co.id)))
+     JOIN public.reservations rs ON ((rs.order_id = os.id)))
+     JOIN public.models ms ON ((rs.model_id = ms.id)))
+     LEFT JOIN public.contracts cs ON ((rs.contract_id = cs.id)))
+  GROUP BY co.id, cs.purpose, cs.note;
 
 
 --

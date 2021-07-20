@@ -10,7 +10,7 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          ARRAY[cs.inventory_pool_id] AS inventory_pool_ids,
          ( COALESCE(cs.purpose, '') || ' ' ||
            COALESCE(cs.note, '') || ' ' ||
-           STRING_AGG(COALESCE(ms.product, '') || ' ' || COALESCE(ms.version, ''), ' '),
+           STRING_AGG(COALESCE(ms.product, '') || ' ' || COALESCE(ms.version, ''), ' ') || ' ' ||
            STRING_AGG(COALESCE(os.product, '') || ' ' || COALESCE(os.version, ''), ' ') ) AS searchable,
          FALSE AS with_pickups,
          cs.state = 'open' AS with_returns,
@@ -37,7 +37,7 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          MIN(rs.start_date) AS from_date,
          MAX(rs.end_date) AS until_date,
          ARRAY_AGG(DISTINCT rs.inventory_pool_id) AS inventory_pool_ids,
-         ( STRING_AGG(COALESCE(ms.product, '') || ' ' || COALESCE(ms.version, '') , ' '),
+         ( STRING_AGG(COALESCE(ms.product, '') || ' ' || COALESCE(ms.version, '') , ' ') || ' ' ||
            STRING_AGG(COALESCE(os.product, '') || ' ' || COALESCE(os.version, '') , ' ') ) AS searchable,
          TRUE AS with_pickups,
          FALSE AS with_returns,
