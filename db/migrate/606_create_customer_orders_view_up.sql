@@ -10,7 +10,8 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          ARRAY[cs.inventory_pool_id] AS inventory_pool_ids,
          ( COALESCE(cs.purpose, '') || ' ' ||
            COALESCE(cs.note, '') || ' ' ||
-           STRING_AGG(ms.product || ' ' || COALESCE(ms.version, ''), ' ') ) AS searchable,
+           STRING_AGG(COALESCE(ms.product, '') || ' ' || COALESCE(ms.version, ''), ' '),
+           STRING_AGG(COALESCE(os.product, '') || ' ' || COALESCE(os.version, ''), ' ') ) AS searchable,
          FALSE AS with_pickups,
          cs.state = 'open' AS with_returns,
          cs.created_at,
@@ -22,7 +23,8 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          'contracts' AS origin_table
   FROM contracts AS cs
   JOIN reservations AS rs ON rs.contract_id = cs.id
-  JOIN models AS ms ON rs.model_id = ms.id
+  LEFT JOIN models AS ms ON rs.model_id = ms.id
+  LEFT JOIN options AS os ON rs.option_id = os.id
   GROUP BY cs.id
   HAVING ARRAY_AGG(DISTINCT rs.order_id) = ARRAY[NULL::uuid]
   UNION
@@ -35,7 +37,8 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          MIN(rs.start_date) AS from_date,
          MAX(rs.end_date) AS until_date,
          ARRAY_AGG(DISTINCT rs.inventory_pool_id) AS inventory_pool_ids,
-         STRING_AGG(ms.product || ' ' || COALESCE(ms.version, '') , ' ') AS searchable,
+         ( STRING_AGG(COALESCE(ms.product, '') || ' ' || COALESCE(ms.version, '') , ' '),
+           STRING_AGG(COALESCE(os.product, '') || ' ' || COALESCE(os.version, '') , ' ') ) AS searchable,
          TRUE AS with_pickups,
          FALSE AS with_returns,
          MIN(rs.created_at) AS created_at,
@@ -46,7 +49,8 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          ARRAY_AGG(rs.id) AS reservation_ids,
          'reservations' AS origin_table
   FROM reservations AS rs
-  JOIN models AS ms ON rs.model_id = ms.id
+  LEFT JOIN models AS ms ON rs.model_id = ms.id
+  LEFT JOIN options AS os ON rs.option_id = os.id
   WHERE rs.order_id IS NULL AND rs.contract_id IS NULL
     AND rs.status = 'approved'
   GROUP BY rs.user_id, rs.inventory_pool_id
