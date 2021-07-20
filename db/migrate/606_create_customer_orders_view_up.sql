@@ -81,5 +81,5 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
   JOIN orders AS os ON os.customer_order_id = co.id
   JOIN reservations AS rs ON rs.order_id = os.id
   JOIN models AS ms ON rs.model_id = ms.id
-  JOIN contracts AS cs ON rs.contract_id = cs.id
+  LEFT JOIN contracts AS cs ON rs.contract_id = cs.id
   GROUP BY co.id, cs.purpose, cs.note
