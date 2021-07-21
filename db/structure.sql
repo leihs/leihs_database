@@ -4944,7 +4944,7 @@ CREATE OR REPLACE VIEW public.unified_customer_orders AS
            FROM public.reservations rs_1
           WHERE (rs_1.contract_id = cs.id)) AS until_date,
     ARRAY[cs.inventory_pool_id] AS inventory_pool_ids,
-    ((((((COALESCE(cs.purpose, ''::text) || ' '::text) || COALESCE(cs.note, ''::text)) || ' '::text) || string_agg((((COALESCE(ms.product, ''::character varying))::text || ' '::text) || (COALESCE(ms.version, ''::character varying))::text), ' '::text)) || ' '::text) || string_agg((((COALESCE(os.product, ''::character varying))::text || ' '::text) || (COALESCE(os.version, ''::character varying))::text), ' '::text)) AS searchable,
+    ((((((((((((((((((((((((COALESCE(cs.purpose, ''::text) || ' '::text) || COALESCE(cs.note, ''::text)) || ' '::text) || COALESCE(cs.compact_id, ''::text)) || ' '::text) || string_agg(COALESCE((ms.id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((((COALESCE(ms.product, ''::character varying))::text || ' '::text) || (COALESCE(ms.version, ''::character varying))::text), ' '::text)) || ' '::text) || string_agg((COALESCE(ms.manufacturer, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg(COALESCE((os.id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((((COALESCE(os.product, ''::character varying))::text || ' '::text) || (COALESCE(os.version, ''::character varying))::text), ' '::text)) || ' '::text) || string_agg((COALESCE(os.manufacturer, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg((COALESCE(os.inventory_code, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg(COALESCE(("is".id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((COALESCE("is".inventory_code, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg((COALESCE("is".serial_number, ''::character varying))::text, ' '::text)) AS searchable,
     false AS with_pickups,
     (cs.state = 'open'::text) AS with_returns,
     cs.created_at,
@@ -4956,10 +4956,11 @@ CREATE OR REPLACE VIEW public.unified_customer_orders AS
            FROM public.reservations rs_1
           WHERE (rs_1.contract_id = cs.id)) AS reservation_ids,
     'contracts'::text AS origin_table
-   FROM (((public.contracts cs
+   FROM ((((public.contracts cs
      JOIN public.reservations rs ON ((rs.contract_id = cs.id)))
      LEFT JOIN public.models ms ON ((rs.model_id = ms.id)))
      LEFT JOIN public.options os ON ((rs.option_id = os.id)))
+     LEFT JOIN public.items "is" ON ((rs.item_id = "is".id)))
   GROUP BY cs.id
  HAVING (array_agg(DISTINCT rs.order_id) = ARRAY[NULL::uuid])
 UNION
@@ -4971,7 +4972,7 @@ UNION
     min(rs.start_date) AS from_date,
     max(rs.end_date) AS until_date,
     array_agg(DISTINCT rs.inventory_pool_id) AS inventory_pool_ids,
-    ((string_agg((((COALESCE(ms.product, ''::character varying))::text || ' '::text) || (COALESCE(ms.version, ''::character varying))::text), ' '::text) || ' '::text) || string_agg((((COALESCE(os.product, ''::character varying))::text || ' '::text) || (COALESCE(os.version, ''::character varying))::text), ' '::text)) AS searchable,
+    ((((((((((((((((((string_agg((((COALESCE(ms.product, ''::character varying))::text || ' '::text) || (COALESCE(ms.version, ''::character varying))::text), ' '::text) || ' '::text) || string_agg(COALESCE((ms.id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((COALESCE(ms.manufacturer, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg(COALESCE((os.id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((((COALESCE(os.product, ''::character varying))::text || ' '::text) || (COALESCE(os.version, ''::character varying))::text), ' '::text)) || ' '::text) || string_agg((COALESCE(os.manufacturer, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg((COALESCE(os.inventory_code, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg(COALESCE(("is".id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((COALESCE("is".inventory_code, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg((COALESCE("is".serial_number, ''::character varying))::text, ' '::text)) AS searchable,
     true AS with_pickups,
     false AS with_returns,
     min(rs.created_at) AS created_at,
@@ -4981,8 +4982,9 @@ UNION
     NULL::text AS contact_details,
     array_agg(rs.id) AS reservation_ids,
     'reservations'::text AS origin_table
-   FROM ((public.reservations rs
+   FROM (((public.reservations rs
      LEFT JOIN public.models ms ON ((rs.model_id = ms.id)))
+     LEFT JOIN public.items "is" ON ((rs.item_id = "is".id)))
      LEFT JOIN public.options os ON ((rs.option_id = os.id)))
   WHERE ((rs.order_id IS NULL) AND (rs.contract_id IS NULL) AND (rs.status = 'approved'::text))
   GROUP BY rs.user_id, rs.inventory_pool_id
@@ -4998,7 +5000,7 @@ UNION
     min(rs.start_date) AS from_date,
     max(rs.end_date) AS until_date,
     array_agg(DISTINCT os.inventory_pool_id) AS inventory_pool_ids,
-    ((((((((co.purpose || ' '::text) || co.title) || ' '::text) || COALESCE(cs.purpose, ''::text)) || ' '::text) || COALESCE(cs.note, ''::text)) || ' '::text) || string_agg((((ms.product)::text || ' '::text) || (COALESCE(ms.version, ''::character varying))::text), ' '::text)) AS searchable,
+    ((((((((((((((((((((((((((((COALESCE(co.purpose, ''::text) || ' '::text) || COALESCE(co.title, ''::text)) || ' '::text) || string_agg(COALESCE(cs.purpose, ''::text), ' '::text)) || ' '::text) || string_agg(COALESCE(cs.note, ''::text), ' '::text)) || ' '::text) || string_agg(COALESCE(cs.compact_id, ''::text), ' '::text)) || ' '::text) || string_agg(COALESCE((ms.id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((((COALESCE(ms.product, ''::character varying))::text || ' '::text) || (COALESCE(ms.version, ''::character varying))::text), ' '::text)) || ' '::text) || string_agg((COALESCE(ms.manufacturer, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg(COALESCE((ops.id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((((COALESCE(ops.product, ''::character varying))::text || ' '::text) || (COALESCE(ops.version, ''::character varying))::text), ' '::text)) || ' '::text) || string_agg((COALESCE(ops.manufacturer, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg((COALESCE(ops.inventory_code, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg(COALESCE(("is".id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((COALESCE("is".inventory_code, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg((COALESCE("is".serial_number, ''::character varying))::text, ' '::text)) AS searchable,
     ('approved'::text = ANY (array_agg(rs.status))) AS with_pickups,
     ('signed'::text = ANY (array_agg(rs.status))) AS with_returns,
     co.created_at,
@@ -5008,10 +5010,12 @@ UNION
     co.contact_details,
     array_agg(rs.id) AS reservation_ids,
     'customer_orders'::text AS origin_table
-   FROM ((((public.customer_orders co
+   FROM ((((((public.customer_orders co
      JOIN public.orders os ON ((os.customer_order_id = co.id)))
      JOIN public.reservations rs ON ((rs.order_id = os.id)))
      JOIN public.models ms ON ((rs.model_id = ms.id)))
+     LEFT JOIN public.options ops ON ((rs.option_id = os.id)))
+     LEFT JOIN public.items "is" ON ((rs.item_id = "is".id)))
      LEFT JOIN public.contracts cs ON ((rs.contract_id = cs.id)))
   GROUP BY co.id, cs.purpose, cs.note;
 
