@@ -5,8 +5,8 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          cs.purpose,
          ARRAY['APPROVED'] AS state,
          UPPER(cs.state) AS rental_state,
-         ( SELECT MIN(start_date) FROM reservations AS rs WHERE rs.contract_id = cs.id ) AS from_date,
-         ( SELECT MAX(end_date) FROM reservations AS rs WHERE rs.contract_id = cs.id ) AS until_date,
+         MIN(rs.start_date) AS from_date,
+         MAX(rs.end_date) AS until_date,
          ARRAY[cs.inventory_pool_id] AS inventory_pool_ids,
          ( COALESCE(cs.purpose, '') || ' ' ||
            COALESCE(cs.note, '') || ' ' ||
@@ -28,7 +28,7 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          NULL AS title,
          FALSE AS lending_terms_accepted,
          NULL AS contact_details,
-         ( SELECT array_agg(id) FROM reservations AS rs WHERE rs.contract_id = cs.id ) AS reservation_ids,
+         ARRAY_AGG(rs.id) AS reservation_ids,
          'contracts' AS origin_table
   FROM contracts AS cs
   JOIN reservations AS rs ON rs.contract_id = cs.id
@@ -39,8 +39,7 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
   HAVING ARRAY_AGG(DISTINCT rs.order_id) = ARRAY[NULL::uuid]
   UNION
   -- hand overs
-  SELECT uuid_generate_v5(uuid_ns_dns(),
-                          'customer_order_' || rs.user_id::text || '_' || rs.inventory_pool_id::text) AS id,
+  SELECT uuid_generate_v5(uuid_ns_dns(), 'customer_order_' || rs.user_id::text || '_' || rs.inventory_pool_id::text) AS id,
          rs.user_id,
          NULL AS purpose,
          ARRAY['APPROVED'] AS state,

@@ -1823,7 +1823,7 @@ CREATE TABLE public.direct_access_rights (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     role character varying NOT NULL,
-    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY ((ARRAY['customer'::character varying, 'group_manager'::character varying, 'lending_manager'::character varying, 'inventory_manager'::character varying])::text[])))
+    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY (ARRAY[('customer'::character varying)::text, ('group_manager'::character varying)::text, ('lending_manager'::character varying)::text, ('inventory_manager'::character varying)::text])))
 );
 
 
@@ -2101,7 +2101,7 @@ CREATE TABLE public.authentication_systems (
     external_sign_out_url text,
     sign_up_email_match text,
     CONSTRAINT check_shortcut_sing_in CHECK (((shortcut_sign_in_enabled = false) OR ((type)::text = 'external'::text))),
-    CONSTRAINT check_valid_type CHECK (((type)::text = ANY ((ARRAY['password'::character varying, 'external'::character varying])::text[]))),
+    CONSTRAINT check_valid_type CHECK (((type)::text = ANY (ARRAY[('password'::character varying)::text, ('external'::character varying)::text]))),
     CONSTRAINT simple_id CHECK (((id)::text ~ '^[a-z][a-z0-9_-]*$'::text))
 );
 
@@ -2704,7 +2704,7 @@ CREATE TABLE public.procurement_budget_limits (
     budget_period_id uuid NOT NULL,
     main_category_id uuid NOT NULL,
     amount_cents integer DEFAULT 0 NOT NULL,
-    amount_currency character varying DEFAULT 'USD'::character varying NOT NULL
+    amount_currency character varying DEFAULT 'GBP'::character varying NOT NULL
 );
 
 
@@ -2830,7 +2830,7 @@ CREATE TABLE public.procurement_requests (
     approved_quantity integer,
     order_quantity integer,
     price_cents bigint DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'GBP'::character varying NOT NULL,
     priority character varying DEFAULT 'normal'::character varying NOT NULL,
     replacement boolean DEFAULT true NOT NULL,
     supplier_name character varying,
@@ -2845,13 +2845,13 @@ CREATE TABLE public.procurement_requests (
     internal_order_number character varying,
     short_id text,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
-    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY ((ARRAY['normal'::character varying, 'high'::character varying])::text[]))),
+    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
     CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
     CONSTRAINT check_either_supplier_id_or_supplier_name CHECK ((((supplier_id IS NOT NULL) AND (supplier_name IS NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NOT NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NULL)))),
-    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'mandatory'::character varying])::text[]))),
+    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY (ARRAY[('low'::character varying)::text, ('medium'::character varying)::text, ('high'::character varying)::text, ('mandatory'::character varying)::text]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
     CONSTRAINT check_max_javascript_int CHECK (((price_cents)::double precision < ((2)::double precision ^ (52)::double precision))),
-    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[]))),
+    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY (ARRAY[('aquisition'::character varying)::text, ('investment'::character varying)::text]))),
     CONSTRAINT supplier_name_is_not_blank CHECK (((supplier_name)::text !~ '^\s*$'::text))
 );
 
@@ -2895,7 +2895,7 @@ CREATE TABLE public.procurement_templates (
     article_name text,
     article_number character varying,
     price_cents integer DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'GBP'::character varying NOT NULL,
     supplier_name character varying,
     category_id uuid NOT NULL,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
@@ -4937,12 +4937,8 @@ CREATE OR REPLACE VIEW public.unified_customer_orders AS
     cs.purpose,
     ARRAY['APPROVED'::text] AS state,
     upper(cs.state) AS rental_state,
-    ( SELECT min(rs_1.start_date) AS min
-           FROM public.reservations rs_1
-          WHERE (rs_1.contract_id = cs.id)) AS from_date,
-    ( SELECT max(rs_1.end_date) AS max
-           FROM public.reservations rs_1
-          WHERE (rs_1.contract_id = cs.id)) AS until_date,
+    min(rs.start_date) AS from_date,
+    max(rs.end_date) AS until_date,
     ARRAY[cs.inventory_pool_id] AS inventory_pool_ids,
     ((((((((((((((((((((((((COALESCE(cs.purpose, ''::text) || ' '::text) || COALESCE(cs.note, ''::text)) || ' '::text) || COALESCE(cs.compact_id, ''::text)) || ' '::text) || string_agg(COALESCE((ms.id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((((COALESCE(ms.product, ''::character varying))::text || ' '::text) || (COALESCE(ms.version, ''::character varying))::text), ' '::text)) || ' '::text) || string_agg((COALESCE(ms.manufacturer, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg(COALESCE((os.id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((((COALESCE(os.product, ''::character varying))::text || ' '::text) || (COALESCE(os.version, ''::character varying))::text), ' '::text)) || ' '::text) || string_agg((COALESCE(os.manufacturer, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg((COALESCE(os.inventory_code, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg(COALESCE(("is".id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((COALESCE("is".inventory_code, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg((COALESCE("is".serial_number, ''::character varying))::text, ' '::text)) AS searchable,
     false AS with_pickups,
@@ -4952,9 +4948,7 @@ CREATE OR REPLACE VIEW public.unified_customer_orders AS
     NULL::text AS title,
     false AS lending_terms_accepted,
     NULL::text AS contact_details,
-    ( SELECT array_agg(rs_1.id) AS array_agg
-           FROM public.reservations rs_1
-          WHERE (rs_1.contract_id = cs.id)) AS reservation_ids,
+    array_agg(rs.id) AS reservation_ids,
     'contracts'::text AS origin_table
    FROM ((((public.contracts cs
      JOIN public.reservations rs ON ((rs.contract_id = cs.id)))
