@@ -39,7 +39,8 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
   HAVING ARRAY_AGG(DISTINCT rs.order_id) = ARRAY[NULL::uuid]
   UNION
   -- hand overs
-  SELECT uuid_generate_v5(uuid_ns_dns(), 'customer_order_' || rs.user_id::text || rs.inventory_pool_id::text) AS id,
+  SELECT uuid_generate_v5(uuid_ns_dns(),
+                          'customer_order_' || rs.user_id::text || '_' || rs.inventory_pool_id::text) AS id,
          rs.user_id,
          NULL AS purpose,
          ARRAY['APPROVED'] AS state,
