@@ -2960,9 +2960,9 @@ CREATE TABLE public.reservations (
     status text NOT NULL,
     item_id uuid,
     model_id uuid,
-    quantity integer DEFAULT 1,
-    start_date date,
-    end_date date,
+    quantity integer DEFAULT 1 NOT NULL,
+    start_date date NOT NULL,
+    end_date date NOT NULL,
     returned_date date,
     option_id uuid,
     returned_to_user_id uuid,
@@ -3273,14 +3273,14 @@ CREATE VIEW public.visits AS
             reservations.status,
             reservations.quantity,
             (EXISTS ( SELECT 1
-                   FROM (public.entitlement_groups_direct_users
-                     JOIN public.entitlement_groups ON ((entitlement_groups.id = entitlement_groups_direct_users.entitlement_group_id)))
-                  WHERE ((entitlement_groups_direct_users.user_id = reservations.user_id) AND (entitlement_groups.is_verification_required IS TRUE)))) AS with_user_to_verify,
+                   FROM (public.entitlement_groups_users
+                     JOIN public.entitlement_groups ON ((entitlement_groups.id = entitlement_groups_users.entitlement_group_id)))
+                  WHERE ((entitlement_groups_users.user_id = reservations.user_id) AND (entitlement_groups.is_verification_required IS TRUE)))) AS with_user_to_verify,
             (EXISTS ( SELECT 1
                    FROM ((public.entitlements
                      JOIN public.entitlement_groups ON ((entitlement_groups.id = entitlements.entitlement_group_id)))
-                     JOIN public.entitlement_groups_direct_users ON ((entitlement_groups_direct_users.entitlement_group_id = entitlement_groups.id)))
-                  WHERE ((entitlements.model_id = reservations.model_id) AND (entitlement_groups_direct_users.user_id = reservations.user_id) AND (entitlement_groups.is_verification_required IS TRUE)))) AS with_user_and_model_to_verify
+                     JOIN public.entitlement_groups_users ON ((entitlement_groups_users.entitlement_group_id = entitlement_groups.id)))
+                  WHERE ((entitlements.model_id = reservations.model_id) AND (entitlement_groups_users.user_id = reservations.user_id) AND (entitlement_groups.is_verification_required IS TRUE)))) AS with_user_and_model_to_verify
            FROM public.reservations
           WHERE (reservations.status = ANY (ARRAY['submitted'::text, 'approved'::text, 'signed'::text]))) visit_reservations
   GROUP BY visit_reservations.user_id, visit_reservations.inventory_pool_id, visit_reservations.date, visit_reservations.visit_type, visit_reservations.status;
@@ -6612,6 +6612,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('606'),
 ('607'),
 ('608'),
+('609'),
 ('7'),
 ('8'),
 ('9');
