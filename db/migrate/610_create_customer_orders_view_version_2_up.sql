@@ -1,3 +1,5 @@
+DROP VIEW unified_customer_orders;
+
 CREATE OR REPLACE VIEW unified_customer_orders AS
   -- contracts without orders
   SELECT uuid_generate_v5(uuid_ns_dns(), 'customer_order_' || cs.id::text) AS id,
@@ -29,6 +31,7 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          FALSE AS lending_terms_accepted,
          NULL AS contact_details,
          ARRAY_AGG(rs.id) AS reservation_ids,
+         ARRAY_AGG(DISTINCT rs.status) AS reservation_states,
          'contracts' AS origin_table
   FROM contracts AS cs
   JOIN reservations AS rs ON rs.contract_id = cs.id
@@ -65,6 +68,7 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          FALSE AS lending_terms_accepted,
          NULL AS contact_details,
          ARRAY_AGG(rs.id) AS reservation_ids,
+         ARRAY['approved'] AS reservation_states,
          'reservations' AS origin_table
   FROM reservations AS rs
   LEFT JOIN models AS ms ON rs.model_id = ms.id
@@ -80,8 +84,11 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          co.purpose,
          ARRAY_AGG(DISTINCT UPPER(os.state)) AS state,
          CASE
-           WHEN ARRAY_AGG(DISTINCT UPPER(os.state)) = '{"CLOSED"}' THEN 'CLOSED'
-           ELSE 'OPEN'
+           WHEN 'unsubmitted' = ANY(ARRAY_AGG(rs.status)) THEN 'OPEN'
+           WHEN 'submitted' = ANY(ARRAY_AGG(rs.status)) THEN 'OPEN'
+           WHEN 'approved' = ANY(ARRAY_AGG(rs.status)) THEN 'OPEN'
+           WHEN 'signed' = ANY(ARRAY_AGG(rs.status)) THEN 'OPEN'
+           ELSE 'CLOSED'
          END AS rental_state,
          MIN(rs.start_date) AS from_date,
          MAX(rs.end_date) AS until_date,
@@ -109,6 +116,7 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          co.lending_terms_accepted,
          co.contact_details,
          ARRAY_AGG(rs.id) AS reservation_ids,
+         ARRAY_AGG(DISTINCT rs.status) AS reservation_states,
          'customer_orders' AS origin_table
   FROM customer_orders AS co
   JOIN orders AS os ON os.customer_order_id = co.id
@@ -117,4 +125,4 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
   LEFT JOIN options AS ops ON rs.option_id = os.id
   LEFT JOIN items AS "is" ON rs.item_id = "is".id
   LEFT JOIN contracts AS cs ON rs.contract_id = cs.id
-  GROUP BY co.id, cs.purpose, cs.note
+  GROUP BY co.id, cs.purpose, cs.note;

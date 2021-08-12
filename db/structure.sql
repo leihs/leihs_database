@@ -4991,8 +4991,11 @@ UNION
     co.purpose,
     array_agg(DISTINCT upper(os.state)) AS state,
         CASE
-            WHEN (array_agg(DISTINCT upper(os.state)) = '{CLOSED}'::text[]) THEN 'CLOSED'::text
-            ELSE 'OPEN'::text
+            WHEN ('unsubmitted'::text = ANY (array_agg(rs.status))) THEN 'OPEN'::text
+            WHEN ('submitted'::text = ANY (array_agg(rs.status))) THEN 'OPEN'::text
+            WHEN ('approved'::text = ANY (array_agg(rs.status))) THEN 'OPEN'::text
+            WHEN ('signed'::text = ANY (array_agg(rs.status))) THEN 'OPEN'::text
+            ELSE 'CLOSED'::text
         END AS rental_state,
     min(rs.start_date) AS from_date,
     max(rs.end_date) AS until_date,
@@ -6616,6 +6619,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('607'),
 ('608'),
 ('609'),
+('610'),
 ('7'),
 ('8'),
 ('9');
