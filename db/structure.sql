@@ -3160,6 +3160,7 @@ SELECT
     NULL::boolean AS lending_terms_accepted,
     NULL::text AS contact_details,
     NULL::uuid[] AS reservation_ids,
+    NULL::text[] AS reservation_states,
     NULL::text AS origin_table;
 
 
@@ -4952,6 +4953,7 @@ CREATE OR REPLACE VIEW public.unified_customer_orders AS
     false AS lending_terms_accepted,
     NULL::text AS contact_details,
     array_agg(rs.id) AS reservation_ids,
+    array_agg(DISTINCT rs.status) AS reservation_states,
     'contracts'::text AS origin_table
    FROM ((((public.contracts cs
      JOIN public.reservations rs ON ((rs.contract_id = cs.id)))
@@ -4978,6 +4980,7 @@ UNION
     false AS lending_terms_accepted,
     NULL::text AS contact_details,
     array_agg(rs.id) AS reservation_ids,
+    ARRAY['approved'::text] AS reservation_states,
     'reservations'::text AS origin_table
    FROM (((public.reservations rs
      LEFT JOIN public.models ms ON ((rs.model_id = ms.id)))
@@ -5009,6 +5012,7 @@ UNION
     co.lending_terms_accepted,
     co.contact_details,
     array_agg(rs.id) AS reservation_ids,
+    array_agg(DISTINCT rs.status) AS reservation_states,
     'customer_orders'::text AS origin_table
    FROM ((((((public.customer_orders co
      JOIN public.orders os ON ((os.customer_order_id = co.id)))
@@ -5017,7 +5021,7 @@ UNION
      LEFT JOIN public.options ops ON ((rs.option_id = os.id)))
      LEFT JOIN public.items "is" ON ((rs.item_id = "is".id)))
      LEFT JOIN public.contracts cs ON ((rs.contract_id = cs.id)))
-  GROUP BY co.id, cs.purpose, cs.note;
+  GROUP BY co.id;
 
 
 --

@@ -125,4 +125,4 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
   LEFT JOIN options AS ops ON rs.option_id = os.id
   LEFT JOIN items AS "is" ON rs.item_id = "is".id
   LEFT JOIN contracts AS cs ON rs.contract_id = cs.id
-  GROUP BY co.id, cs.purpose, cs.note;
+  GROUP BY co.id;
