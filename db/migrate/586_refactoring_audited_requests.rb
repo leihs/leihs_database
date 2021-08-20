@@ -25,7 +25,8 @@ class RefactoringAuditedRequests < ActiveRecord::Migration[5.0]
       FROM audited_changes
       WHERE audited_changes.txid = audited_requests.txid
       AND audited_changes.table_name = 'user_sessions'
-      AND audited_changes.tg_op = 'INSERT';
+      AND audited_changes.tg_op = 'INSERT'
+      AND EXISTS (SELECT true FROM users WHERE users.id = ((audited_changes.changed -> 'user_id') ->> 1)::UUID );
     SQL
 
     ["audited_requests", "audited_responses"].each do |table|
