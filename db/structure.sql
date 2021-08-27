@@ -520,6 +520,28 @@ CREATE FUNCTION public.check_reservations_contracts_state_consistency() RETURNS 
 
 
 --
+-- Name: check_responsible_user_is_not_delegation_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_responsible_user_is_not_delegation_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF (
+    ( SELECT delegator_user_id
+      FROM users
+      WHERE id = NEW.delegator_user_id ) IS NOT NULL
+  )
+  THEN
+    RAISE EXCEPTION 'Responsible user of a delegation can''t be a delegation.';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+
+--
 -- Name: clean_email(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -5242,6 +5264,13 @@ CREATE TRIGGER check_contracts_purpose_is_not_null_t AFTER INSERT OR UPDATE ON p
 
 
 --
+-- Name: users check_responsible_user_is_not_delegation_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER check_responsible_user_is_not_delegation_t AFTER INSERT OR UPDATE ON public.users DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_responsible_user_is_not_delegation_f();
+
+
+--
 -- Name: users clean_email; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6624,6 +6653,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('608'),
 ('609'),
 ('610'),
+('611'),
 ('7'),
 ('8'),
 ('9');
