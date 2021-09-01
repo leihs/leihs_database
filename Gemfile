@@ -4,7 +4,7 @@ gem 'addressable'
 gem 'base32-crockford'
 gem 'exiftool_vendored'
 gem 'factory_bot'
-gem 'faker'
+gem 'faker', '~> 2'
 gem 'money-rails', '~> 1.4'
 gem 'pg', platform: :mri
 gem 'pg_tasks', git: 'https://github.com/drtom/rails_pg-tasks', branch: 'master_rails_5'
