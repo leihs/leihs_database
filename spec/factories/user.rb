@@ -13,10 +13,11 @@ FactoryBot.define do
     password { Faker::Internet.password() }
     admin_protected { rand < 0.5 }
     system_admin_protected { admin_protected && (rand < 0.5) }
+    organization { Faker::Lorem.characters(number: 8) }
 
     after(:create) do |user|
-      pw_hash  =  database["SELECT crypt(#{database.literal(user.password)}, " \
-                           "gen_salt('bf')) AS pw_hash"].first[:pw_hash]
+      pw_hash = database["SELECT crypt(#{database.literal(user.password)}, " \
+                         "gen_salt('bf')) AS pw_hash"].first[:pw_hash]
       database[:authentication_systems_users].insert(
         user_id: user.id,
         authentication_system_id: 'password',
