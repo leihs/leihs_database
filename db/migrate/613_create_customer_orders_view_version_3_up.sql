@@ -7,8 +7,8 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          cs.purpose,
          ARRAY['APPROVED'] AS state,
          UPPER(cs.state) AS rental_state,
-         MIN(rs.start_date) AS from_date,
-         MAX(rs.end_date) AS until_date,
+         cs.created_at::date AS from_date,
+         MAX(COALESCE(rs.returned_date, rs.end_date)) AS until_date,
          ARRAY[cs.inventory_pool_id] AS inventory_pool_ids,
          ( COALESCE(cs.purpose, '') || ' ' ||
            COALESCE(cs.note, '') || ' ' ||
@@ -90,8 +90,8 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
            WHEN 'signed' = ANY(ARRAY_AGG(rs.status)) THEN 'OPEN'
            ELSE 'CLOSED'
          END AS rental_state,
-         MIN(rs.start_date) AS from_date,
-         MAX(rs.end_date) AS until_date,
+         MIN(COALESCE(cs.created_at::date, rs.start_date)) AS from_date,
+         MAX(COALESCE(rs.returned_date, rs.end_date)) AS until_date,
          ARRAY_AGG(DISTINCT os.inventory_pool_id) AS inventory_pool_ids,
          ( COALESCE(co.purpose, '') || ' ' ||
            COALESCE(co.title, '') || ' ' ||

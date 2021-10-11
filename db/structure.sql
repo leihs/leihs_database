@@ -5007,8 +5007,8 @@ CREATE OR REPLACE VIEW public.unified_customer_orders AS
     cs.purpose,
     ARRAY['APPROVED'::text] AS state,
     upper(cs.state) AS rental_state,
-    min(rs.start_date) AS from_date,
-    max(rs.end_date) AS until_date,
+    (cs.created_at)::date AS from_date,
+    max(COALESCE(rs.returned_date, rs.end_date)) AS until_date,
     ARRAY[cs.inventory_pool_id] AS inventory_pool_ids,
     ((((((((((((((((((((((((COALESCE(cs.purpose, ''::text) || ' '::text) || COALESCE(cs.note, ''::text)) || ' '::text) || COALESCE(cs.compact_id, ''::text)) || ' '::text) || string_agg(COALESCE((ms.id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((((COALESCE(ms.product, ''::character varying))::text || ' '::text) || (COALESCE(ms.version, ''::character varying))::text), ' '::text)) || ' '::text) || string_agg((COALESCE(ms.manufacturer, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg(COALESCE((os.id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((((COALESCE(os.product, ''::character varying))::text || ' '::text) || (COALESCE(os.version, ''::character varying))::text), ' '::text)) || ' '::text) || string_agg((COALESCE(os.manufacturer, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg((COALESCE(os.inventory_code, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg(COALESCE(("is".id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((COALESCE("is".inventory_code, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg((COALESCE("is".serial_number, ''::character varying))::text, ' '::text)) AS searchable,
     false AS with_pickups,
@@ -5066,8 +5066,8 @@ UNION
             WHEN ('signed'::text = ANY (array_agg(rs.status))) THEN 'OPEN'::text
             ELSE 'CLOSED'::text
         END AS rental_state,
-    min(rs.start_date) AS from_date,
-    max(rs.end_date) AS until_date,
+    min(COALESCE((cs.created_at)::date, rs.start_date)) AS from_date,
+    max(COALESCE(rs.returned_date, rs.end_date)) AS until_date,
     array_agg(DISTINCT os.inventory_pool_id) AS inventory_pool_ids,
     ((((((((((((((((((((((((((((COALESCE(co.purpose, ''::text) || ' '::text) || COALESCE(co.title, ''::text)) || ' '::text) || string_agg(COALESCE(cs.purpose, ''::text), ' '::text)) || ' '::text) || string_agg(COALESCE(cs.note, ''::text), ' '::text)) || ' '::text) || string_agg(COALESCE(cs.compact_id, ''::text), ' '::text)) || ' '::text) || string_agg(COALESCE((ms.id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((((COALESCE(ms.product, ''::character varying))::text || ' '::text) || (COALESCE(ms.version, ''::character varying))::text), ' '::text)) || ' '::text) || string_agg((COALESCE(ms.manufacturer, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg(COALESCE((ops.id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((((COALESCE(ops.product, ''::character varying))::text || ' '::text) || (COALESCE(ops.version, ''::character varying))::text), ' '::text)) || ' '::text) || string_agg((COALESCE(ops.manufacturer, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg((COALESCE(ops.inventory_code, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg(COALESCE(("is".id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((COALESCE("is".inventory_code, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg((COALESCE("is".serial_number, ''::character varying))::text, ' '::text)) AS searchable,
     ('approved'::text = ANY (array_agg(rs.status))) AS with_pickups,
@@ -6713,6 +6713,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('610'),
 ('611'),
 ('612'),
+('613'),
 ('7'),
 ('8'),
 ('9');
