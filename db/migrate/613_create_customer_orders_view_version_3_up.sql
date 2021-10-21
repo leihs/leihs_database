@@ -1,4 +1,4 @@
--- DROP VIEW unified_customer_orders;
+DROP VIEW unified_customer_orders;
 
 CREATE OR REPLACE VIEW unified_customer_orders AS
   -- contracts without orders
