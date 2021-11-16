@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.13
--- Dumped by pg_dump version 10.13
+-- Dumped from database version 10.19
+-- Dumped by pg_dump version 10.19
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -3037,6 +3037,7 @@ CREATE TABLE public.reservations (
     order_id uuid,
     line_purpose text,
     CONSTRAINT check_allowed_statuses CHECK ((status = ANY (ARRAY['draft'::text, 'unsubmitted'::text, 'submitted'::text, 'canceled'::text, 'rejected'::text, 'approved'::text, 'signed'::text, 'closed'::text]))),
+    CONSTRAINT check_model_id_or_option_id_on_reservations CHECK (((model_id IS NOT NULL) OR (option_id IS NOT NULL))),
     CONSTRAINT check_non_null_end_date CHECK ((((status = 'draft'::text) AND ((end_date IS NULL) OR (end_date IS NOT NULL))) OR (end_date IS NOT NULL))),
     CONSTRAINT check_non_null_quantity CHECK ((((status = 'draft'::text) AND ((quantity IS NULL) OR (quantity IS NOT NULL))) OR (quantity IS NOT NULL))),
     CONSTRAINT check_non_null_start_date CHECK ((((status = 'draft'::text) AND ((start_date IS NULL) OR (start_date IS NOT NULL))) OR (start_date IS NOT NULL))),
@@ -6714,6 +6715,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('611'),
 ('612'),
 ('613'),
+('614'),
 ('7'),
 ('8'),
 ('9');
