@@ -1,5 +1,6 @@
 class EnforceModelIdOrOptionIdOnReservations < ActiveRecord::Migration[5.0]
   def up
+    # add constraint
     execute <<~SQL
       ALTER TABLE reservations
       ADD CONSTRAINT check_model_id_or_option_id_on_reservations

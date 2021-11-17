@@ -674,6 +674,29 @@ $$;
 
 
 --
+-- Name: delete_empty_customer_order_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.delete_empty_customer_order_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+      BEGIN
+        IF (
+          NOT EXISTS (
+            SELECT 1
+            FROM orders
+            WHERE orders.customer_order_id = OLD.customer_order_id
+        ))
+        THEN
+          DELETE FROM customer_orders WHERE customer_orders.id = OLD.customer_order_id;
+        END IF;
+
+        RETURN OLD;
+      END;
+      $$;
+
+
+--
 -- Name: delete_empty_order(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -5512,6 +5535,13 @@ CREATE CONSTRAINT TRIGGER trigger_check_reservations_contracts_state_consistency
 
 
 --
+-- Name: orders trigger_delete_empty_customer_order_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER trigger_delete_empty_customer_order_t AFTER DELETE ON public.orders DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.delete_empty_customer_order_f();
+
+
+--
 -- Name: reservations trigger_delete_empty_order; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6716,6 +6746,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('612'),
 ('613'),
 ('614'),
+('615'),
 ('7'),
 ('8'),
 ('9');
