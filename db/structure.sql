@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.19
--- Dumped by pg_dump version 10.19
+-- Dumped from database version 10.18
+-- Dumped by pg_dump version 10.18
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -148,7 +148,7 @@ CREATE FUNCTION public.ar_uuid_agg_f(id1 uuid, id2 uuid, user_id uuid, inventory
     LANGUAGE plpgsql
     AS $$
 BEGIN
-  IF id1 IS NOT NULL AND id2 IS NOT NULL THEN
+  IF id1 IS NULL AND id2 IS NULL THEN
     RETURN uuid_generate_v3(uuid_nil(), user_id::TEXT || inventory_pool_id::TEXT);
   ELSIF id1 IS NOT NULL THEN
     RETURN id1;
@@ -6747,6 +6747,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('613'),
 ('614'),
 ('615'),
+('616'),
 ('7'),
 ('8'),
 ('9');
