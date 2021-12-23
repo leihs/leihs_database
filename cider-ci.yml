@@ -13,15 +13,19 @@ jobs:
         - cider-ci/shared/main-context.yml
       task_defaults:
         max_trials: 1
+        environment_variables:
+          LEIHS_DATABASE_DIR: "{{CIDER_CI_WORKING_DIR}}"
+          RAILS_ENV: test
+          RUBY: '{{RUBY_ENGINE}}-{{RUBY_VERSION}}'
+          RUBY_ENGINE: ruby
+          RUBY_VERSION: 2.7.2
+          RUBY_BUNDLER_VERSION: 2.3.3
         traits:
           Ruby: true
       tasks:
         migration-of-seeds-dump:
           include:
             - cider-ci/task-components/database-no-schema.yml
-          environment_variables:
-            LEIHS_SECRET: secret
-            RAILS_ENV: test
           name: "Check if seeds dump needs to be and has been migrated"
           scripts:
             test:
@@ -29,8 +33,8 @@ jobs:
                 #!/usr/bin/env bash
                 set -exu
                 export PATH=~/.rubies/$RUBY/bin:$PATH
-                { pg_restore --version | grep -q '11.' ;} && psql -d $DATABASE_NAME -c "DROP SCHEMA IF EXISTS \"public\";"
-                pg_restore --disable-triggers -x -O -d $DATABASE_NAME db/structure_and_seeds.pgbin
+                { pg_restore --version | grep -q '11.' ;} && psql -d $LEIHS_DATABASE_NAME -c "DROP SCHEMA IF EXISTS \"public\";"
+                pg_restore --disable-triggers -x -O -d $LEIHS_DATABASE_NAME db/structure_and_seeds.pgbin
                 if bundle exec rake db:migrate:status | grep -q -E "\s*down\s*\d*\s*"; then
                   echo "Run ./scripts/migrate-and-dump-seeds"
                   exit 1
@@ -51,16 +55,16 @@ jobs:
       task_defaults:
         include:
           - cider-ci/task-components/database.yml
-        traits:
-          g2016: true
         environment_variables:
           LEIHS_DATABASE_DIR: "{{CIDER_CI_WORKING_DIR}}"
-          DATABASE_NAME: leihs_database_{{CIDER_CI_TRIAL_ID}}
-          LEIHS_DATABASE_URL: "jdbc:postgresql://localhost/{{DATABASE_NAME}}?max-pool-size=5"
+          LEIHS_DATABASE_NAME: leihs_{{CIDER_CI_TRIAL_ID}}
           RAILS_ENV: test
           RUBY: '{{RUBY_ENGINE}}-{{RUBY_VERSION}}'
           RUBY_ENGINE: ruby
-          RUBY_VERSION: 2.6.0
+          RUBY_VERSION: 2.7.2
+          RUBY_BUNDLER_VERSION: 2.3.3
+        traits:
+          Ruby: true
         git_options:
           submodules:
             include_match: ^.*$

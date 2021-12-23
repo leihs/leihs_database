@@ -11,8 +11,8 @@ gem 'pg_tasks', git: 'https://github.com/drtom/rails_pg-tasks', branch: 'master_
 gem 'pry'
 gem 'rails'
 gem 'rspec'
-gem 'sequel', '~> 4.42', '>= 4.42.1'
+gem 'sequel'
 gem 'uuidtools'
 
 # fix: the version that rails requires vanished, force newer version. see <https://github.com/rails/rails/issues/41750>
-gem 'mimemagic', '0.3.7'
+gem 'mimemagic', '0.3.10'

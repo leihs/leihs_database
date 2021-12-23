@@ -3,29 +3,38 @@
 
 require 'active_support/all'
 require 'sequel'
-require 'addressable'
 require 'yaml'
 require_relative '../lib/leihs/constants.rb'
 require_relative '../lib/leihs/fields.rb'
 
-def database
-  @database ||= \
-    Sequel.connect(
-      if (db_env = ENV['LEIHS_DATABASE_URL'].presence)
-        # trick Addressable to parse db urls
-        http_uri = Addressable::URI.parse db_env.gsub(/^jdbc:postgresql/,'http').gsub(/^postgres/,'http')
-        db_url = 'postgres://' \
-          + (http_uri.user.presence || ENV['PGUSER'].presence || 'postgres') \
-          + ((pw = (http_uri.password.presence || ENV['PGPASSWORD'].presence)) ? ":#{pw}" : "") \
-          + '@' + (http_uri.host.presence || ENV['PGHOST'].presence || ENV['PGHOSTADDR'].presence || 'localhost') \
-          + ':' + (http_uri.port.presence || ENV['PGPORT'].presence || 5432).to_s \
-          + '/' + ( http_uri.path.presence.try(:gsub,/^\//,'') || ENV['PGDATABASE'].presence || 'leihs') \
-          + '?pool=5'
-      else
-        'postgresql://leihs:leihs@localhost:5432/leihs?pool=5'
-      end
-    )
+### sequel ####################################################################
+
+def db_name
+  ENV['DB_NAME'].presence || ENV['PGDATABASE'].presence || 'leihs'
 end
+
+def db_port
+  Integer(ENV['DB_PORT'].presence || ENV['PGPORT'].presence || 5432)
+end
+
+def db_con_str
+  logger = Logger.new(STDOUT)
+  s = 'postgres://' \
+    + (ENV['PGUSER'].presence || 'postgres') \
+    + ((pw = (ENV['DB_PASSWORD'].presence || ENV['PGPASSWORD'].presence)) ? ":#{pw}" : "") \
+    + '@' + (ENV['PGHOST'].presence || 'localhost') \
+    + ':' + (db_port).to_s \
+    + '/' + (db_name)
+  logger.info "SEQUEL CONN #{s}"
+  s
+end
+
+def database
+  @database ||= Sequel.connect(db_con_str)
+end
+
+###############################################################################
+
 
 database.extension :pg_json
 

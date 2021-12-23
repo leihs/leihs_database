@@ -2,9 +2,9 @@
 
 set -eux
 
-DATABASE_NAME=${DATABASE_NAME:-leihs_seeds}
+LEIHS_DATABASE_NAME=${LEIHS_DATABASE_NAME:-leihs_seeds}
 
-psql -c "DROP DATABASE IF EXISTS \"$DATABASE_NAME\";"
-createdb $DATABASE_NAME
-psql -d $DATABASE_NAME -f db/structure.sql
+psql -c "DROP DATABASE IF EXISTS \"$LEIHS_DATABASE_NAME\";"
+createdb $LEIHS_DATABASE_NAME
+psql -d $LEIHS_DATABASE_NAME -f db/structure.sql
 ./scripts/restore-seeds
