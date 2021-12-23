@@ -2,9 +2,9 @@
 
 set -eux
 
-DATABASE_NAME=${DATABASE_NAME:-leihs_seeds}
+LEIHS_DATABASE_NAME=${LEIHS_DATABASE_NAME:-leihs_seeds}
 
-pg_dump -a $DATABASE_NAME \
+pg_dump -a $LEIHS_DATABASE_NAME \
   --column-inserts \
   --disable-triggers \
   --no-owner \

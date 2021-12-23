@@ -74,10 +74,11 @@ GEM
     mail (2.7.1)
       mini_mime (>= 0.1.1)
     method_source (0.8.2)
-    mimemagic (0.3.7)
-      nokogiri (~> 1.11.2)
+    mimemagic (0.3.10)
+      nokogiri (~> 1)
+      rake
     mini_mime (1.0.1)
-    mini_portile2 (2.5.1)
+    mini_portile2 (2.6.1)
     minitest (5.14.4)
     monetize (1.7.0)
       money (~> 6.9)
@@ -89,8 +90,8 @@ GEM
       money (~> 6.9.0)
       railties (>= 3.0)
     nio4r (2.3.1)
-    nokogiri (1.11.4)
-      mini_portile2 (~> 2.5.0)
+    nokogiri (1.12.5)
+      mini_portile2 (~> 2.6.1)
       racc (~> 1.4)
     pg (0.21.0)
     pry (0.10.4)
@@ -98,7 +99,7 @@ GEM
       method_source (~> 0.8.1)
       slop (~> 3.4)
     public_suffix (3.0.3)
-    racc (1.5.2)
+    racc (1.6.0)
     rack (2.0.5)
     rack-test (0.6.3)
       rack (>= 1.0)
@@ -139,7 +140,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.7.0)
     rspec-support (3.7.1)
-    sequel (4.49.0)
+    sequel (5.52.0)
     slop (3.6.0)
     sprockets (3.7.2)
       concurrent-ruby (~> 1.0)
@@ -166,15 +167,15 @@ DEPENDENCIES
   exiftool_vendored
   factory_bot
   faker
-  mimemagic (= 0.3.7)
+  mimemagic (= 0.3.10)
   money-rails (~> 1.4)
   pg
   pg_tasks!
   pry
   rails
   rspec
-  sequel (~> 4.42, >= 4.42.1)
+  sequel
   uuidtools
 
 BUNDLED WITH
-   1.17.3
+   2.3.3
