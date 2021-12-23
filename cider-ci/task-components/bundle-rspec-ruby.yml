@@ -4,27 +4,25 @@ traits:
 
 scripts:
 
-  bundle-rspec-ruby:
+  database-bundle-rspec-ruby:
     exclusive_executor_resource: ruby-install_{{$RUBY}}
     timeout: 5 Minutes
     body: |
       #!/usr/bin/env bash
       set -eux
-
+      cd $LEIHS_DATABASE_DIR
       export PATH=~/.rubies/$RUBY/bin:$PATH
 
       if [ ! -d ~/.rubies/$RUBY ]; then
         ruby-install --no-install-deps $RUBY_ENGINE $RUBY_VERSION
       fi
 
-      if [ ! -f ~/.rubies/$RUBY/bin/bundle ]; then
-        gem install bundler
-      fi
+      gem install "bundler:${RUBY_BUNDLER_VERSION}"
 
       bundle install
 
   test:
     start_when:
       gems are bundled:
-        script_key: bundle-rspec-ruby
+        script_key: database-bundle-rspec-ruby
         states: [passed]

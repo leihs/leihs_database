@@ -1,38 +1,38 @@
 require 'active_support/all'
 require 'addressable'
+require 'logger'
 require 'ostruct'
 require 'sequel'
 require 'yaml'
 
 
-DB_ENV = ENV['LEIHS_DATABASE_URL'].presence || \
-  "postgresql://localhost:5432/leihs?max-pool-size=5"
+### sequel ####################################################################
 
-def http_uri
-  @http_uri ||= \
-    Addressable::URI.parse DB_ENV.gsub(/^jdbc:postgresql/,'http').gsub(/^postgres/,'http')
+def db_name
+  ENV['LEIHS_DATABASE_NAME'] || ENV['DB_NAME'] || 'leihs'
+end
+
+def db_port
+  Integer(ENV['DB_PORT'].presence || ENV['PGPORT'].presence || 5432)
+end
+
+def db_con_str
+  logger = Logger.new(STDOUT)
+  s = 'postgres://' \
+    + (ENV['PGUSER'].presence || 'postgres') \
+    + ((pw = (ENV['DB_PASSWORD'].presence || ENV['PGPASSWORD'].presence)) ? ":#{pw}" : "") \
+    + '@' + (ENV['PGHOST'].presence || 'localhost') \
+    + ':' + (db_port).to_s \
+    + '/' + (db_name)
+  logger.info "SEQUEL CONN #{s}"
+  s
 end
 
 def database
-  @database ||= \
-    Sequel.connect(
-      if DB_ENV
-        yml_path = 'config/database.yml'
-        if File.exists?(yml_path)
-          yml = YAML::load(IO.read(yml_path))
-          dbname_from_yml = yml.try(:[], 'test').try(:[], 'database')
-        end
-        'postgres://' \
-          + (http_uri.user.presence || ENV['PGUSER'].presence || 'postgres') \
-          + ((pw = (http_uri.password.presence || ENV['PGPASSWORD'].presence)) ? ":#{pw}" : "") \
-          + '@' + (http_uri.host.presence || ENV['PGHOST'].presence || ENV['PGHOSTADDR'].presence || 'localhost') \
-          + ':' + (http_uri.port.presence || ENV['PGPORT'].presence || 5432).to_s \
-          + '/' + ( http_uri.path.presence.try(:gsub,/^\//,'') || ENV['PGDATABASE'].presence || dbname_from_yml || 'leihs') \
-          + '?pool=5'
-      else
-        'postgresql://leihs:leihs@localhost:5432/leihs?pool=5'
-      end)
+  @database ||= Sequel.connect(db_con_str)
 end
+
+
 
 ################## NOTE #######################################
 database.extension :pg_json
@@ -57,6 +57,6 @@ end
 RSpec.configure do |config|
   config.before(:example)  do
     clean_db
-    system("DATABASE_NAME=#{http_uri.basename} ./scripts/restore-seeds")
+    system("LEIHS_DATABASE_NAME=#{db_name} ./scripts/restore-seeds")
   end
 end
