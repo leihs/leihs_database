@@ -2,18 +2,56 @@ traits:
   Ruby: true
 
 include:
-  - cider-ci/task-components/database/configure.yml
-  - cider-ci/task-components/database/delete.yml
+  - cider-ci/task-components/bundle-rspec-ruby.yml
 
 scripts:
 
-  create-database:
+  show-db-env:
+    body: |
+      #!/usr/bin/env bash
+      env | egrep '(^PG|^LEIHS_|^DATABASE_)' | sort
+
+  database-configure-rails-db:
+    start_when:
+      gems are bundled:
+        script_key: database-bundle-rspec-ruby
+        states: [passed]
+      showed-env:
+        script_key: show-db-env
+        states: [passed]
     body: |
       #!/usr/bin/env bash
       set -eux
-      createdb "$DATABASE_NAME"
-      psql -d "$DATABASE_NAME" -f db/structure.sql
-      DATABASE_NAME="$DATABASE_NAME" ./scripts/restore-seeds
+      export PATH=~/.rubies/$RUBY/bin:$PATH
+      cd $LEIHS_DATABASE_DIR
+      ruby cider-ci/scripts/configure-database.rb
+
+  create-database:
+    start_when:
+      db-configured:
+        # this is not a dependency anymore since we don't use rails
+        # we keep it for the time beeing
+        script_key: database-configure-rails-db
+        states: [passed]
+    body: |
+      #!/usr/bin/env bash
+      set -eux
+      createdb "$LEIHS_DATABASE_NAME"
+      psql -d "$LEIHS_DATABASE_NAME" -f $LEIHS_DATABASE_DIR/db/structure.sql
+      $LEIHS_DATABASE_DIR/scripts/restore-seeds
+
+  delete-database:
+    body: |
+      #!/usr/bin/env bash
+      set -eux
+      dropdb "$LEIHS_DATABASE_NAME"
+    start_when:
+      test is in terminal state:
+        script_key: test
+        states: [aborted, defective, passed, failed, skipped]
+      create-database is terminal:
+        script_key: create-database
+        states: [aborted, defective, passed, failed, skipped]
 
   test:
     start_when:

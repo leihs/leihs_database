@@ -2,8 +2,7 @@ traits:
   Ruby: true
 
 include:
-  - cider-ci/task-components/database/configure.yml
-  - cider-ci/task-components/database/delete.yml
+  - cider-ci/task-components/database.yml
 
 scripts:
 
@@ -11,7 +10,7 @@ scripts:
     body: |
       #!/usr/bin/env bash
       set -eux
-      createdb "$DATABASE_NAME"
+      createdb "$LEIHS_DATABASE_NAME"
 
   test:
     start_when:
