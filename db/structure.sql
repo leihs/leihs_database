@@ -87,6 +87,18 @@ COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UU
 
 
 --
+-- Name: order_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.order_status_enum AS ENUM (
+    'not_procured',
+    'in_progress',
+    'procured',
+    'alternative_procured'
+);
+
+
+--
 -- Name: access_rights_on_delete_f(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -812,6 +824,24 @@ CREATE FUNCTION public.ensure_general_room_cannot_be_deleted() RETURNS trigger
         RETURN NEW;
       END;
       $$;
+
+
+--
+-- Name: ensure_not_noll_order_status_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.ensure_not_noll_order_status_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF ( NEW.order_status IS NULL )
+  THEN
+    RAISE 'Order status for new or existing procurement requests can''t be null.';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
 
 
 --
@@ -2933,6 +2963,8 @@ CREATE TABLE public.procurement_requests (
     accounting_type character varying DEFAULT 'aquisition'::character varying NOT NULL,
     internal_order_number character varying,
     short_id text,
+    order_status public.order_status_enum DEFAULT 'not_procured'::public.order_status_enum,
+    order_comment text,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
     CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
     CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
@@ -5374,6 +5406,13 @@ CREATE TRIGGER delegations_users_on_insert_t INSTEAD OF INSERT ON public.delegat
 
 
 --
+-- Name: procurement_requests ensure_not_noll_order_status_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER ensure_not_noll_order_status_t AFTER INSERT OR UPDATE ON public.procurement_requests DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.ensure_not_noll_order_status_f();
+
+
+--
 -- Name: entitlement_groups_users entitlement_groups_users_on_delete_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6747,6 +6786,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('613'),
 ('614'),
 ('615'),
+('616'),
 ('7'),
 ('8'),
 ('9');
