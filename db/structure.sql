@@ -5089,7 +5089,10 @@ UNION
     rs.user_id,
     NULL::text AS purpose,
     ARRAY['APPROVED'::text] AS state,
-    'OPEN'::text AS rental_state,
+        CASE
+            WHEN (CURRENT_DATE > ALL (array_agg(rs.end_date))) THEN 'CLOSED'::text
+            ELSE 'OPEN'::text
+        END AS rental_state,
     min(rs.start_date) AS from_date,
     max(rs.end_date) AS until_date,
     array_agg(DISTINCT rs.inventory_pool_id) AS inventory_pool_ids,
@@ -5116,11 +5119,8 @@ UNION
     co.purpose,
     array_agg(DISTINCT upper(os.state)) AS state,
         CASE
-            WHEN ('unsubmitted'::text = ANY (array_agg(rs.status))) THEN 'OPEN'::text
-            WHEN ('submitted'::text = ANY (array_agg(rs.status))) THEN 'OPEN'::text
-            WHEN ('approved'::text = ANY (array_agg(rs.status))) THEN 'OPEN'::text
-            WHEN ('signed'::text = ANY (array_agg(rs.status))) THEN 'OPEN'::text
-            ELSE 'CLOSED'::text
+            WHEN every((((rs.status = 'submitted'::text) AND (CURRENT_DATE > rs.end_date)) OR ((rs.status = 'approved'::text) AND (CURRENT_DATE > rs.end_date)) OR (rs.status = ANY (ARRAY['closed'::text, 'rejected'::text, 'canceled'::text])))) THEN 'CLOSED'::text
+            ELSE 'OPEN'::text
         END AS rental_state,
     min(COALESCE((cs.created_at)::date, rs.start_date)) AS from_date,
     max(COALESCE(rs.returned_date, rs.end_date)) AS until_date,
@@ -5138,7 +5138,9 @@ UNION
     'customer_orders'::text AS origin_table
    FROM ((((((public.customer_orders co
      JOIN public.orders os ON ((os.customer_order_id = co.id)))
-     JOIN public.reservations rs ON ((rs.order_id = os.id)))
+     LEFT JOIN public.reservations rs ON (((rs.order_id = os.id) OR (rs.contract_id IN ( SELECT rs2.contract_id
+           FROM public.reservations rs2
+          WHERE (rs2.order_id = os.id))))))
      JOIN public.models ms ON ((rs.model_id = ms.id)))
      LEFT JOIN public.options ops ON ((rs.option_id = os.id)))
      LEFT JOIN public.items "is" ON ((rs.item_id = "is".id)))
@@ -6787,6 +6789,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('614'),
 ('615'),
 ('616'),
+('617'),
 ('7'),
 ('8'),
 ('9');
