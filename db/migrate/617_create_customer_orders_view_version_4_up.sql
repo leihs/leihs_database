@@ -124,11 +124,7 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          'customer_orders' AS origin_table
   FROM customer_orders AS co
   JOIN orders AS os ON os.customer_order_id = co.id
-  LEFT JOIN reservations rs ON rs.order_id = os.id OR (
-    rs.contract_id IN (
-      SELECT contract_id FROM reservations rs2 WHERE order_id = os.id
-    )
-  )
+  JOIN reservations AS rs ON rs.order_id = os.id
   JOIN models AS ms ON rs.model_id = ms.id
   LEFT JOIN options AS ops ON rs.option_id = os.id
   LEFT JOIN items AS "is" ON rs.item_id = "is".id
