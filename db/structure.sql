@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.19
--- Dumped by pg_dump version 10.19
+-- Dumped from database version 10.20
+-- Dumped by pg_dump version 10.20
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -168,6 +168,19 @@ BEGIN
     RETURN id2;
   END IF;
 END;
+$$;
+
+
+--
+-- Name: array_unique_no_nulls(anyarray); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.array_unique_no_nulls(arr anyarray) RETURNS anyarray
+    LANGUAGE sql
+    AS $$
+  SELECT ARRAY_AGG(DISTINCT a)
+  FROM ( SELECT UNNEST(arr) a ) tmp
+  WHERE a IS NOT NULL
 $$;
 
 
@@ -5119,32 +5132,31 @@ UNION
     co.purpose,
     array_agg(DISTINCT upper(os.state)) AS state,
         CASE
-            WHEN every((((rs.status = 'submitted'::text) AND (CURRENT_DATE > rs.end_date)) OR ((rs.status = 'approved'::text) AND (CURRENT_DATE > rs.end_date)) OR (rs.status = ANY (ARRAY['closed'::text, 'rejected'::text, 'canceled'::text])))) THEN 'CLOSED'::text
+            WHEN every((((rs.status = 'submitted'::text) AND (CURRENT_DATE > rs.end_date)) OR ((rs.status = 'approved'::text) AND (CURRENT_DATE > rs.end_date)) OR ((rs.status = ANY (ARRAY['closed'::text, 'rejected'::text, 'canceled'::text])) AND ((rs2.status IS NULL) OR (rs2.status = 'closed'::text))))) THEN 'CLOSED'::text
             ELSE 'OPEN'::text
         END AS rental_state,
-    min(COALESCE((cs.created_at)::date, rs.start_date)) AS from_date,
-    max(COALESCE(rs.returned_date, rs.end_date)) AS until_date,
+    min(COALESCE((cs.created_at)::date, rs.start_date, rs2.start_date)) AS from_date,
+    max(COALESCE(rs.returned_date, rs.end_date, rs2.end_date)) AS until_date,
     array_agg(DISTINCT os.inventory_pool_id) AS inventory_pool_ids,
     ((((((((((((((((((((((((((((COALESCE(co.purpose, ''::text) || ' '::text) || COALESCE(co.title, ''::text)) || ' '::text) || string_agg(COALESCE(cs.purpose, ''::text), ' '::text)) || ' '::text) || string_agg(COALESCE(cs.note, ''::text), ' '::text)) || ' '::text) || string_agg(COALESCE(cs.compact_id, ''::text), ' '::text)) || ' '::text) || string_agg(COALESCE((ms.id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((((COALESCE(ms.product, ''::character varying))::text || ' '::text) || (COALESCE(ms.version, ''::character varying))::text), ' '::text)) || ' '::text) || string_agg((COALESCE(ms.manufacturer, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg(COALESCE((ops.id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((((COALESCE(ops.product, ''::character varying))::text || ' '::text) || (COALESCE(ops.version, ''::character varying))::text), ' '::text)) || ' '::text) || string_agg((COALESCE(ops.manufacturer, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg((COALESCE(ops.inventory_code, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg(COALESCE(("is".id)::text, ''::text), ' '::text)) || ' '::text) || string_agg((COALESCE("is".inventory_code, ''::character varying))::text, ' '::text)) || ' '::text) || string_agg((COALESCE("is".serial_number, ''::character varying))::text, ' '::text)) AS searchable,
     ('approved'::text = ANY (array_agg(rs.status))) AS with_pickups,
-    ('signed'::text = ANY (array_agg(rs.status))) AS with_returns,
+    (('signed'::text = ANY (array_agg(rs.status))) OR ('signed'::text = ANY (array_agg(rs2.status)))) AS with_returns,
     co.created_at,
     co.updated_at,
     co.title,
     co.lending_terms_accepted,
     co.contact_details,
-    array_agg(rs.id) AS reservation_ids,
-    array_agg(DISTINCT rs.status) AS reservation_states,
+    public.array_unique_no_nulls((array_agg(rs.id) || array_agg(rs2.id))) AS reservation_ids,
+    public.array_unique_no_nulls((array_agg(rs.status) || array_agg(rs2.status))) AS reservation_states,
     'customer_orders'::text AS origin_table
-   FROM ((((((public.customer_orders co
+   FROM (((((((public.customer_orders co
      JOIN public.orders os ON ((os.customer_order_id = co.id)))
-     LEFT JOIN public.reservations rs ON (((rs.order_id = os.id) OR (rs.contract_id IN ( SELECT rs2.contract_id
-           FROM public.reservations rs2
-          WHERE (rs2.order_id = os.id))))))
+     JOIN public.reservations rs ON ((rs.order_id = os.id)))
      JOIN public.models ms ON ((rs.model_id = ms.id)))
-     LEFT JOIN public.options ops ON ((rs.option_id = os.id)))
      LEFT JOIN public.items "is" ON ((rs.item_id = "is".id)))
      LEFT JOIN public.contracts cs ON ((rs.contract_id = cs.id)))
+     LEFT JOIN public.reservations rs2 ON ((rs2.contract_id = cs.id)))
+     LEFT JOIN public.options ops ON (((rs2.option_id = ops.id) AND (rs2.order_id IS NULL))))
   GROUP BY co.id;
 
 

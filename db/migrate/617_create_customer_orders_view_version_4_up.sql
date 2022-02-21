@@ -1,3 +1,12 @@
+CREATE OR REPLACE FUNCTION public.array_unique_no_nulls(arr anyarray)
+RETURNS anyarray
+AS $BODY$
+  SELECT ARRAY_AGG(DISTINCT a)
+  FROM ( SELECT UNNEST(arr) a ) tmp
+  WHERE a IS NOT NULL
+$BODY$
+LANGUAGE 'sql';
+
 DROP VIEW unified_customer_orders;
 
 CREATE OR REPLACE VIEW unified_customer_orders AS
@@ -90,12 +99,12 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
            WHEN EVERY (
              (rs.status = 'submitted' AND CURRENT_DATE > rs.end_date) OR
              (rs.status = 'approved' AND CURRENT_DATE > rs.end_date) OR
-             (rs.status in ('closed', 'rejected', 'canceled'))
+             (rs.status in ('closed', 'rejected', 'canceled') AND (rs2.status IS NULL OR rs2.status = 'closed'))
            ) THEN 'CLOSED'
            ELSE 'OPEN'
          END AS rental_state,
-         MIN(COALESCE(cs.created_at::date, rs.start_date)) AS from_date,
-         MAX(COALESCE(rs.returned_date, rs.end_date)) AS until_date,
+         MIN(COALESCE(cs.created_at::date, rs.start_date, rs2.start_date)) AS from_date,
+         MAX(COALESCE(rs.returned_date, rs.end_date, rs2.end_date)) AS until_date,
          ARRAY_AGG(DISTINCT os.inventory_pool_id) AS inventory_pool_ids,
          ( COALESCE(co.purpose, '') || ' ' ||
            COALESCE(co.title, '') || ' ' ||
@@ -113,20 +122,21 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
            STRING_AGG(COALESCE("is".inventory_code, ''), ' ') || ' ' ||
            STRING_AGG(COALESCE("is".serial_number, ''), ' ') ) AS searchable,
         'approved' = ANY(ARRAY_AGG(rs.status)) AS with_pickups,
-        'signed' = ANY(ARRAY_AGG(rs.status)) AS with_returns,
+        'signed' = ANY(ARRAY_AGG(rs.status)) OR 'signed' = ANY(ARRAY_AGG(rs2.status)) AS with_returns,
          co.created_at,
          co.updated_at,
          co.title,
          co.lending_terms_accepted,
          co.contact_details,
-         ARRAY_AGG(rs.id) AS reservation_ids,
-         ARRAY_AGG(DISTINCT rs.status) AS reservation_states,
+         ARRAY_UNIQUE_NO_NULLS(ARRAY_AGG(rs.id) || ARRAY_AGG(rs2.id)) AS reservation_ids,
+         ARRAY_UNIQUE_NO_NULLS(ARRAY_AGG(rs.status) || ARRAY_AGG(rs2.status)) AS reservation_states,
          'customer_orders' AS origin_table
   FROM customer_orders AS co
   JOIN orders AS os ON os.customer_order_id = co.id
   JOIN reservations AS rs ON rs.order_id = os.id
   JOIN models AS ms ON rs.model_id = ms.id
-  LEFT JOIN options AS ops ON rs.option_id = os.id
   LEFT JOIN items AS "is" ON rs.item_id = "is".id
   LEFT JOIN contracts AS cs ON rs.contract_id = cs.id
+  LEFT JOIN reservations AS rs2 ON rs2.contract_id = cs.id
+  LEFT JOIN options AS ops ON rs2.option_id = ops.id AND rs2.order_id IS NULL
   GROUP BY co.id;
