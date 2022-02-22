@@ -119,14 +119,17 @@ CREATE OR REPLACE VIEW unified_customer_orders AS
          co.title,
          co.lending_terms_accepted,
          co.contact_details,
-         ARRAY_AGG(rs.id) AS reservation_ids,
+         ARRAY_AGG(DISTINCT rs.id) AS reservation_ids,
          ARRAY_AGG(DISTINCT rs.status) AS reservation_states,
          'customer_orders' AS origin_table
   FROM customer_orders AS co
   JOIN orders AS os ON os.customer_order_id = co.id
-  JOIN reservations AS rs ON rs.order_id = os.id
+  LEFT JOIN reservations rs1 ON rs1.order_id = os.id
+  LEFT JOIN reservations rs
+    ON rs.id = rs1.id OR
+       rs.contract_id = rs1.contract_id AND rs.order_id IS NULL
   JOIN models AS ms ON rs.model_id = ms.id
-  LEFT JOIN options AS ops ON rs.option_id = os.id
+  LEFT JOIN options AS ops ON rs.option_id = ops.id AND rs.order_id IS NULL
   LEFT JOIN items AS "is" ON rs.item_id = "is".id
   LEFT JOIN contracts AS cs ON rs.contract_id = cs.id
   GROUP BY co.id;

@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.19
--- Dumped by pg_dump version 10.19
+-- Dumped from database version 10.20
+-- Dumped by pg_dump version 10.20
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -5133,16 +5133,15 @@ UNION
     co.title,
     co.lending_terms_accepted,
     co.contact_details,
-    array_agg(rs.id) AS reservation_ids,
+    array_agg(DISTINCT rs.id) AS reservation_ids,
     array_agg(DISTINCT rs.status) AS reservation_states,
     'customer_orders'::text AS origin_table
-   FROM ((((((public.customer_orders co
+   FROM (((((((public.customer_orders co
      JOIN public.orders os ON ((os.customer_order_id = co.id)))
-     LEFT JOIN public.reservations rs ON (((rs.order_id = os.id) OR (rs.contract_id IN ( SELECT rs2.contract_id
-           FROM public.reservations rs2
-          WHERE (rs2.order_id = os.id))))))
+     LEFT JOIN public.reservations rs1 ON ((rs1.order_id = os.id)))
+     LEFT JOIN public.reservations rs ON (((rs.id = rs1.id) OR ((rs.contract_id = rs1.contract_id) AND (rs.order_id IS NULL)))))
      JOIN public.models ms ON ((rs.model_id = ms.id)))
-     LEFT JOIN public.options ops ON ((rs.option_id = os.id)))
+     LEFT JOIN public.options ops ON (((rs.option_id = ops.id) AND (rs.order_id IS NULL))))
      LEFT JOIN public.items "is" ON ((rs.item_id = "is".id)))
      LEFT JOIN public.contracts cs ON ((rs.contract_id = cs.id)))
   GROUP BY co.id;
