@@ -3137,10 +3137,6 @@ CREATE TABLE public.settings (
     ldap_config character varying,
     logo_url character varying,
     time_zone character varying DEFAULT 'Bern'::character varying NOT NULL,
-    disable_manage_section boolean DEFAULT false NOT NULL,
-    disable_manage_section_message text,
-    disable_borrow_section boolean DEFAULT false NOT NULL,
-    disable_borrow_section_message text,
     text text,
     timeout_minutes integer DEFAULT 30 NOT NULL,
     custom_head_tag text,
@@ -6789,6 +6785,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('615'),
 ('616'),
 ('617'),
+('618'),
 ('7'),
 ('8'),
 ('9');
