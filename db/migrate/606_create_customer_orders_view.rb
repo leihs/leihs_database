@@ -1,7 +1,7 @@
 class CreateCustomerOrdersView < ActiveRecord::Migration[5.0]
   def up
     execute <<~SQL
-      CREATE OR REPLACE VIEW unified_customer_orders AS
+      CREATE VIEW unified_customer_orders AS
         SELECT uuid_generate_v5(uuid_ns_dns(), 'customer_order_' || cs.id::text) AS id,
                cs.user_id,
                cs.purpose,
