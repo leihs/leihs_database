@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.19
--- Dumped by pg_dump version 10.19
+-- Dumped from database version 10.22
+-- Dumped by pg_dump version 10.22
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -202,6 +202,8 @@ INSERT INTO public.languages (name, locale, "default", active) VALUES ('English 
 INSERT INTO public.languages (name, locale, "default", active) VALUES ('English (US)', 'en-US', false, true);
 INSERT INTO public.languages (name, locale, "default", active) VALUES ('Deutsch', 'de-CH', false, true);
 INSERT INTO public.languages (name, locale, "default", active) VALUES ('Züritüütsch', 'gsw-CH', false, true);
+INSERT INTO public.languages (name, locale, "default", active) VALUES ('Castellano', 'es', false, false);
+INSERT INTO public.languages (name, locale, "default", active) VALUES ('Français (CH)', 'fr-CH', false, false);
 
 
 ALTER TABLE public.languages ENABLE TRIGGER ALL;
@@ -1120,6 +1122,332 @@ Kind regards,
 {{ inventory_pool.name }}
 {{ inventory_pool.description }}
 ', '2021-04-21 11:18:46.748278', '2021-04-21 11:18:46.748278', true, 'order', 'gsw-CH');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('76041eb2-061a-4aa9-8d32-3c4327dad7b2', NULL, 'reminder', 'text', 'Dear {{ user.name }},
+
+** This is an automatically generated response **
+
+The following items are overdue or need to be inspected:
+
+{{ quantity }} item(s) due on {{ due_date | date: ''%d/%m/%Y'' }} at the inventory pool {{ inventory_pool.name }}
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }} ({{ l.item_inventory_code }}), {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+== Are any of the above items your personal computer?
+
+We kindly ask you to contact us as soon as possible. Your computer might need an update.
+
+== "Are any of the above borrowed items?
+
+Since we did not receive any request for renewal, we consequently demand the return of the items without further delay.
+
+By not returning these items, you are blocking other people''s reservations. This is very unfair to the other clients and to the inventory manager, since you are causing a significant amount of trouble and annoyance.
+
+You might receive an admonishment and be subject to late fees as well as the restriction of borrowing privileges. In case of recurrence you might be barred from the reservation system for up to 6 months.
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2022-08-19 10:02:17.738895', '2022-08-19 10:02:17.738895', true, 'user', 'es');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('3ef10a4c-c101-4553-8757-2e8c4f3491b7', NULL, 'rejected', 'text', 'Dear {{ user.name }},
+
+** This is an automatically generated response **
+
+Your order was rejected for the following reason:
+
+Inventory pool: {{ inventory_pool.name }}
+
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+{{ comment }}
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2022-08-19 10:02:17.804802', '2022-08-19 10:02:17.804802', true, 'order', 'es');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('78b63877-30f7-4811-a9f8-ba75b0907637', NULL, 'rejected', 'text', 'Dear {{ user.name }},
+
+** This is an automatically generated response **
+
+Your order was rejected for the following reason:
+
+Inventory pool: {{ inventory_pool.name }}
+
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+{{ comment }}
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2022-08-19 10:02:17.807154', '2022-08-19 10:02:17.807154', true, 'order', 'fr-CH');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('3a0a7b70-e1a2-45b7-824e-4bc5ae89c757', NULL, 'reminder', 'text', 'Dear {{ user.name }},
+
+** This is an automatically generated response **
+
+The following items are overdue or need to be inspected:
+
+{{ quantity }} item(s) due on {{ due_date | date: ''%d/%m/%Y'' }} at the inventory pool {{ inventory_pool.name }}
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }} ({{ l.item_inventory_code }}), {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+== Are any of the above items your personal computer?
+
+We kindly ask you to contact us as soon as possible. Your computer might need an update.
+
+== "Are any of the above borrowed items?
+
+Since we did not receive any request for renewal, we consequently demand the return of the items without further delay.
+
+By not returning these items, you are blocking other people''s reservations. This is very unfair to the other clients and to the inventory manager, since you are causing a significant amount of trouble and annoyance.
+
+You might receive an admonishment and be subject to late fees as well as the restriction of borrowing privileges. In case of recurrence you might be barred from the reservation system for up to 6 months.
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2022-08-19 10:02:17.742412', '2022-08-19 10:02:17.742412', true, 'user', 'fr-CH');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('5a200443-d0fd-4a8c-8417-29593bb565af', NULL, 'deadline_soon_reminder', 'text', 'Dear {{ user.name }},
+
+** This is an automatically generated response **
+
+The following items are due to be returned tomorrow or need to be inspected:
+
+{{ quantity }} item(s) due on {{ due_date | date: ''%d/%m/%Y'' }} at the inventory pool {{ inventory_pool.name }}
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }} ({{ l.item_inventory_code }}), {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+== Are any of the above items your personal computer?
+
+We kindly ask you to contact us as soon as possible. Your computer might need an update.
+
+== "Are any of the above borrowed items?
+
+We are just sending you this little reminder because someone else is already waiting for some of these items.
+
+In the interest of all our clients we ask you to observe the return dates.
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2022-08-19 10:02:17.748175', '2022-08-19 10:02:17.748175', true, 'user', 'es');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('21fea574-3e8a-4bb9-8c73-26faa809bada', NULL, 'deadline_soon_reminder', 'text', 'Dear {{ user.name }},
+
+** This is an automatically generated response **
+
+The following items are due to be returned tomorrow or need to be inspected:
+
+{{ quantity }} item(s) due on {{ due_date | date: ''%d/%m/%Y'' }} at the inventory pool {{ inventory_pool.name }}
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }} ({{ l.item_inventory_code }}), {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+== Are any of the above items your personal computer?
+
+We kindly ask you to contact us as soon as possible. Your computer might need an update.
+
+== "Are any of the above borrowed items?
+
+We are just sending you this little reminder because someone else is already waiting for some of these items.
+
+In the interest of all our clients we ask you to observe the return dates.
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2022-08-19 10:02:17.749979', '2022-08-19 10:02:17.749979', true, 'user', 'fr-CH');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('745ab92c-0ec1-41ec-896a-5e06a0cc1c68', NULL, 'received', 'text', 'Dear leihs manager,
+
+** This is an automatically generated response **
+
+An order for the following items listed below was received in an inventory pool you are responsible for.
+
+Inventory pool: {{ inventory_pool.name }}
+User: {{ user.name }}
+
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+Purpose:
+{{ purpose }}
+
+This order is still pending. Please log in to your leihs system and either approve or reject it.
+
+The user who placed this order has received a similar e-mail message informing them that the order first needs to be approved before it is valid.
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2022-08-19 10:02:17.774905', '2022-08-19 10:02:17.774905', true, 'order', 'es');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('4b949422-52c9-497b-b7a9-c726a64c5e66', NULL, 'received', 'text', 'Dear leihs manager,
+
+** This is an automatically generated response **
+
+An order for the following items listed below was received in an inventory pool you are responsible for.
+
+Inventory pool: {{ inventory_pool.name }}
+User: {{ user.name }}
+
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+Purpose:
+{{ purpose }}
+
+This order is still pending. Please log in to your leihs system and either approve or reject it.
+
+The user who placed this order has received a similar e-mail message informing them that the order first needs to be approved before it is valid.
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2022-08-19 10:02:17.7778', '2022-08-19 10:02:17.7778', true, 'order', 'fr-CH');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('b7627dae-be7c-45a3-b614-b44f0efaee80', NULL, 'submitted', 'text', 'Dear {{ user.name }},
+
+** This is an automatically generated response **
+
+Your order for the following items listed below was successfully submitted.
+
+Inventory pool: {{ inventory_pool.name }}
+
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+Purpose:
+{{ purpose }}
+
+Unfortunately your order is still pending, but you will soon receive a confirmation of order by separate e-mail. You can view the status of your order through your leihs account.
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2022-08-19 10:02:17.785684', '2022-08-19 10:02:17.785684', true, 'order', 'es');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('e4eea6ad-2272-4faa-91d8-eb8c986b91c0', NULL, 'submitted', 'text', 'Dear {{ user.name }},
+
+** This is an automatically generated response **
+
+Your order for the following items listed below was successfully submitted.
+
+Inventory pool: {{ inventory_pool.name }}
+
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+Purpose:
+{{ purpose }}
+
+Unfortunately your order is still pending, but you will soon receive a confirmation of order by separate e-mail. You can view the status of your order through your leihs account.
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2022-08-19 10:02:17.787875', '2022-08-19 10:02:17.787875', true, 'order', 'fr-CH');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('2b265bcf-cd7e-490f-a22f-dec80ed72520', NULL, 'approved', 'text', 'Dear {{ user.name }},
+
+** This is an automatically generated response **
+
+Your order for the following items has been confirmed by the inventory manager:
+
+Inventory pool: {{ inventory_pool.name }}
+
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+{% if comment %}
+
+These are the comments of the inventory manager:
+
+{{ comment }}
+
+{% endif %}
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2022-08-19 10:02:17.795054', '2022-08-19 10:02:17.795054', true, 'order', 'es');
+INSERT INTO public.mail_templates (id, inventory_pool_id, name, format, body, created_at, updated_at, is_template_template, type, language_locale) VALUES ('6c2d9bc7-b50e-40c8-ade9-64180960259a', NULL, 'approved', 'text', 'Dear {{ user.name }},
+
+** This is an automatically generated response **
+
+Your order for the following items has been confirmed by the inventory manager:
+
+Inventory pool: {{ inventory_pool.name }}
+
+{% for l in reservations %}
+* {{ l.quantity }} {{ l.model_name }}, {{ l.start_date | date: ''%d/%m/%Y'' }} - {{ l.end_date | date: ''%d/%m/%Y'' }}
+{% endfor %}
+
+{% if comment %}
+
+These are the comments of the inventory manager:
+
+{{ comment }}
+
+{% endif %}
+
+Kind regards,
+
+{{ email_signature }}
+
+--
+{{ inventory_pool.name }}
+{{ inventory_pool.description }}
+', '2022-08-19 10:02:17.797556', '2022-08-19 10:02:17.797556', true, 'order', 'fr-CH');
 
 
 ALTER TABLE public.mail_templates ENABLE TRIGGER ALL;
