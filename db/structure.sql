@@ -5136,7 +5136,7 @@ UNION
      JOIN public.orders os ON ((os.customer_order_id = co.id)))
      LEFT JOIN public.reservations rs1 ON ((rs1.order_id = os.id)))
      LEFT JOIN public.reservations rs ON (((rs.id = rs1.id) OR ((rs.contract_id = rs1.contract_id) AND (rs.order_id IS NULL)))))
-     JOIN public.models ms ON ((rs.model_id = ms.id)))
+     LEFT JOIN public.models ms ON ((rs.model_id = ms.id)))
      LEFT JOIN public.options ops ON (((rs.option_id = ops.id) AND (rs.order_id IS NULL))))
      LEFT JOIN public.items "is" ON ((rs.item_id = "is".id)))
      LEFT JOIN public.contracts cs ON ((rs.contract_id = cs.id)))
@@ -6786,6 +6786,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('616'),
 ('617'),
 ('618'),
+('619'),
 ('7'),
 ('8'),
 ('9');
