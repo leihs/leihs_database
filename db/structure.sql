@@ -238,6 +238,28 @@ CREATE FUNCTION public.check_closed_reservations_contract_state() RETURNS trigge
 
 
 --
+-- Name: check_consistent_user_id_for_all_contained_orders_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_consistent_user_id_for_all_contained_orders_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM orders
+    WHERE orders.customer_order_id = NEW.id
+      AND orders.user_id != NEW.user_id
+  ) THEN
+    RAISE 'User ID of some of the contained orders differs.';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+
+--
 -- Name: check_contract_has_at_least_one_reservation(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -272,6 +294,25 @@ BEGIN
     ) THEN
     RAISE EXCEPTION 'Contract''s purpose can''t be NULL for this inventory pool.';
   END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: check_customer_orders_user_id_is_same_as_orders_user_id_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_customer_orders_user_id_is_same_as_orders_user_id_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF (
+    NEW.user_id != ( SELECT user_id FROM customer_orders WHERE id = NEW.customer_order_id )
+  ) THEN
+    RAISE 'User ID of respective customer order differs.';
+  END IF;
+
   RETURN NEW;
 END;
 $$;
@@ -1942,7 +1983,7 @@ CREATE TABLE public.direct_access_rights (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     role character varying NOT NULL,
-    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY (ARRAY[('customer'::character varying)::text, ('group_manager'::character varying)::text, ('lending_manager'::character varying)::text, ('inventory_manager'::character varying)::text])))
+    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY ((ARRAY['customer'::character varying, 'group_manager'::character varying, 'lending_manager'::character varying, 'inventory_manager'::character varying])::text[])))
 );
 
 
@@ -2220,7 +2261,7 @@ CREATE TABLE public.authentication_systems (
     external_sign_out_url text,
     sign_up_email_match text,
     CONSTRAINT check_shortcut_sing_in CHECK (((shortcut_sign_in_enabled = false) OR ((type)::text = 'external'::text))),
-    CONSTRAINT check_valid_type CHECK (((type)::text = ANY (ARRAY[('password'::character varying)::text, ('external'::character varying)::text]))),
+    CONSTRAINT check_valid_type CHECK (((type)::text = ANY ((ARRAY['password'::character varying, 'external'::character varying])::text[]))),
     CONSTRAINT simple_id CHECK (((id)::text ~ '^[a-z][a-z0-9_-]*$'::text))
 );
 
@@ -2966,13 +3007,13 @@ CREATE TABLE public.procurement_requests (
     order_status public.order_status_enum DEFAULT 'not_procured'::public.order_status_enum,
     order_comment text,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
-    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
+    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY ((ARRAY['normal'::character varying, 'high'::character varying])::text[]))),
     CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
     CONSTRAINT check_either_supplier_id_or_supplier_name CHECK ((((supplier_id IS NOT NULL) AND (supplier_name IS NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NOT NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NULL)))),
-    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY (ARRAY[('low'::character varying)::text, ('medium'::character varying)::text, ('high'::character varying)::text, ('mandatory'::character varying)::text]))),
+    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'mandatory'::character varying])::text[]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
     CONSTRAINT check_max_javascript_int CHECK (((price_cents)::double precision < ((2)::double precision ^ (52)::double precision))),
-    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY (ARRAY[('aquisition'::character varying)::text, ('investment'::character varying)::text]))),
+    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[]))),
     CONSTRAINT supplier_name_is_not_blank CHECK (((supplier_name)::text !~ '^\s*$'::text))
 );
 
@@ -5354,10 +5395,24 @@ CREATE TRIGGER audited_change_on_users AFTER INSERT OR DELETE OR UPDATE ON publi
 
 
 --
+-- Name: customer_orders check_consistent_user_id_for_all_contained_orders_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER check_consistent_user_id_for_all_contained_orders_t AFTER INSERT OR UPDATE ON public.customer_orders DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_consistent_user_id_for_all_contained_orders_f();
+
+
+--
 -- Name: contracts check_contracts_purpose_is_not_null_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER check_contracts_purpose_is_not_null_t AFTER INSERT OR UPDATE ON public.contracts FOR EACH ROW EXECUTE PROCEDURE public.check_contracts_purpose_is_not_null_f();
+
+
+--
+-- Name: orders check_customer_orders_user_id_is_same_as_orders_user_id_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER check_customer_orders_user_id_is_same_as_orders_user_id_t AFTER INSERT OR UPDATE ON public.orders DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_customer_orders_user_id_is_same_as_orders_user_id_f();
 
 
 --
@@ -6787,6 +6842,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('617'),
 ('618'),
 ('619'),
+('620'),
 ('7'),
 ('8'),
 ('9');
