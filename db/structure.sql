@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.20
--- Dumped by pg_dump version 10.20
+-- Dumped from database version 10.19
+-- Dumped by pg_dump version 10.19
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1983,7 +1983,7 @@ CREATE TABLE public.direct_access_rights (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     role character varying NOT NULL,
-    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY ((ARRAY['customer'::character varying, 'group_manager'::character varying, 'lending_manager'::character varying, 'inventory_manager'::character varying])::text[])))
+    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY (ARRAY[('customer'::character varying)::text, ('group_manager'::character varying)::text, ('lending_manager'::character varying)::text, ('inventory_manager'::character varying)::text])))
 );
 
 
@@ -2261,7 +2261,7 @@ CREATE TABLE public.authentication_systems (
     external_sign_out_url text,
     sign_up_email_match text,
     CONSTRAINT check_shortcut_sing_in CHECK (((shortcut_sign_in_enabled = false) OR ((type)::text = 'external'::text))),
-    CONSTRAINT check_valid_type CHECK (((type)::text = ANY ((ARRAY['password'::character varying, 'external'::character varying])::text[]))),
+    CONSTRAINT check_valid_type CHECK (((type)::text = ANY (ARRAY[('password'::character varying)::text, ('external'::character varying)::text]))),
     CONSTRAINT simple_id CHECK (((id)::text ~ '^[a-z][a-z0-9_-]*$'::text))
 );
 
@@ -3007,13 +3007,13 @@ CREATE TABLE public.procurement_requests (
     order_status public.order_status_enum DEFAULT 'not_procured'::public.order_status_enum,
     order_comment text,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
-    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY ((ARRAY['normal'::character varying, 'high'::character varying])::text[]))),
+    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
     CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
     CONSTRAINT check_either_supplier_id_or_supplier_name CHECK ((((supplier_id IS NOT NULL) AND (supplier_name IS NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NOT NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NULL)))),
-    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'mandatory'::character varying])::text[]))),
+    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY (ARRAY[('low'::character varying)::text, ('medium'::character varying)::text, ('high'::character varying)::text, ('mandatory'::character varying)::text]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
     CONSTRAINT check_max_javascript_int CHECK (((price_cents)::double precision < ((2)::double precision ^ (52)::double precision))),
-    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[]))),
+    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY (ARRAY[('aquisition'::character varying)::text, ('investment'::character varying)::text]))),
     CONSTRAINT supplier_name_is_not_blank CHECK (((supplier_name)::text !~ '^\s*$'::text))
 );
 
@@ -4412,6 +4412,13 @@ CREATE INDEX index_direct_access_rights_on_role ON public.direct_access_rights U
 
 
 --
+-- Name: index_direct_access_rights_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_direct_access_rights_on_user_id ON public.direct_access_rights USING btree (user_id);
+
+
+--
 -- Name: index_disabled_fields_on_field_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4941,6 +4948,13 @@ CREATE INDEX index_reservations_on_status ON public.reservations USING btree (st
 --
 
 CREATE INDEX index_reservations_on_type_and_contract_id ON public.reservations USING btree (type, contract_id);
+
+
+--
+-- Name: index_reservations_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_reservations_on_user_id ON public.reservations USING btree (user_id);
 
 
 --
@@ -6843,6 +6857,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('618'),
 ('619'),
 ('620'),
+('621'),
 ('7'),
 ('8'),
 ('9');
