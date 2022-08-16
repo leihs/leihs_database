@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.19
--- Dumped by pg_dump version 10.19
+-- Dumped from database version 10.21
+-- Dumped by pg_dump version 10.21
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -91,10 +91,11 @@ COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UU
 --
 
 CREATE TYPE public.order_status_enum AS ENUM (
-    'not_procured',
+    'not_processed',
     'in_progress',
     'procured',
-    'alternative_procured'
+    'alternative_procured',
+    'not_procured'
 );
 
 
@@ -3004,7 +3005,7 @@ CREATE TABLE public.procurement_requests (
     accounting_type character varying DEFAULT 'aquisition'::character varying NOT NULL,
     internal_order_number character varying,
     short_id text,
-    order_status public.order_status_enum DEFAULT 'not_procured'::public.order_status_enum,
+    order_status public.order_status_enum DEFAULT 'not_processed'::public.order_status_enum,
     order_comment text,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
     CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
@@ -6859,6 +6860,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('620'),
 ('621'),
 ('623'),
+('625'),
 ('7'),
 ('8'),
 ('9');
