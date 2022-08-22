@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.22
--- Dumped by pg_dump version 10.22
+-- Dumped from database version 10.19
+-- Dumped by pg_dump version 10.19
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2200,6 +2200,8 @@ CREATE TABLE public.audited_requests (
     method text,
     created_at timestamp with time zone DEFAULT now(),
     http_uid text,
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    tx2id uuid,
     CONSTRAINT check_absolute_path CHECK ((path ~ '^/.*$'::text))
 );
 
@@ -2211,7 +2213,9 @@ CREATE TABLE public.audited_requests (
 CREATE TABLE public.audited_responses (
     txid uuid NOT NULL,
     status integer NOT NULL,
-    created_at timestamp with time zone DEFAULT now()
+    created_at timestamp with time zone DEFAULT now(),
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    tx2id uuid
 );
 
 
@@ -3522,7 +3526,7 @@ ALTER TABLE ONLY public.audited_changes
 --
 
 ALTER TABLE ONLY public.audited_requests
-    ADD CONSTRAINT audited_requests_pkey PRIMARY KEY (txid);
+    ADD CONSTRAINT audited_requests_pkey PRIMARY KEY (id);
 
 
 --
@@ -3530,7 +3534,7 @@ ALTER TABLE ONLY public.audited_requests
 --
 
 ALTER TABLE ONLY public.audited_responses
-    ADD CONSTRAINT audited_responses_pkey PRIMARY KEY (txid);
+    ADD CONSTRAINT audited_responses_pkey PRIMARY KEY (id);
 
 
 --
@@ -4119,6 +4123,13 @@ CREATE INDEX audited_requests_method ON public.audited_requests USING btree (met
 
 
 --
+-- Name: audited_requests_tx2id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX audited_requests_tx2id ON public.audited_requests USING btree (tx2id);
+
+
+--
 -- Name: audited_requests_txid; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4137,6 +4148,13 @@ CREATE INDEX audited_requests_url ON public.audited_requests USING btree (path);
 --
 
 CREATE INDEX audited_requests_user_id ON public.audited_requests USING btree (user_id);
+
+
+--
+-- Name: audited_responses_tx2id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX audited_responses_tx2id ON public.audited_responses USING btree (tx2id);
 
 
 --
@@ -6859,6 +6877,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('619'),
 ('620'),
 ('621'),
+('622'),
 ('623'),
 ('625'),
 ('626'),

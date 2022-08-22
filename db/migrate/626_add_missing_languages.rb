@@ -33,8 +33,11 @@ class AddMissingLanguages < ActiveRecord::Migration[5.0]
       end
     end
   end
-    
+
   def up
+    MigrationLanguage.reset_column_information
+    MigrationMailTemplate.reset_column_information
+
     create_languages
 
     TEMPLATE_TEMPLATES.each do |name, type:, body:|
