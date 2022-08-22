@@ -18,8 +18,7 @@ jobs:
           RAILS_ENV: test
           RUBY: '{{RUBY_ENGINE}}-{{RUBY_VERSION}}'
           RUBY_ENGINE: ruby
-          RUBY_VERSION: 2.7.2
-          RUBY_BUNDLER_VERSION: 2.3.3
+          RUBY_VERSION: 2.7.6
         traits:
           Ruby: true
       tasks:
@@ -61,8 +60,7 @@ jobs:
           RAILS_ENV: test
           RUBY: '{{RUBY_ENGINE}}-{{RUBY_VERSION}}'
           RUBY_ENGINE: ruby
-          RUBY_VERSION: 2.7.2
-          RUBY_BUNDLER_VERSION: 2.3.3
+          RUBY_VERSION: 2.7.6
         traits:
           Ruby: true
         git_options:
