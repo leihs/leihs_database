@@ -11,10 +11,11 @@ FactoryBot.define do
     lastname { Faker::Name.unique.last_name }
     email { firstname + '.' + lastname + '@' + Faker::Internet.domain_name }
     password { Faker::Internet.password() }
-    admin_protected { rand < 0.5 }
-    system_admin_protected { admin_protected && (rand < 0.5) }
+    is_system_admin { (rand < 1/10) }
+    system_admin_protected { is_system_admin }
+    is_admin { is_system_admin }
+    admin_protected { is_admin }
     organization { Faker::Lorem.characters(number: 8) }
-
     after(:create) do |user|
       pw_hash = database["SELECT crypt(#{database.literal(user.password)}, " \
                          "gen_salt('bf')) AS pw_hash"].first[:pw_hash]
