@@ -5,8 +5,8 @@ class AdminProtection < ActiveRecord::Migration[5.0]
 
       BEGIN;
 
-      UPDATE users SET system_admin_protected = true WHERE is_system_admin = true;
       UPDATE users SET admin_protected = true WHERE is_admin = true;
+      UPDATE users SET system_admin_protected = true WHERE is_system_admin = true;
 
       COMMIT;
 
