@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.19
--- Dumped by pg_dump version 10.19
+-- Dumped from database version 10.22
+-- Dumped by pg_dump version 10.22
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -225,6 +225,21 @@ CREATE FUNCTION public.base32_crockford_str(n integer DEFAULT 10) RETURNS text
         FROM (values('0123456789ABCDEFGHJKMNPQRSTVWXYZ')) as symbols(characters)
           JOIN generate_series(1, n) on 1 = 1;
         $$;
+
+
+--
+-- Name: buildings_on_insert_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.buildings_on_insert_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+      BEGIN
+        INSERT INTO rooms(name, building_id, general)
+          VALUES ('general room', NEW.id, TRUE);
+        RETURN NEW;
+      END;
+      $$;
 
 
 --
@@ -5444,6 +5459,13 @@ CREATE TRIGGER audited_change_on_users AFTER INSERT OR DELETE OR UPDATE ON publi
 
 
 --
+-- Name: buildings buildings_on_insert_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER buildings_on_insert_t AFTER INSERT ON public.buildings NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.buildings_on_insert_f();
+
+
+--
 -- Name: customer_orders check_consistent_user_id_for_all_contained_orders_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6899,6 +6921,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('626'),
 ('627'),
 ('628'),
+('629'),
 ('7'),
 ('8'),
 ('9');
