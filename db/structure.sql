@@ -3224,7 +3224,9 @@ CREATE TABLE public.settings (
     lending_terms_url text,
     include_customer_email_in_contracts boolean DEFAULT false NOT NULL,
     show_contact_details_on_customer_order boolean DEFAULT false,
-    CONSTRAINT id_is_zero CHECK ((id = 0))
+    home_page_image_url character varying(2000),
+    CONSTRAINT id_is_zero CHECK ((id = 0)),
+    CONSTRAINT no_whitespace_characters_for_home_page_image_url_check CHECK (((home_page_image_url)::text !~ '^\s*$'::text))
 );
 
 
@@ -6922,6 +6924,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('627'),
 ('628'),
 ('629'),
+('630'),
 ('7'),
 ('8'),
 ('9');
