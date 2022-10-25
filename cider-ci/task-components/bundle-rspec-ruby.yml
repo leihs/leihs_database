@@ -5,8 +5,8 @@ traits:
 scripts:
 
   database-bundle-rspec-ruby:
-    exclusive_executor_resource: ruby-install_{{$RUBY}}
-    timeout: 5 Minutes
+    exclusive_executor_resource: ruby-install
+    timeout: 20 Minutes
     body: |
       #!/usr/bin/env bash
       set -eux
@@ -14,7 +14,9 @@ scripts:
       export PATH=~/.rubies/$RUBY/bin:$PATH
 
       if [ ! -d ~/.rubies/$RUBY ]; then
-        ruby-install --no-install-deps $RUBY_ENGINE $RUBY_VERSION
+        RUBY_INSTALL_SRC_DIR=/tmp/src-${RUBY}
+        rm -rf ${RUBY_INSTALL_SRC_DIR}
+        ruby-install --src-dir ${RUBY_INSTALL_SRC_DIR}} --no-install-deps $RUBY_ENGINE $RUBY_VERSION
       fi
 
       bundle install
