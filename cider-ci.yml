@@ -16,9 +16,6 @@ jobs:
         environment_variables:
           LEIHS_DATABASE_DIR: "{{CIDER_CI_WORKING_DIR}}"
           RAILS_ENV: test
-          RUBY: '{{RUBY_ENGINE}}-{{RUBY_VERSION}}'
-          RUBY_ENGINE: ruby
-          RUBY_VERSION: 2.7.6
         traits:
           Ruby: true
       tasks:
@@ -31,7 +28,6 @@ jobs:
               body: |
                 #!/usr/bin/env bash
                 set -exu
-                export PATH=~/.rubies/$RUBY/bin:$PATH
                 { pg_restore --version | grep -q '11.' ;} && psql -d $LEIHS_DATABASE_NAME -c "DROP SCHEMA IF EXISTS \"public\";"
                 pg_restore --disable-triggers -x -O -d $LEIHS_DATABASE_NAME db/structure_and_seeds.pgbin
                 if bundle exec rake db:migrate:status | grep -q -E "\s*down\s*\d*\s*"; then
@@ -58,9 +54,6 @@ jobs:
           LEIHS_DATABASE_DIR: "{{CIDER_CI_WORKING_DIR}}"
           LEIHS_DATABASE_NAME: leihs_{{CIDER_CI_TRIAL_ID}}
           RAILS_ENV: test
-          RUBY: '{{RUBY_ENGINE}}-{{RUBY_VERSION}}'
-          RUBY_ENGINE: ruby
-          RUBY_VERSION: 2.7.6
         traits:
           Ruby: true
         git_options:
@@ -71,8 +64,6 @@ jobs:
             body: |
               #!/usr/bin/env bash
               set -euxo
-              env | sort
-              export PATH=~/.rubies/$RUBY/bin:$PATH
               mkdir -p log
               bundle exec rspec --backtrace $CIDER_CI_TASK_FILE
   good-to-merge:

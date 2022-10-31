@@ -1,5 +1,6 @@
 traits:
   Ruby: true
+  asdf-ruby: true
 
 include:
   - cider-ci/task-components/bundle-rspec-ruby.yml
@@ -22,7 +23,6 @@ scripts:
     body: |
       #!/usr/bin/env bash
       set -eux
-      export PATH=~/.rubies/$RUBY/bin:$PATH
       cd $LEIHS_DATABASE_DIR
       ruby cider-ci/scripts/configure-database.rb
 

@@ -11,9 +11,6 @@ task_defaults:
       include_match: ^.*$
 
   environment_variables:
-    RUBY_ENGINE: ruby
-    RUBY_VERSION: 2.7.6
-    RUBY: '{{RUBY_ENGINE}}-{{RUBY_VERSION}}'
     RAILS_ENV: test
     LEIHS_DATABASE_NAME: "leihs_{{CIDER_CI_TRIAL_ID}}"
 
