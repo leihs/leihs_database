@@ -9,7 +9,7 @@ class MigrateMailTemplates < ActiveRecord::Migration[5.0]
   class MigrationMailTemplate < ActiveRecord::Base
     self.inheritance_column = nil
     self.table_name = 'mail_templates'
-    belongs_to :inventory_pool
+    # belongs_to :inventory_pool
   end
 
   class MigrationLanguage < ActiveRecord::Base

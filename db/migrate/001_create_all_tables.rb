@@ -351,13 +351,10 @@ class CreateAllTables < ActiveRecord::Migration[4.2]
       t.string   :manufacturer
       t.string   :product,             :null => false
       t.string   :version
-      t.string   :description
-      t.string   :internal_description
       t.string   :info_url
       t.decimal  :rental_price,        :precision => 8, :scale => 2
       t.integer  :maintenance_period,  :default => 0
       t.boolean  :is_package,          :default => false
-      t.string   :technical_detail
       t.text     :hand_over_note
       t.text     :description
       t.text     :internal_description

@@ -13,7 +13,7 @@ class CreateAndMigrateRooms < ActiveRecord::Migration[4.2]
 
   class MigrationLocation < ActiveRecord::Base
     self.table_name = 'locations'
-    belongs_to :item, class_name: MigrationItem
+    belongs_to :item, class_name: 'MigrationItem'
   end
 
   def up
