@@ -82,16 +82,16 @@ class AddDelegationsConstraints < ActiveRecord::Migration[5.0]
     MigrationDelegation.without_name.or(MigrationDelegation.without_responsible_user).each do |d|
       if d.firstname.blank? and d.delegator_user_id.blank?
         ru = d.delegated_users.first
-        d.update_attributes!(firstname: "VERIFY NAME & VERIFY RESPONSIBLE USER",
+        d.update!(firstname: "VERIFY NAME & VERIFY RESPONSIBLE USER",
                              delegator_user_id: ru.id)
 
       elsif d.firstname.blank?
         ru = d.delegated_users.first
-        d.update_attributes!(firstname: "VERIFY NAME")
+        d.update!(firstname: "VERIFY NAME")
 
       elsif d.delegator_user_id.blank?
         ru = d.delgated_users.first
-        d.update_attributes!(firstname: "VERIFY RESPONSIBLE USER: #{d.firstname}",
+        d.update!(firstname: "VERIFY RESPONSIBLE USER: #{d.firstname}",
                              delegator_user_id: ru.id)
       end
     end

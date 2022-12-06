@@ -71,7 +71,7 @@ class ProcurementExiftoolJsonMetadata < ActiveRecord::Migration[5.0]
         JSON
         .parse(`exiftool #{EXIFTOOL_OPTIONS} #{Shellwords.escape f.path}`)
         .first
-      entity.update_attributes!(metadata: h,
+      entity.update!(metadata: h,
                                 exiftool_version: EXIFTOOL_VERSION,
                                 exiftool_options: EXIFTOOL_OPTIONS)
       File.delete(path)

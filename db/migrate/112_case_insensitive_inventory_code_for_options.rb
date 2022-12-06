@@ -22,19 +22,19 @@ class CaseInsensitiveInventoryCodeForOptions < ActiveRecord::Migration[4.2]
               'ZHdK-Inventar']
     ).each do |mp|
       mp.migration_options.each do |mo|
-        mo.update_attributes! inventory_code: "#{mp.name} / #{mo.inventory_code}"
+        mo.update! inventory_code: "#{mp.name} / #{mo.inventory_code}"
       end
     end
 
     MigrationOption.where("inventory_code ~ '^\s*$'").each do |mo|
-      mo.update_attributes! inventory_code: nil
+      mo.update! inventory_code: nil
     end
 
     MigrationOption.where("inventory_code IS NULL").each_with_index do |mo, idx|
       message = "Updating inventory_code from NULL to #{sprintf('%05d',idx)}"
       Rails.logger.warn message
       puts message
-      mo.update_attributes! inventory_code: sprintf('%05d',idx)
+      mo.update! inventory_code: sprintf('%05d',idx)
     end
 
     MigrationOption.select("lower(inventory_code) AS lic") \
@@ -43,7 +43,7 @@ class CaseInsensitiveInventoryCodeForOptions < ActiveRecord::Migration[4.2]
         message = "Updating inventory_code of '#{mo.product}' in '#{mo.migration_inventory_pool.name}' from '#{mo.inventory_code}' to  '#{mo.inventory_code}_#{idx}'"
         Rails.logger.warn message
         puts message
-        mo.update_attributes! inventory_code: "#{mo.inventory_code}_#{idx}"
+        mo.update! inventory_code: "#{mo.inventory_code}_#{idx}"
       end
     end
 

@@ -8,7 +8,7 @@ class CaseInsensitiveInventoryCodeForItems < ActiveRecord::Migration[4.2]
     MigrationItem.select("count(*) as c, lower(inventory_code) AS lic") \
       .group("lower(inventory_code)").having("count(*) > 1").map(&:lic).each do |lic|
       MigrationItem.where("lower(inventory_code) = ?", lic).each_with_index do |mi,idx|
-        mi.update_attributes! inventory_code: "#{mi.inventory_code}_#{idx}"
+        mi.update! inventory_code: "#{mi.inventory_code}_#{idx}"
       end
     end
     execute <<-SQL

@@ -16,7 +16,7 @@ class CreateCustomerOrdersForLooseOrders < ActiveRecord::Migration[5.0]
                                           title: o.purpose,
                                           created_at: o.created_at,
                                           updated_at: o.updated_at)
-      o.update_attributes!(customer_order_id: co.id)
+      o.update!(customer_order_id: co.id)
     end
 
     change_column(:orders, :customer_order_id, :uuid, null: false)

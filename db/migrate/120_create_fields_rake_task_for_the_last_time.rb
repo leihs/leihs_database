@@ -12,7 +12,7 @@ class CreateFieldsRakeTaskForTheLastTime < ActiveRecord::Migration[5.0]
 			.map{|f| f.except(:dynamic)}.each do |field|
 
 			if mf = MigrationField.find_by_id(field[:id])
-				mf.update_attributes! field.except(:id)
+				mf.update! field.except(:id)
 			else
 				MigrationField.create!(field)
 			end

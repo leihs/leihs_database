@@ -17,7 +17,7 @@ class AddTimestamps < ActiveRecord::Migration[5.0]
       add_column table, :updated_at, :datetime
 
       klass.all.each do |i|
-        i.update_attributes!(updated_at: i.created_at)
+        i.update!(updated_at: i.created_at)
       end
 
       execute "ALTER TABLE #{table} ALTER COLUMN updated_at SET DEFAULT now()"

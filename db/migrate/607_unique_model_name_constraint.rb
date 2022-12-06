@@ -13,7 +13,7 @@ class UniqueModelNameConstraint < ActiveRecord::Migration[5.0]
       next if models.count == 1
       models.sort_by(&:created_at).each_with_index do |model, index|
         version = [model.version.presence, index.succ.to_i].compact.join(" ")
-        model.update_attributes!(version: version)
+        model.update!(version: version)
       end
     end
 

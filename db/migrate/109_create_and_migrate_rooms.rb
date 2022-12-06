@@ -77,7 +77,7 @@ class CreateAndMigrateRooms < ActiveRecord::Migration[4.2]
       room_attrs.merge!(general: true) if location.room == 'general room'
       room ||= MigrationRoom.create!(room_attrs)
 
-      location.update_attributes!(room_id: room.id)
+      location.update!(room_id: room.id)
     end
 
     ######################## MOVE LOCATIONS TO ITEMS ##############################

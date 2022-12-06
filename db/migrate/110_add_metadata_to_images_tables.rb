@@ -67,7 +67,7 @@ class AddMetadataToImagesTables < ActiveRecord::Migration[4.2]
       f.write(Base64.decode64(entity.content).force_encoding('UTF-8'))
       f.close
       h = ::MetadataExtractor.new(path).to_hash
-      entity.update_attributes!(metadata: h)
+      entity.update!(metadata: h)
       File.delete(path)
     else
       puts "No content!"
