@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/leihs/rails_pg-tasks
-  revision: c9dc3b3c8a7059f6523256714bb58b36f2b98749
+  revision: 674fdf0b7f51b0327e909e2d3c5338a76472313f
   branch: mk/rails-6.1
   specs:
     pg_tasks (2.2.0.pre.0)
@@ -119,12 +119,12 @@ GEM
       net-protocol
     net-pop (0.1.2)
       net-protocol
-    net-protocol (0.2.0)
+    net-protocol (0.2.1)
       timeout
     net-smtp (0.3.3)
       net-protocol
     nio4r (2.5.8)
-    nokogiri (1.13.9)
+    nokogiri (1.13.10)
       mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
     pg (1.3.5)
