@@ -9,7 +9,7 @@ class AddMissingLanguages < ActiveRecord::Migration[5.0]
   class MigrationMailTemplate < ActiveRecord::Base
     self.inheritance_column = nil
     self.table_name = 'mail_templates'
-    belongs_to :inventory_pool
+    belongs_to :inventory_pool, optional: true
   end
 
   class MigrationLanguage < ActiveRecord::Base
@@ -40,7 +40,10 @@ class AddMissingLanguages < ActiveRecord::Migration[5.0]
 
     create_languages
 
-    TEMPLATE_TEMPLATES.each do |name, type:, body:|
+    TEMPLATE_TEMPLATES.each do |name, attrs|
+      type = attrs[:type]
+      body = attrs[:body]
+
       base_attrs = {
         name: name,
         type: type,

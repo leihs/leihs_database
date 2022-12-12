@@ -59,7 +59,10 @@ class MigrateMailTemplates < ActiveRecord::Migration[5.0]
       template.update!(type: TEMPLATE_TEMPLATES[template.name.to_sym][:type])
     end
 
-    TEMPLATE_TEMPLATES.each do |name, type:, body:|
+    TEMPLATE_TEMPLATES.each do |name, attrs|
+      type = attrs[:type]
+      body = attrs[:body]
+
       base_attrs = {
         name: name,
         type: type,
