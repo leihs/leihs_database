@@ -4,6 +4,9 @@ script_defaults:
 
 task_defaults:
 
+  traits:
+    'PostgreSQL 10': true
+
   include: cider-ci/task-components/bundle-rspec-ruby.yml
 
   git_options:
@@ -18,13 +21,6 @@ task_defaults:
     screenshots:
       include_match: tmp\/capybara\/.*\.png$
       content_type: image/png
-    logs:
-      include_match: log\/.*\.log$
-      content_type: text/plain
-    debugging:
-      include_match: tmp\/attach\/.*\.tar(\.gz)?$
-      content_type: application/octet-stream
-
 
   tree_attachments:
     deprecation-warnings:

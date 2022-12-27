@@ -1,6 +1,6 @@
 traits:
   Ruby: true
-  asdf-ruby: true
+  PostgreSQL 10: true
 
 include:
   - cider-ci/task-components/bundle-rspec-ruby.yml
@@ -22,9 +22,9 @@ scripts:
         states: [passed]
     body: |
       #!/usr/bin/env bash
-      set -eux
+      set -euo pipefail
       cd $LEIHS_DATABASE_DIR
-      ruby cider-ci/scripts/configure-database.rb
+      ./bin/ruby cider-ci/scripts/configure-database.rb
 
   create-database:
     start_when:
@@ -35,16 +35,20 @@ scripts:
         states: [passed]
     body: |
       #!/usr/bin/env bash
-      set -eux
-      createdb "$LEIHS_DATABASE_NAME"
-      psql -d "$LEIHS_DATABASE_NAME" -f $LEIHS_DATABASE_DIR/db/structure.sql
-      $LEIHS_DATABASE_DIR/scripts/restore-seeds
+      set -euo pipefail
+      unset PGPORT
+      unset PGUSER
+      createdb -p "${PG10PORT}" -U "${PG10USER}" "$LEIHS_DATABASE_NAME"
+      psql -p "${PG10PORT}" -U "${PG10USER}" -d "$LEIHS_DATABASE_NAME" -f $LEIHS_DATABASE_DIR/db/structure.sql
+      PGPORT="${PG10PORT}" PGUSER="${PG10USER}" $LEIHS_DATABASE_DIR/scripts/restore-seeds
 
   delete-database:
     body: |
       #!/usr/bin/env bash
-      set -eux
-      dropdb "$LEIHS_DATABASE_NAME"
+      set -euo pipefail
+      unset PGPORT
+      unset PGUSER
+      dropdb -p "${PG10PORT}" -U "${PG10USER}" "$LEIHS_DATABASE_NAME"
     start_when:
       test is in terminal state:
         script_key: test

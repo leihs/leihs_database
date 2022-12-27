@@ -1,6 +1,5 @@
 traits:
-  asdf-ruby: true
-  Bash: true
+  asdf: true
 
 scripts:
 
@@ -9,15 +8,9 @@ scripts:
     timeout: 20 Minutes
     body: |
       #!/usr/bin/env bash
-      set -eux
+      set -euo pipefail
       cd $LEIHS_DATABASE_DIR
-      if [[ ! -d ~/.asdf/plugins/ruby ]]; then
-        asdf plugin add ruby https://github.com/asdf-vm/asdf-ruby.git
-      else
-        asdf plugin update ruby
-      fi
-      asdf install ruby
-      bundle install
+      ./bin/env/ruby-setup
 
   test:
     start_when:

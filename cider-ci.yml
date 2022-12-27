@@ -27,8 +27,7 @@ jobs:
             test:
               body: |
                 #!/usr/bin/env bash
-                set -exu
-                { pg_restore --version | grep -q '11.' ;} && psql -d $LEIHS_DATABASE_NAME -c "DROP SCHEMA IF EXISTS \"public\";"
+                set -euo pipefail
                 pg_restore --disable-triggers -x -O -d $LEIHS_DATABASE_NAME db/structure_and_seeds.pgbin
                 if bundle exec rake db:migrate:status | grep -q -E "\s*down\s*\d*\s*"; then
                   echo "Run ./scripts/migrate-and-dump-seeds"
@@ -63,9 +62,12 @@ jobs:
           test:
             body: |
               #!/usr/bin/env bash
-              set -euxo
+              set -euo pipefail
+              cd ${LEIHS_DATABASE_DIR}
               mkdir -p log
-              bundle exec rspec --backtrace $CIDER_CI_TASK_FILE
+              unset PGPORT
+              unset PGUSER
+              PGUSER="${PG10USER}" PGPORT="${PG10PORT}" ./bin/rspec --backtrace $CIDER_CI_TASK_FILE
   good-to-merge:
     name: Good To Merge
     description: |

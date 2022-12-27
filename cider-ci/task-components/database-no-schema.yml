@@ -1,6 +1,3 @@
-traits:
-  Ruby: true
-
 include:
   - cider-ci/task-components/database.yml
 
@@ -9,8 +6,10 @@ scripts:
   create-database:
     body: |
       #!/usr/bin/env bash
-      set -eux
-      createdb "$LEIHS_DATABASE_NAME"
+      set -euo pipefail
+      unset PGPORT
+      unset PGUSER
+      createdb -p "${PG10PORT}" -U "${PG10USER}" "$LEIHS_DATABASE_NAME"
 
   test:
     start_when:
