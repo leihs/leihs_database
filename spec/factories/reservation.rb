@@ -1,6 +1,10 @@
 class Reservation < Sequel::Model
   many_to_one(:leihs_model, key: :model_id)
   many_to_one(:order)
+  many_to_one(:inventory_pool)
+  many_to_one(:user)
+  many_to_one(:contract)
+  many_to_one(:item)
 end
 
 FactoryBot.define do

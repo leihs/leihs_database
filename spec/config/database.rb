@@ -60,3 +60,11 @@ RSpec.configure do |config|
     system("LEIHS_DATABASE_NAME=#{db_name} ./scripts/restore-seeds")
   end
 end
+
+def with_disabled_triggers
+  database.run 'SET session_replication_role = replica;'
+  result = yield
+  database.run 'SET session_replication_role = DEFAULT;'
+  result
+end
+

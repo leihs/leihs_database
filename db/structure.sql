@@ -678,6 +678,28 @@ $$;
 
 
 --
+-- Name: check_unique_start_date_for_same_contract_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_unique_start_date_for_same_contract_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+      BEGIN
+        IF EXISTS (
+          SELECT TRUE
+          FROM reservations
+          WHERE contract_id = NEW.contract_id
+            AND start_date <> NEW.start_date
+          )
+          THEN RAISE EXCEPTION
+            'Start date must be same for all reservations of the same contract.';
+        END IF;
+        RETURN NEW;
+      END;
+      $$;
+
+
+--
 -- Name: clean_email(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -5427,6 +5449,13 @@ CREATE CONSTRAINT TRIGGER check_responsible_user_is_not_delegation_t AFTER INSER
 
 
 --
+-- Name: reservations check_unique_start_date_for_same_contract_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER check_unique_start_date_for_same_contract_t AFTER INSERT OR UPDATE ON public.reservations NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.check_unique_start_date_for_same_contract_f();
+
+
+--
 -- Name: users clean_email; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6829,6 +6858,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('632'),
 ('633'),
 ('634'),
+('635'),
 ('7'),
 ('8'),
 ('9');
