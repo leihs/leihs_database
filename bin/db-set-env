@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PROJECT_DIR="$(cd -- "$(dirname "${BASH_SOURCE}")" ; cd .. > /dev/null 2>&1 && pwd -P)"
+
+if [ ! -e $PROJECT_DIR/config/database.yml ]; then
+  ln -s $PROJECT_DIR/config/database_dev.yml $PROJECT_DIR/config/database.yml
+fi
+
+DBCONFIG=$(bundle exec rails runner "print(ActiveRecord::Base.configurations[Rails.env].to_json) & STDOUT.flush")
+PGDATABASE=$(echo $DBCONFIG | jq -r .database)
+PGPORT=$(echo $DBCONFIG | jq -r .port)
+PGUSER=$(echo $DBCONFIG | jq -r .username)
+PGPASSWORD=$(echo $DBCONFIG | jq -r .password)
+J=$(ruby -e "require 'etc'; print((Etc.nprocessors/2.0).ceil) & STDOUT.flush")
+echo "PGDATABASE=$PGDATABASE"
+echo "PGPORT=$PGPORT"
+echo "PGUSER=$PGUSER"
+echo "PGPASSWORD=$PGPASSWORD"
+echo "J=$J"
+
+
+function terminate_connections {
+psql -d template1  <<SQL
+  SELECT pg_terminate_backend(pg_stat_activity.pid) 
+    FROM pg_stat_activity 
+    WHERE pg_stat_activity.datname = '$PGDATABASE' 
+      AND pid <> pg_backend_pid();
+SQL
+}
+
+function set_dev_and_debug_values {
+psql -d $PGDATABASE <<SQL 
+  UPDATE system_and_security_settings 
+    SET external_base_url = 'http://localhost:3200',
+        sessions_force_secure = FALSE;
+  UPDATE smtp_settings
+    SET enabled = FALSE;
+
+  INSERT INTO users (email) VALUES ('root@localhost') ON CONFLICT DO NOTHING;
+
+  UPDATE users 
+    SET is_admin = true, 
+    admin_protected = true,
+    is_system_admin = true, 
+    system_admin_protected = true,
+    account_enabled = true, 
+    password_sign_in_enabled = true
+    WHERE email = 'root@localhost';
+
+  INSERT INTO authentication_systems_users 
+    (user_id, authentication_system_id) 
+    SELECT users.id, 'password' FROM users 
+    WHERE users.email = 'root@localhost'
+    ON CONFLICT DO NOTHING;
+
+  UPDATE authentication_systems_users
+    SET data = crypt('secret', gen_salt('bf'))
+    WHERE user_id IN (SELECT users.id FROM users WHERE email = 'root@localhost');
+SQL
+echo '# The database has been adjusted for debugging and development'
+echo '# SMPT sending is turned off; the external_base_url is set to http://localhost:3200'
+echo "# you can sign in as 'root@localhost' with the password 'secret' "
+}

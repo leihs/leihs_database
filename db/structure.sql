@@ -2006,7 +2006,7 @@ CREATE TABLE public.direct_access_rights (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     role character varying NOT NULL,
-    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY (ARRAY[('customer'::character varying)::text, ('group_manager'::character varying)::text, ('lending_manager'::character varying)::text, ('inventory_manager'::character varying)::text])))
+    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY ((ARRAY['customer'::character varying, 'group_manager'::character varying, 'lending_manager'::character varying, 'inventory_manager'::character varying])::text[])))
 );
 
 
@@ -2170,8 +2170,8 @@ CREATE TABLE public.api_tokens (
 CREATE TABLE public.ar_internal_metadata (
     key character varying NOT NULL,
     value character varying,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -2288,7 +2288,7 @@ CREATE TABLE public.authentication_systems (
     external_sign_out_url text,
     sign_up_email_match text,
     CONSTRAINT check_shortcut_sing_in CHECK (((shortcut_sign_in_enabled = false) OR ((type)::text = 'external'::text))),
-    CONSTRAINT check_valid_type CHECK (((type)::text = ANY (ARRAY[('password'::character varying)::text, ('external'::character varying)::text]))),
+    CONSTRAINT check_valid_type CHECK (((type)::text = ANY ((ARRAY['password'::character varying, 'external'::character varying])::text[]))),
     CONSTRAINT simple_id CHECK (((id)::text ~ '^[a-z][a-z0-9_-]*$'::text))
 );
 
@@ -2762,14 +2762,14 @@ CREATE TABLE public.models (
     manufacturer character varying,
     product character varying NOT NULL,
     version character varying,
-    description text,
-    internal_description text,
     info_url character varying,
     rental_price numeric(8,2),
     maintenance_period integer DEFAULT 0,
     is_package boolean DEFAULT false,
-    technical_detail text,
     hand_over_note text,
+    description text,
+    internal_description text,
+    technical_detail text,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     cover_image_id uuid
@@ -2891,7 +2891,7 @@ CREATE TABLE public.procurement_budget_limits (
     budget_period_id uuid NOT NULL,
     main_category_id uuid NOT NULL,
     amount_cents integer DEFAULT 0 NOT NULL,
-    amount_currency character varying DEFAULT 'GBP'::character varying NOT NULL
+    amount_currency character varying DEFAULT 'USD'::character varying NOT NULL
 );
 
 
@@ -3017,7 +3017,7 @@ CREATE TABLE public.procurement_requests (
     approved_quantity integer,
     order_quantity integer,
     price_cents bigint DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'GBP'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
     priority character varying DEFAULT 'normal'::character varying NOT NULL,
     replacement boolean DEFAULT true NOT NULL,
     supplier_name character varying,
@@ -3034,13 +3034,13 @@ CREATE TABLE public.procurement_requests (
     order_status public.order_status_enum DEFAULT 'not_processed'::public.order_status_enum,
     order_comment text,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
-    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
+    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY ((ARRAY['normal'::character varying, 'high'::character varying])::text[]))),
     CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
     CONSTRAINT check_either_supplier_id_or_supplier_name CHECK ((((supplier_id IS NOT NULL) AND (supplier_name IS NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NOT NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NULL)))),
-    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY (ARRAY[('low'::character varying)::text, ('medium'::character varying)::text, ('high'::character varying)::text, ('mandatory'::character varying)::text]))),
+    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'mandatory'::character varying])::text[]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
     CONSTRAINT check_max_javascript_int CHECK (((price_cents)::double precision < ((2)::double precision ^ (52)::double precision))),
-    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY (ARRAY[('aquisition'::character varying)::text, ('investment'::character varying)::text]))),
+    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[]))),
     CONSTRAINT supplier_name_is_not_blank CHECK (((supplier_name)::text !~ '^\s*$'::text))
 );
 
@@ -3084,7 +3084,7 @@ CREATE TABLE public.procurement_templates (
     article_name text,
     article_number character varying,
     price_cents integer DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'GBP'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
     supplier_name character varying,
     category_id uuid NOT NULL,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
@@ -3463,14 +3463,6 @@ CREATE TABLE public.workdays (
 
 
 --
--- Name: direct_access_rights access_rights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.direct_access_rights
-    ADD CONSTRAINT access_rights_pkey PRIMARY KEY (id);
-
-
---
 -- Name: accessories accessories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3599,6 +3591,14 @@ ALTER TABLE ONLY public.delegations_groups
 
 
 --
+-- Name: direct_access_rights direct_access_rights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.direct_access_rights
+    ADD CONSTRAINT direct_access_rights_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: disabled_fields disabled_fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3631,6 +3631,22 @@ ALTER TABLE ONLY public.entitlement_groups_groups
 
 
 --
+-- Name: entitlement_groups entitlement_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.entitlement_groups
+    ADD CONSTRAINT entitlement_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: entitlements entitlements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.entitlements
+    ADD CONSTRAINT entitlements_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: fields fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3647,19 +3663,11 @@ ALTER TABLE ONLY public.group_access_rights
 
 
 --
--- Name: entitlement_groups groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.entitlement_groups
-    ADD CONSTRAINT groups_pkey PRIMARY KEY (id);
-
-
---
--- Name: groups groups_pkey1; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: groups groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.groups
-    ADD CONSTRAINT groups_pkey1 PRIMARY KEY (id);
+    ADD CONSTRAINT groups_pkey PRIMARY KEY (id);
 
 
 --
@@ -3799,22 +3807,6 @@ ALTER TABLE ONLY public.orders
 
 
 --
--- Name: entitlements partitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.entitlements
-    ADD CONSTRAINT partitions_pkey PRIMARY KEY (id);
-
-
---
--- Name: procurement_requesters_organizations procurement_accesses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.procurement_requesters_organizations
-    ADD CONSTRAINT procurement_accesses_pkey PRIMARY KEY (id);
-
-
---
 -- Name: procurement_attachments procurement_attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3884,6 +3876,14 @@ ALTER TABLE ONLY public.procurement_main_categories
 
 ALTER TABLE ONLY public.procurement_organizations
     ADD CONSTRAINT procurement_organizations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: procurement_requesters_organizations procurement_requesters_organizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.procurement_requesters_organizations
+    ADD CONSTRAINT procurement_requesters_organizations_pkey PRIMARY KEY (id);
 
 
 --
