@@ -1483,16 +1483,6 @@ ALTER TABLE public.models_compatibles DISABLE TRIGGER ALL;
 ALTER TABLE public.models_compatibles ENABLE TRIGGER ALL;
 
 --
--- Data for Name: notifications; Type: TABLE DATA; Schema: public; Owner: -
---
-
-ALTER TABLE public.notifications DISABLE TRIGGER ALL;
-
-
-
-ALTER TABLE public.notifications ENABLE TRIGGER ALL;
-
---
 -- Data for Name: numerators; Type: TABLE DATA; Schema: public; Owner: -
 --
 

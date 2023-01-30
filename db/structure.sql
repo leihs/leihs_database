@@ -386,6 +386,22 @@ $$;
 
 
 --
+-- Name: check_emails_to_address_not_null_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_emails_to_address_not_null_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+      BEGIN
+        IF ( NEW.to_address IS NULL ) THEN
+          RAISE EXCEPTION 'to_address cannot be null';
+        END IF;
+        RETURN NEW;
+      END;
+      $$;
+
+
+--
 -- Name: check_exactly_one_default_language(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -829,6 +845,20 @@ CREATE FUNCTION public.delete_obsolete_user_password_resets_2() RETURNS trigger
             RETURN NEW;
           END;
           $$;
+
+
+--
+-- Name: delete_old_emails_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.delete_old_emails_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+      BEGIN
+        DELETE FROM emails WHERE created_at < CURRENT_DATE - INTERVAL '90 days';
+        RETURN NEW;
+      END;
+      $$;
 
 
 --
@@ -2006,7 +2036,7 @@ CREATE TABLE public.direct_access_rights (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     role character varying NOT NULL,
-    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY ((ARRAY['customer'::character varying, 'group_manager'::character varying, 'lending_manager'::character varying, 'inventory_manager'::character varying])::text[])))
+    CONSTRAINT check_allowed_roles CHECK (((role)::text = ANY (ARRAY[('customer'::character varying)::text, ('group_manager'::character varying)::text, ('lending_manager'::character varying)::text, ('inventory_manager'::character varying)::text])))
 );
 
 
@@ -2170,8 +2200,8 @@ CREATE TABLE public.api_tokens (
 CREATE TABLE public.ar_internal_metadata (
     key character varying NOT NULL,
     value character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -2288,7 +2318,7 @@ CREATE TABLE public.authentication_systems (
     external_sign_out_url text,
     sign_up_email_match text,
     CONSTRAINT check_shortcut_sing_in CHECK (((shortcut_sign_in_enabled = false) OR ((type)::text = 'external'::text))),
-    CONSTRAINT check_valid_type CHECK (((type)::text = ANY ((ARRAY['password'::character varying, 'external'::character varying])::text[]))),
+    CONSTRAINT check_valid_type CHECK (((type)::text = ANY (ARRAY[('password'::character varying)::text, ('external'::character varying)::text]))),
     CONSTRAINT simple_id CHECK (((id)::text ~ '^[a-z][a-z0-9_-]*$'::text))
 );
 
@@ -2442,7 +2472,7 @@ CREATE TABLE public.disabled_fields (
 
 CREATE TABLE public.emails (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    user_id uuid NOT NULL,
+    user_id uuid,
     subject text NOT NULL,
     body text NOT NULL,
     from_address text NOT NULL,
@@ -2452,9 +2482,12 @@ CREATE TABLE public.emails (
     message text,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    to_address text,
+    inventory_pool_id uuid,
     CONSTRAINT check_code CHECK ((((trials = 0) AND (code IS NULL)) OR ((trials <> 0) AND (code IS NOT NULL)))),
     CONSTRAINT check_error CHECK ((((trials = 0) AND (error IS NULL)) OR ((trials <> 0) AND (code IS NOT NULL)))),
-    CONSTRAINT check_message CHECK ((((trials = 0) AND (message IS NULL)) OR ((trials <> 0) AND (code IS NOT NULL))))
+    CONSTRAINT check_message CHECK ((((trials = 0) AND (message IS NULL)) OR ((trials <> 0) AND (code IS NOT NULL)))),
+    CONSTRAINT check_user_id_or_inventory_pool_id_not_null CHECK (((user_id IS NOT NULL) OR (inventory_pool_id IS NOT NULL)))
 );
 
 
@@ -2762,14 +2795,14 @@ CREATE TABLE public.models (
     manufacturer character varying,
     product character varying NOT NULL,
     version character varying,
+    description text,
+    internal_description text,
     info_url character varying,
     rental_price numeric(8,2),
     maintenance_period integer DEFAULT 0,
     is_package boolean DEFAULT false,
-    hand_over_note text,
-    description text,
-    internal_description text,
     technical_detail text,
+    hand_over_note text,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     cover_image_id uuid
@@ -2783,18 +2816,6 @@ CREATE TABLE public.models (
 CREATE TABLE public.models_compatibles (
     model_id uuid,
     compatible_id uuid
-);
-
-
---
--- Name: notifications; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.notifications (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    user_id uuid,
-    title character varying DEFAULT ''::character varying,
-    created_at timestamp without time zone NOT NULL
 );
 
 
@@ -2891,7 +2912,7 @@ CREATE TABLE public.procurement_budget_limits (
     budget_period_id uuid NOT NULL,
     main_category_id uuid NOT NULL,
     amount_cents integer DEFAULT 0 NOT NULL,
-    amount_currency character varying DEFAULT 'USD'::character varying NOT NULL
+    amount_currency character varying DEFAULT 'GBP'::character varying NOT NULL
 );
 
 
@@ -3017,7 +3038,7 @@ CREATE TABLE public.procurement_requests (
     approved_quantity integer,
     order_quantity integer,
     price_cents bigint DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'GBP'::character varying NOT NULL,
     priority character varying DEFAULT 'normal'::character varying NOT NULL,
     replacement boolean DEFAULT true NOT NULL,
     supplier_name character varying,
@@ -3034,13 +3055,13 @@ CREATE TABLE public.procurement_requests (
     order_status public.order_status_enum DEFAULT 'not_processed'::public.order_status_enum,
     order_comment text,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
-    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY ((ARRAY['normal'::character varying, 'high'::character varying])::text[]))),
+    CONSTRAINT check_allowed_priorities CHECK (((priority)::text = ANY (ARRAY[('normal'::character varying)::text, ('high'::character varying)::text]))),
     CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
     CONSTRAINT check_either_supplier_id_or_supplier_name CHECK ((((supplier_id IS NOT NULL) AND (supplier_name IS NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NOT NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NULL)))),
-    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY ((ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying, 'mandatory'::character varying])::text[]))),
+    CONSTRAINT check_inspector_priority CHECK (((inspector_priority)::text = ANY (ARRAY[('low'::character varying)::text, ('medium'::character varying)::text, ('high'::character varying)::text, ('mandatory'::character varying)::text]))),
     CONSTRAINT check_internal_order_number_if_type_investment CHECK ((NOT (((accounting_type)::text = 'investment'::text) AND (internal_order_number IS NULL)))),
     CONSTRAINT check_max_javascript_int CHECK (((price_cents)::double precision < ((2)::double precision ^ (52)::double precision))),
-    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY ((ARRAY['aquisition'::character varying, 'investment'::character varying])::text[]))),
+    CONSTRAINT check_valid_accounting_type CHECK (((accounting_type)::text = ANY (ARRAY[('aquisition'::character varying)::text, ('investment'::character varying)::text]))),
     CONSTRAINT supplier_name_is_not_blank CHECK (((supplier_name)::text !~ '^\s*$'::text))
 );
 
@@ -3084,7 +3105,7 @@ CREATE TABLE public.procurement_templates (
     article_name text,
     article_number character varying,
     price_cents integer DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'USD'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'GBP'::character varying NOT NULL,
     supplier_name character varying,
     category_id uuid NOT NULL,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
@@ -3463,6 +3484,14 @@ CREATE TABLE public.workdays (
 
 
 --
+-- Name: direct_access_rights access_rights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.direct_access_rights
+    ADD CONSTRAINT access_rights_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: accessories accessories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3591,14 +3620,6 @@ ALTER TABLE ONLY public.delegations_groups
 
 
 --
--- Name: direct_access_rights direct_access_rights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.direct_access_rights
-    ADD CONSTRAINT direct_access_rights_pkey PRIMARY KEY (id);
-
-
---
 -- Name: disabled_fields disabled_fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3631,22 +3652,6 @@ ALTER TABLE ONLY public.entitlement_groups_groups
 
 
 --
--- Name: entitlement_groups entitlement_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.entitlement_groups
-    ADD CONSTRAINT entitlement_groups_pkey PRIMARY KEY (id);
-
-
---
--- Name: entitlements entitlements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.entitlements
-    ADD CONSTRAINT entitlements_pkey PRIMARY KEY (id);
-
-
---
 -- Name: fields fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3663,11 +3668,19 @@ ALTER TABLE ONLY public.group_access_rights
 
 
 --
--- Name: groups groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: entitlement_groups groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.entitlement_groups
+    ADD CONSTRAINT groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: groups groups_pkey1; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.groups
-    ADD CONSTRAINT groups_pkey PRIMARY KEY (id);
+    ADD CONSTRAINT groups_pkey1 PRIMARY KEY (id);
 
 
 --
@@ -3767,14 +3780,6 @@ ALTER TABLE ONLY public.models
 
 
 --
--- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.notifications
-    ADD CONSTRAINT notifications_pkey PRIMARY KEY (id);
-
-
---
 -- Name: numerators numerators_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3804,6 +3809,22 @@ ALTER TABLE ONLY public.options
 
 ALTER TABLE ONLY public.orders
     ADD CONSTRAINT orders_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: entitlements partitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.entitlements
+    ADD CONSTRAINT partitions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: procurement_requesters_organizations procurement_accesses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.procurement_requesters_organizations
+    ADD CONSTRAINT procurement_accesses_pkey PRIMARY KEY (id);
 
 
 --
@@ -3876,14 +3897,6 @@ ALTER TABLE ONLY public.procurement_main_categories
 
 ALTER TABLE ONLY public.procurement_organizations
     ADD CONSTRAINT procurement_organizations_pkey PRIMARY KEY (id);
-
-
---
--- Name: procurement_requesters_organizations procurement_requesters_organizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.procurement_requesters_organizations
-    ADD CONSTRAINT procurement_requesters_organizations_pkey PRIMARY KEY (id);
 
 
 --
@@ -4732,20 +4745,6 @@ CREATE INDEX index_models_on_type ON public.models USING btree (type);
 
 
 --
--- Name: index_notifications_on_created_at_and_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_notifications_on_created_at_and_user_id ON public.notifications USING btree (created_at, user_id);
-
-
---
--- Name: index_notifications_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_notifications_on_user_id ON public.notifications USING btree (user_id);
-
-
---
 -- Name: index_old_empty_contracts_on_compact_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5414,6 +5413,13 @@ CREATE CONSTRAINT TRIGGER check_delegations_responsible_user_is_not_null_t AFTER
 
 
 --
+-- Name: emails check_emails_to_address_not_null_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER check_emails_to_address_not_null_t AFTER INSERT OR UPDATE ON public.emails NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.check_emails_to_address_not_null_f();
+
+
+--
 -- Name: users check_responsible_user_is_not_delegation_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -5439,6 +5445,13 @@ CREATE TRIGGER delegations_users_on_delete_t INSTEAD OF DELETE ON public.delegat
 --
 
 CREATE TRIGGER delegations_users_on_insert_t INSTEAD OF INSERT ON public.delegations_users FOR EACH ROW EXECUTE PROCEDURE public.delegations_users_on_insert_f();
+
+
+--
+-- Name: emails delete_old_emails_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER delete_old_emails_t AFTER INSERT OR UPDATE ON public.emails NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.delete_old_emails_f();
 
 
 --
@@ -5768,6 +5781,22 @@ CREATE TRIGGER users_set_account_disabled_at BEFORE UPDATE ON public.users FOR E
 --
 
 CREATE TRIGGER users_set_last_sign_in_at AFTER INSERT ON public.user_sessions FOR EACH ROW EXECUTE PROCEDURE public.users_set_last_sign_in_at();
+
+
+--
+-- Name: emails emails_inventory_pool_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.emails
+    ADD CONSTRAINT emails_inventory_pool_id_fk FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id) ON DELETE CASCADE;
+
+
+--
+-- Name: emails emails_user_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.emails
+    ADD CONSTRAINT emails_user_id_fk FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -6323,14 +6352,6 @@ ALTER TABLE ONLY public.authentication_systems_groups
 
 
 --
--- Name: notifications fk_rails_b080fb4855; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.notifications
-    ADD CONSTRAINT fk_rails_b080fb4855 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-
-
---
 -- Name: direct_access_rights fk_rails_b36d97eb0c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6805,6 +6826,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('629'),
 ('630'),
 ('631'),
+('632'),
+('633'),
+('634'),
 ('7'),
 ('8'),
 ('9');
