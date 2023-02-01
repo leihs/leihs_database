@@ -440,6 +440,27 @@ CREATE FUNCTION public.check_general_building_id_for_general_room() RETURNS trig
 
 
 --
+-- Name: check_inventory_pools_workdays_entry_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_inventory_pools_workdays_entry_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT TRUE
+          FROM workdays
+          WHERE workdays.inventory_pool_id = NEW.id
+          )
+          THEN RAISE EXCEPTION
+            'Inventory pool must have an entry in workdays table.';
+        END IF;
+        RETURN NEW;
+      END;
+      $$;
+
+
+--
 -- Name: check_item_line_state_consistency(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -693,6 +714,27 @@ CREATE FUNCTION public.check_unique_start_date_for_same_contract_f() RETURNS tri
           )
           THEN RAISE EXCEPTION
             'Start date must be same for all reservations of the same contract.';
+        END IF;
+        RETURN NEW;
+      END;
+      $$;
+
+
+--
+-- Name: check_workdays_entry_for_inventory_pools_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_workdays_entry_for_inventory_pools_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+      BEGIN
+        IF EXISTS (
+          SELECT TRUE
+          FROM inventory_pools
+          WHERE inventory_pools.id = OLD.inventory_pool_id
+          )
+          THEN RAISE EXCEPTION
+            'Inventory pool must have an entry in workdays table.';
         END IF;
         RETURN NEW;
       END;
@@ -5442,6 +5484,13 @@ CREATE CONSTRAINT TRIGGER check_emails_to_address_not_null_t AFTER INSERT OR UPD
 
 
 --
+-- Name: inventory_pools check_inventory_pools_workdays_entry_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER check_inventory_pools_workdays_entry_t AFTER INSERT OR UPDATE ON public.inventory_pools DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_inventory_pools_workdays_entry_f();
+
+
+--
 -- Name: users check_responsible_user_is_not_delegation_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -5453,6 +5502,13 @@ CREATE CONSTRAINT TRIGGER check_responsible_user_is_not_delegation_t AFTER INSER
 --
 
 CREATE CONSTRAINT TRIGGER check_unique_start_date_for_same_contract_t AFTER INSERT OR UPDATE ON public.reservations NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.check_unique_start_date_for_same_contract_f();
+
+
+--
+-- Name: workdays check_workdays_entry_for_inventory_pools_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER check_workdays_entry_for_inventory_pools_t AFTER DELETE ON public.workdays NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.check_workdays_entry_for_inventory_pools_f();
 
 
 --
@@ -6859,6 +6915,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('633'),
 ('634'),
 ('635'),
+('636'),
 ('7'),
 ('8'),
 ('9');
