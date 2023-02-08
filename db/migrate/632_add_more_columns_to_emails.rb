@@ -5,6 +5,16 @@ class AddMoreColumnsToEmails < ActiveRecord::Migration[6.1]
     add_column :emails, :inventory_pool_id, :uuid
     add_foreign_key :emails, :inventory_pools, name: :emails_inventory_pool_id_fk, on_delete: :cascade
     change_column :emails, :user_id, :uuid, null: true
+
+    execute <<~SQL
+      DELETE FROM emails
+      WHERE NOT EXISTS (
+        SELECT TRUE
+        FROM users
+        WHERE emails.user_id = users.id
+      );
+    SQL
+
     add_foreign_key :emails, :users, name: :emails_user_id_fk, on_delete: :cascade
 
     execute <<~SQL
