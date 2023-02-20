@@ -6325,6 +6325,14 @@ ALTER TABLE ONLY public.accessories_inventory_pools
 
 
 --
+-- Name: procurement_requesters_organizations fk_rails_9682abe2cb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.procurement_requesters_organizations
+    ADD CONSTRAINT fk_rails_9682abe2cb FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
 -- Name: group_access_rights fk_rails_975fee0026; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6345,7 +6353,7 @@ ALTER TABLE ONLY public.model_links
 --
 
 ALTER TABLE ONLY public.procurement_category_viewers
-    ADD CONSTRAINT fk_rails_9e16e3bd5d FOREIGN KEY (user_id) REFERENCES public.users(id);
+    ADD CONSTRAINT fk_rails_9e16e3bd5d FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -6649,7 +6657,7 @@ ALTER TABLE ONLY public.attachments
 --
 
 ALTER TABLE ONLY public.procurement_category_inspectors
-    ADD CONSTRAINT fk_rails_f80c94fb1e FOREIGN KEY (user_id) REFERENCES public.users(id);
+    ADD CONSTRAINT fk_rails_f80c94fb1e FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -6916,6 +6924,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('634'),
 ('635'),
 ('636'),
+('637'),
 ('7'),
 ('8'),
 ('9');
