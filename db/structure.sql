@@ -440,6 +440,47 @@ CREATE FUNCTION public.check_general_building_id_for_general_room() RETURNS trig
 
 
 --
+-- Name: check_if_responsible_user_after_delete_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_if_responsible_user_after_delete_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1
+          FROM users
+          WHERE OLD.delegation_id = id AND OLD.user_id = delegator_user_id
+        ) THEN
+          RAISE EXCEPTION 'One cannot delete a member of a delegation if he is also the responsible user.';
+        END IF;
+        RETURN NEW;
+      END;
+      $$;
+
+
+--
+-- Name: check_if_responsible_user_after_update_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_if_responsible_user_after_update_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1
+          FROM users
+          WHERE NEW.user_id = delegator_user_id AND NEW.delegation_id = id
+          )
+          THEN RAISE EXCEPTION
+            'Responsible user must also be a member for this delegation.';
+        END IF;
+        RETURN NEW;
+      END;
+      $$;
+
+
+--
 -- Name: check_inventory_pools_workdays_entry_f(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1772,6 +1813,29 @@ BEGIN
   RETURN NULL;
 END;
 $$;
+
+
+--
+-- Name: insert_into_delegations_direct_users_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.insert_into_delegations_direct_users_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+      BEGIN
+        IF (NEW.delegator_user_id IS NOT NULL) THEN 
+          INSERT INTO delegations_direct_users (delegation_id, user_id)
+          VALUES (NEW.id, NEW.delegator_user_id)
+          ON CONFLICT DO NOTHING;
+
+          IF (TG_OP = 'UPDATE' AND OLD.delegator_user_id <> NEW.delegator_user_id) THEN
+            DELETE FROM delegations_direct_users
+            WHERE delegation_id = OLD.id AND user_id = OLD.delegator_user_id;
+          END IF;
+        END IF;
+        RETURN NEW;
+      END;
+      $$;
 
 
 --
@@ -5484,6 +5548,20 @@ CREATE CONSTRAINT TRIGGER check_emails_to_address_not_null_t AFTER INSERT OR UPD
 
 
 --
+-- Name: delegations_direct_users check_if_responsible_user_after_delete_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER check_if_responsible_user_after_delete_t AFTER DELETE ON public.delegations_direct_users NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.check_if_responsible_user_after_delete_f();
+
+
+--
+-- Name: delegations_direct_users check_if_responsible_user_after_update_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER check_if_responsible_user_after_update_t AFTER UPDATE ON public.delegations_direct_users NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.check_if_responsible_user_after_update_f();
+
+
+--
 -- Name: inventory_pools check_inventory_pools_workdays_entry_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -5586,6 +5664,13 @@ CREATE TRIGGER increase_counter_for_new_procurement_request_t AFTER INSERT ON pu
 --
 
 CREATE TRIGGER insert_counter_for_new_procurement_budget_period_t AFTER INSERT OR UPDATE ON public.procurement_budget_periods FOR EACH ROW EXECUTE PROCEDURE public.insert_counter_for_new_procurement_budget_period_f();
+
+
+--
+-- Name: users insert_into_delegations_direct_users_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER insert_into_delegations_direct_users_t AFTER INSERT OR UPDATE ON public.users FOR EACH ROW EXECUTE PROCEDURE public.insert_into_delegations_direct_users_f();
 
 
 --
@@ -6925,6 +7010,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('635'),
 ('636'),
 ('637'),
+('638'),
 ('7'),
 ('8'),
 ('9');

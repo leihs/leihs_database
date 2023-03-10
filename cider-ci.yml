@@ -14,6 +14,7 @@ jobs:
       task_defaults:
         max_trials: 1
         environment_variables:
+          PGVERSION: '10'
           LEIHS_DATABASE_DIR: "{{CIDER_CI_WORKING_DIR}}"
           RAILS_ENV: test
         traits:
@@ -28,6 +29,7 @@ jobs:
               body: |
                 #!/usr/bin/env bash
                 set -euo pipefail
+                source $LEIHS_DATABASE_DIR/cider-ci/bin/pg_env_set
                 pg_restore --disable-triggers -x -O -d $LEIHS_DATABASE_NAME db/structure_and_seeds.pgbin
                 if bundle exec rake db:migrate:status | grep -q -E "\s*down\s*\d*\s*"; then
                   echo "Run ./scripts/migrate-and-dump-seeds"
@@ -50,6 +52,7 @@ jobs:
         include:
           - cider-ci/task-components/database.yml
         environment_variables:
+          PGVERSION: '10'
           LEIHS_DATABASE_DIR: "{{CIDER_CI_WORKING_DIR}}"
           LEIHS_DATABASE_NAME: leihs_{{CIDER_CI_TRIAL_ID}}
           RAILS_ENV: test
