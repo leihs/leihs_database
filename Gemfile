@@ -9,6 +9,7 @@ gem 'money-rails'
 gem 'pg', platform: :mri
 gem 'pg_tasks', git: 'https://github.com/leihs/rails_pg-tasks'
 gem 'pry'
+gem 'psych', '~> 3' # https://github.com/rails/rails/issues/42528
 gem 'rails', '~> 6.1.0'
 gem 'rspec'
 gem 'sequel'
