@@ -5,7 +5,7 @@ script_defaults:
 task_defaults:
 
   traits:
-    'PostgreSQL 10': true
+    'PostgreSQL 15': true
 
   include: cider-ci/task-components/bundle-rspec-ruby.yml
 

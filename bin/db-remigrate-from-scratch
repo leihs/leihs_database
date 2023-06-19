@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-set -x
+# set -x
 
 PROJECT_DIR="$(cd -- "$(dirname "${BASH_SOURCE}")" ; cd .. > /dev/null 2>&1 && pwd -P)"
 cd $PROJECT_DIR
@@ -11,9 +11,19 @@ source bin/db-set-env
 
 terminate_connections
 
-psql -c "DROP DATABASE IF EXISTS $PGDATABASE"
-psql -c "CREATE DATABASE $PGDATABASE"
+dropdb --if-exists $PGDATABASE
+createdb $PGDATABASE
 
-bundle exec rake db:migrate "$@"
+bundle exec rake db:migrate "$@" 
+
+
+### add seeds to dump
+
+exit 0
+
+pg_dump --data-only --no-privileges --no-owner --inserts --column-inserts \
+  -T ar_internal_metadata -T schema_migrations \
+  -T audited_changes -T audited_requests -T audited_responses -T audits \
+  >> db/structure.sql
 
 # vi: ft=sh

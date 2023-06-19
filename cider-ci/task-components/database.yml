@@ -1,9 +1,6 @@
-environment_variables:
-  PGVERSION: '10'
-
 traits:
   Ruby: true
-  PostgreSQL 10: true
+  PostgreSQL 15: true
 
 include:
   - cider-ci/task-components/bundle-rspec-ruby.yml
@@ -27,25 +24,20 @@ scripts:
       #!/usr/bin/env bash
       set -euo pipefail
       cd $LEIHS_DATABASE_DIR
-      source $LEIHS_DATABASE_DIR/cider-ci/bin/pg_env_set
       ./bin/ruby cider-ci/scripts/configure-database.rb
 
   create-database:
     start_when:
       db-configured:
-        # this is not a dependency anymore since we don't use rails
-        # we keep it for the time beeing
         script_key: database-configure-rails-db
         states: [passed]
     body: |
       #!/usr/bin/env bash
       set -euo pipefail
+      cd $LEIHS_DATABASE_DIR
       unset PGPORT
       unset PGUSER
-      source $LEIHS_DATABASE_DIR/cider-ci/bin/pg_env_set
-      createdb -p "${PG10PORT}" -U "${PG10USER}" "$LEIHS_DATABASE_NAME"
-      psql -p "${PG10PORT}" -U "${PG10USER}" -d "$LEIHS_DATABASE_NAME" -f $LEIHS_DATABASE_DIR/db/structure.sql
-      PGPORT="${PG10PORT}" PGUSER="${PG10USER}" $LEIHS_DATABASE_DIR/scripts/restore-seeds
+      PGUSER="${PG15USER}" PGPORT="${PG15PORT}" ./bin/seeds-restore
 
   delete-database:
     body: |
@@ -53,8 +45,7 @@ scripts:
       set -euo pipefail
       unset PGPORT
       unset PGUSER
-      source $LEIHS_DATABASE_DIR/cider-ci/bin/pg_env_set
-      dropdb -p "${PG10PORT}" -U "${PG10USER}" "$LEIHS_DATABASE_NAME"
+      dropdb -p "${PG15PORT}" -U "${PG15USER}" "$LEIHS_DATABASE_NAME"
     start_when:
       test is in terminal state:
         script_key: test

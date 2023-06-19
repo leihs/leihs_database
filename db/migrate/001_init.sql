@@ -426,47 +426,6 @@ CREATE FUNCTION public.check_general_building_id_for_general_room() RETURNS trig
 
 
 --
--- Name: check_if_responsible_user_after_delete_f(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.check_if_responsible_user_after_delete_f() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-      BEGIN
-        IF EXISTS (
-          SELECT 1
-          FROM users
-          WHERE OLD.delegation_id = id AND OLD.user_id = delegator_user_id
-        ) THEN
-          RAISE EXCEPTION 'One cannot delete a member of a delegation if he is also the responsible user.';
-        END IF;
-        RETURN NEW;
-      END;
-      $$;
-
-
---
--- Name: check_if_responsible_user_after_update_f(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.check_if_responsible_user_after_update_f() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-      BEGIN
-        IF NOT EXISTS (
-          SELECT 1
-          FROM users
-          WHERE NEW.user_id = delegator_user_id AND NEW.delegation_id = id
-          )
-          THEN RAISE EXCEPTION
-            'Responsible user must also be a member for this delegation.';
-        END IF;
-        RETURN NEW;
-      END;
-      $$;
-
-
---
 -- Name: check_inventory_pools_workdays_entry_f(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1802,29 +1761,6 @@ $$;
 
 
 --
--- Name: insert_into_delegations_direct_users_f(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.insert_into_delegations_direct_users_f() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-      BEGIN
-        IF (NEW.delegator_user_id IS NOT NULL) THEN 
-          INSERT INTO delegations_direct_users (delegation_id, user_id)
-          VALUES (NEW.id, NEW.delegator_user_id)
-          ON CONFLICT DO NOTHING;
-
-          IF (TG_OP = 'UPDATE' AND OLD.delegator_user_id <> NEW.delegator_user_id) THEN
-            DELETE FROM delegations_direct_users
-            WHERE delegation_id = OLD.id AND user_id = OLD.delegator_user_id;
-          END IF;
-        END IF;
-        RETURN NEW;
-      END;
-      $$;
-
-
---
 -- Name: jsonb_changed(jsonb, jsonb); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -2306,17 +2242,6 @@ CREATE TABLE public.api_tokens (
     CONSTRAINT sensible_scrope_write CHECK (((NOT scope_write) OR (scope_write AND scope_read)))
 );
 
-
---
--- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.ar_internal_metadata (
-    key character varying NOT NULL,
-    value character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
 
 
 --
@@ -3319,15 +3244,6 @@ CREATE TABLE public.rooms (
 
 
 --
--- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.schema_migrations (
-    version character varying NOT NULL
-);
-
-
---
 -- Name: settings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3612,13 +3528,6 @@ ALTER TABLE ONLY public.accessories
 ALTER TABLE ONLY public.addresses
     ADD CONSTRAINT addresses_pkey PRIMARY KEY (id);
 
-
---
--- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.ar_internal_metadata
-    ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
 
 
 --
@@ -4083,14 +3992,6 @@ ALTER TABLE ONLY public.reservations
 
 ALTER TABLE ONLY public.rooms
     ADD CONSTRAINT rooms_pkey PRIMARY KEY (id);
-
-
---
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -5534,20 +5435,6 @@ CREATE CONSTRAINT TRIGGER check_emails_to_address_not_null_t AFTER INSERT OR UPD
 
 
 --
--- Name: delegations_direct_users check_if_responsible_user_after_delete_t; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE CONSTRAINT TRIGGER check_if_responsible_user_after_delete_t AFTER DELETE ON public.delegations_direct_users NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION public.check_if_responsible_user_after_delete_f();
-
-
---
--- Name: delegations_direct_users check_if_responsible_user_after_update_t; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE CONSTRAINT TRIGGER check_if_responsible_user_after_update_t AFTER UPDATE ON public.delegations_direct_users NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION public.check_if_responsible_user_after_update_f();
-
-
---
 -- Name: inventory_pools check_inventory_pools_workdays_entry_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -5650,13 +5537,6 @@ CREATE TRIGGER increase_counter_for_new_procurement_request_t AFTER INSERT ON pu
 --
 
 CREATE TRIGGER insert_counter_for_new_procurement_budget_period_t AFTER INSERT OR UPDATE ON public.procurement_budget_periods FOR EACH ROW EXECUTE FUNCTION public.insert_counter_for_new_procurement_budget_period_f();
-
-
---
--- Name: users insert_into_delegations_direct_users_t; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER insert_into_delegations_direct_users_t AFTER INSERT OR UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.insert_into_delegations_direct_users_f();
 
 
 --
@@ -6396,14 +6276,6 @@ ALTER TABLE ONLY public.accessories_inventory_pools
 
 
 --
--- Name: procurement_requesters_organizations fk_rails_9682abe2cb; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.procurement_requesters_organizations
-    ADD CONSTRAINT fk_rails_9682abe2cb FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-
-
---
 -- Name: group_access_rights fk_rails_975fee0026; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6424,7 +6296,7 @@ ALTER TABLE ONLY public.model_links
 --
 
 ALTER TABLE ONLY public.procurement_category_viewers
-    ADD CONSTRAINT fk_rails_9e16e3bd5d FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+    ADD CONSTRAINT fk_rails_9e16e3bd5d FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -6728,7 +6600,7 @@ ALTER TABLE ONLY public.attachments
 --
 
 ALTER TABLE ONLY public.procurement_category_inspectors
-    ADD CONSTRAINT fk_rails_f80c94fb1e FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+    ADD CONSTRAINT fk_rails_f80c94fb1e FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -6800,10 +6672,5 @@ ALTER TABLE ONLY public.users
 --
 
 SET search_path TO "$user", public;
-
-INSERT INTO "schema_migrations" (version) VALUES
-('1'),
-('2'),
-('3');
 
 

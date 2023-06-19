@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# set -x
+
+PROJECT_DIR="$(cd -- "$(dirname "${BASH_SOURCE}")" ; cd .. > /dev/null 2>&1 && pwd -P)"
+cd $PROJECT_DIR
+
+./bin/seeds-restore
+
+if bundle exec rake db:migrate:status | grep -q -E "\s*down\s*\d*\s*"; then
+  echo "ERROR seeds need to be migrated, run ./bin/seeds-remigrate"
+  exit 1
+else
+  echo "OK seeds are migrated"
+  exit 0
+fi

@@ -56,8 +56,10 @@ end
 
 RSpec.configure do |config|
   config.before(:example)  do
-    clean_db
-    system("LEIHS_DATABASE_NAME=#{db_name} ./scripts/restore-seeds")
+    clean_db 
+    database.run 'SET session_replication_role = replica;'
+    database.run IO.read("db/seeds.sql")
+    database.run 'SET session_replication_role = DEFAULT;'
   end
 end
 
