@@ -5,7 +5,7 @@ script_defaults:
 task_defaults:
 
   traits:
-    'PostgreSQL 10': true
+    'PostgreSQL 15': true
 
   include: cider-ci/task-components/bundle-rspec-ruby.yml
 
@@ -14,7 +14,7 @@ task_defaults:
       include_match: ^.*$
 
   environment_variables:
-    PGVERSION: '10'
+    PGVERSION: '15'
     RAILS_ENV: test
     LEIHS_DATABASE_NAME: "leihs_{{CIDER_CI_TRIAL_ID}}"
 

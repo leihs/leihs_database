@@ -9,7 +9,7 @@ class Contract < Sequel::Model
                                          state = :open,
                                          compact_id = id,
                                          purpose = Faker::Lorem.word)
-    with_disabled_triggers do
+    db_with_disabled_triggers do
       database.run <<-SQL
         INSERT INTO contracts(
           id,

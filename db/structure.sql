@@ -10,20 +10,6 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: -
---
-
-CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
-
-
---
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
-
-
---
 -- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -155,7 +141,7 @@ CREATE FUNCTION public.ar_uuid_agg_f(id1 uuid, id2 uuid, user_id uuid, inventory
     AS $$
 BEGIN
   IF id1 IS NOT NULL AND id2 IS NOT NULL THEN
-    RETURN uuid_generate_v3(uuid_nil(), user_id::TEXT || inventory_pool_id::TEXT);
+    RETURN public.uuid_generate_v3(public.uuid_nil(), user_id::TEXT || inventory_pool_id::TEXT);
   ELSIF id1 IS NOT NULL THEN
     RETURN id1;
   ELSE
@@ -196,9 +182,9 @@ BEGIN
     j_new := row_to_json(NEW)::JSONB;
     pkey := j_old ->> pkey_col;
   END IF;
-  changed := jsonb_changed(j_old, j_new);
+  changed := public.jsonb_changed(j_old, j_new);
   if ( changed <> '{}'::JSONB ) THEN
-    INSERT INTO audited_changes (tg_op, table_name, changed, pkey)
+    INSERT INTO public.audited_changes (tg_op, table_name, changed, pkey)
       VALUES (TG_OP, TG_TABLE_NAME, changed, pkey);
   END IF;
   RETURN NEW;
@@ -228,7 +214,7 @@ CREATE FUNCTION public.buildings_on_insert_f() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       BEGIN
-        INSERT INTO rooms(name, building_id, general)
+        INSERT INTO public.rooms(name, building_id, general)
           VALUES ('general room', NEW.id, TRUE);
         RETURN NEW;
       END;
@@ -805,7 +791,7 @@ CREATE FUNCTION public.delegations_users_id_agg_f(id1 uuid, id2 uuid, user_id uu
     AS $$
 BEGIN
   IF id1 IS NOT NULL AND id2 IS NOT NULL THEN
-    RETURN uuid_generate_v3(uuid_nil(), user_id::TEXT || delegation_id::TEXT);
+    RETURN public.uuid_generate_v3(public.uuid_nil(), user_id::TEXT || delegation_id::TEXT);
   ELSIF id1 IS NOT NULL THEN
     RETURN id1;
   ELSE
@@ -842,7 +828,7 @@ CREATE FUNCTION public.delegations_users_on_insert_f() RETURNS trigger
     AS $$
 BEGIN
   IF NEW.id iS NULL then
-    NEW.id = uuid_generate_v4();
+    NEW.id = public.uuid_generate_v4();
   END IF;
   INSERT INTO delegations_direct_users(id, user_id, delegation_id)
     VALUES (NEW.id, NEW.user_id, NEW.delegation_id);
@@ -1052,7 +1038,7 @@ CREATE FUNCTION public.entitlement_groups_users_id_agg_f(id1 uuid, id2 uuid, use
     AS $$
 BEGIN
   IF id1 IS NOT NULL AND id2 IS NOT NULL THEN
-    RETURN uuid_generate_v3(uuid_nil(), user_id::TEXT || entitlement_group_id::TEXT);
+    RETURN public.uuid_generate_v3(public.uuid_nil(), user_id::TEXT || entitlement_group_id::TEXT);
   ELSIF id1 IS NOT NULL THEN
     RETURN id1;
   ELSE
@@ -1089,7 +1075,7 @@ CREATE FUNCTION public.entitlement_groups_users_on_insert_f() RETURNS trigger
     AS $$
 BEGIN
   IF NEW.id iS NULL then
-    NEW.id = uuid_generate_v4();
+    NEW.id = public.uuid_generate_v4();
   END IF;
   INSERT INTO entitlement_groups_direct_users(id, user_id, entitlement_group_id)
     VALUES (NEW.id, NEW.user_id, NEW.entitlement_group_id);
@@ -2014,7 +2000,7 @@ CREATE FUNCTION public.txid() RETURNS uuid
     LANGUAGE plpgsql
     AS $$
 BEGIN
-  RETURN uuid_generate_v5(uuid_nil(), current_date::TEXT || ' ' || txid_current()::TEXT);
+  RETURN public.uuid_generate_v5(public.uuid_nil(), current_date::TEXT || ' ' || txid_current()::TEXT);
 END;
 $$;
 
@@ -2151,7 +2137,7 @@ CREATE AGGREGATE public.role_agg(text) (
 
 SET default_tablespace = '';
 
-SET default_with_oids = false;
+SET default_table_access_method = heap;
 
 --
 -- Name: direct_access_rights; Type: TABLE; Schema: public; Owner: -
@@ -2328,8 +2314,8 @@ CREATE TABLE public.api_tokens (
 CREATE TABLE public.ar_internal_metadata (
     key character varying NOT NULL,
     value character varying,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -2923,14 +2909,14 @@ CREATE TABLE public.models (
     manufacturer character varying,
     product character varying NOT NULL,
     version character varying,
-    description text,
-    internal_description text,
     info_url character varying,
     rental_price numeric(8,2),
     maintenance_period integer DEFAULT 0,
     is_package boolean DEFAULT false,
-    technical_detail text,
     hand_over_note text,
+    description text,
+    internal_description text,
+    technical_detail text,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     cover_image_id uuid
@@ -3040,7 +3026,7 @@ CREATE TABLE public.procurement_budget_limits (
     budget_period_id uuid NOT NULL,
     main_category_id uuid NOT NULL,
     amount_cents integer DEFAULT 0 NOT NULL,
-    amount_currency character varying DEFAULT 'GBP'::character varying NOT NULL
+    amount_currency character varying DEFAULT 'CHF'::character varying NOT NULL
 );
 
 
@@ -3166,7 +3152,7 @@ CREATE TABLE public.procurement_requests (
     approved_quantity integer,
     order_quantity integer,
     price_cents bigint DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'GBP'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'CHF'::character varying NOT NULL,
     priority character varying DEFAULT 'normal'::character varying NOT NULL,
     replacement boolean DEFAULT true NOT NULL,
     supplier_name character varying,
@@ -3233,7 +3219,7 @@ CREATE TABLE public.procurement_templates (
     article_name text,
     article_number character varying,
     price_cents integer DEFAULT 0 NOT NULL,
-    price_currency character varying DEFAULT 'GBP'::character varying NOT NULL,
+    price_currency character varying DEFAULT 'CHF'::character varying NOT NULL,
     supplier_name character varying,
     category_id uuid NOT NULL,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
@@ -3612,14 +3598,6 @@ CREATE TABLE public.workdays (
 
 
 --
--- Name: direct_access_rights access_rights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.direct_access_rights
-    ADD CONSTRAINT access_rights_pkey PRIMARY KEY (id);
-
-
---
 -- Name: accessories accessories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3748,6 +3726,14 @@ ALTER TABLE ONLY public.delegations_groups
 
 
 --
+-- Name: direct_access_rights direct_access_rights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.direct_access_rights
+    ADD CONSTRAINT direct_access_rights_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: disabled_fields disabled_fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3780,6 +3766,22 @@ ALTER TABLE ONLY public.entitlement_groups_groups
 
 
 --
+-- Name: entitlement_groups entitlement_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.entitlement_groups
+    ADD CONSTRAINT entitlement_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: entitlements entitlements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.entitlements
+    ADD CONSTRAINT entitlements_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: fields fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3796,19 +3798,11 @@ ALTER TABLE ONLY public.group_access_rights
 
 
 --
--- Name: entitlement_groups groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.entitlement_groups
-    ADD CONSTRAINT groups_pkey PRIMARY KEY (id);
-
-
---
--- Name: groups groups_pkey1; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: groups groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.groups
-    ADD CONSTRAINT groups_pkey1 PRIMARY KEY (id);
+    ADD CONSTRAINT groups_pkey PRIMARY KEY (id);
 
 
 --
@@ -3940,22 +3934,6 @@ ALTER TABLE ONLY public.orders
 
 
 --
--- Name: entitlements partitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.entitlements
-    ADD CONSTRAINT partitions_pkey PRIMARY KEY (id);
-
-
---
--- Name: procurement_requesters_organizations procurement_accesses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.procurement_requesters_organizations
-    ADD CONSTRAINT procurement_accesses_pkey PRIMARY KEY (id);
-
-
---
 -- Name: procurement_attachments procurement_attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4025,6 +4003,14 @@ ALTER TABLE ONLY public.procurement_main_categories
 
 ALTER TABLE ONLY public.procurement_organizations
     ADD CONSTRAINT procurement_organizations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: procurement_requesters_organizations procurement_requesters_organizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.procurement_requesters_organizations
+    ADD CONSTRAINT procurement_requesters_organizations_pkey PRIMARY KEY (id);
 
 
 --
@@ -5292,665 +5278,665 @@ UNION
 -- Name: access_rights access_rights_on_delete_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER access_rights_on_delete_t INSTEAD OF DELETE ON public.access_rights FOR EACH ROW EXECUTE PROCEDURE public.access_rights_on_delete_f();
+CREATE TRIGGER access_rights_on_delete_t INSTEAD OF DELETE ON public.access_rights FOR EACH ROW EXECUTE FUNCTION public.access_rights_on_delete_f();
 
 
 --
 -- Name: access_rights access_rights_on_insert_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER access_rights_on_insert_t INSTEAD OF INSERT ON public.access_rights FOR EACH ROW EXECUTE PROCEDURE public.access_rights_on_insert_f();
+CREATE TRIGGER access_rights_on_insert_t INSTEAD OF INSERT ON public.access_rights FOR EACH ROW EXECUTE FUNCTION public.access_rights_on_insert_f();
 
 
 --
 -- Name: access_rights access_rights_on_update_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER access_rights_on_update_t INSTEAD OF UPDATE ON public.access_rights FOR EACH ROW EXECUTE PROCEDURE public.access_rights_on_update_f();
+CREATE TRIGGER access_rights_on_update_t INSTEAD OF UPDATE ON public.access_rights FOR EACH ROW EXECUTE FUNCTION public.access_rights_on_update_f();
 
 
 --
 -- Name: api_tokens audited_change_on_api_tokens; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_api_tokens AFTER INSERT OR DELETE OR UPDATE ON public.api_tokens FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_api_tokens AFTER INSERT OR DELETE OR UPDATE ON public.api_tokens FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: authentication_systems audited_change_on_authentication_systems; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_authentication_systems AFTER INSERT OR DELETE OR UPDATE ON public.authentication_systems FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_authentication_systems AFTER INSERT OR DELETE OR UPDATE ON public.authentication_systems FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: authentication_systems_groups audited_change_on_authentication_systems_groups; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_authentication_systems_groups AFTER INSERT OR DELETE OR UPDATE ON public.authentication_systems_groups FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_authentication_systems_groups AFTER INSERT OR DELETE OR UPDATE ON public.authentication_systems_groups FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: authentication_systems_users audited_change_on_authentication_systems_users; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_authentication_systems_users AFTER INSERT OR DELETE OR UPDATE ON public.authentication_systems_users FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_authentication_systems_users AFTER INSERT OR DELETE OR UPDATE ON public.authentication_systems_users FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: contracts audited_change_on_contracts; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_contracts AFTER INSERT OR DELETE OR UPDATE ON public.contracts FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_contracts AFTER INSERT OR DELETE OR UPDATE ON public.contracts FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: delegations_direct_users audited_change_on_delegations_direct_users; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_delegations_direct_users AFTER INSERT OR DELETE OR UPDATE ON public.delegations_direct_users FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_delegations_direct_users AFTER INSERT OR DELETE OR UPDATE ON public.delegations_direct_users FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: delegations_groups audited_change_on_delegations_groups; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_delegations_groups AFTER INSERT OR DELETE OR UPDATE ON public.delegations_groups FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_delegations_groups AFTER INSERT OR DELETE OR UPDATE ON public.delegations_groups FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: direct_access_rights audited_change_on_direct_access_rights; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_direct_access_rights AFTER INSERT OR DELETE OR UPDATE ON public.direct_access_rights FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_direct_access_rights AFTER INSERT OR DELETE OR UPDATE ON public.direct_access_rights FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: entitlement_groups audited_change_on_entitlement_groups; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_entitlement_groups AFTER INSERT OR DELETE OR UPDATE ON public.entitlement_groups FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_entitlement_groups AFTER INSERT OR DELETE OR UPDATE ON public.entitlement_groups FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: entitlement_groups_direct_users audited_change_on_entitlement_groups_direct_users; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_entitlement_groups_direct_users AFTER INSERT OR DELETE OR UPDATE ON public.entitlement_groups_direct_users FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_entitlement_groups_direct_users AFTER INSERT OR DELETE OR UPDATE ON public.entitlement_groups_direct_users FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: entitlement_groups_groups audited_change_on_entitlement_groups_groups; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_entitlement_groups_groups AFTER INSERT OR DELETE OR UPDATE ON public.entitlement_groups_groups FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_entitlement_groups_groups AFTER INSERT OR DELETE OR UPDATE ON public.entitlement_groups_groups FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: group_access_rights audited_change_on_group_access_rights; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_group_access_rights AFTER INSERT OR DELETE OR UPDATE ON public.group_access_rights FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_group_access_rights AFTER INSERT OR DELETE OR UPDATE ON public.group_access_rights FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: groups audited_change_on_groups; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_groups AFTER INSERT OR DELETE OR UPDATE ON public.groups FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_groups AFTER INSERT OR DELETE OR UPDATE ON public.groups FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: groups_users audited_change_on_groups_users; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_groups_users AFTER INSERT OR DELETE OR UPDATE ON public.groups_users FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_groups_users AFTER INSERT OR DELETE OR UPDATE ON public.groups_users FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: inventory_pools audited_change_on_inventory_pools; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_inventory_pools AFTER INSERT OR DELETE OR UPDATE ON public.inventory_pools FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_inventory_pools AFTER INSERT OR DELETE OR UPDATE ON public.inventory_pools FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: items audited_change_on_items; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_items AFTER INSERT OR DELETE OR UPDATE ON public.items FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_items AFTER INSERT OR DELETE OR UPDATE ON public.items FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: languages audited_change_on_languages; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_languages AFTER INSERT OR DELETE OR UPDATE ON public.languages FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_languages AFTER INSERT OR DELETE OR UPDATE ON public.languages FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: models audited_change_on_models; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_models AFTER INSERT OR DELETE OR UPDATE ON public.models FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_models AFTER INSERT OR DELETE OR UPDATE ON public.models FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: orders audited_change_on_orders; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_orders AFTER INSERT OR DELETE OR UPDATE ON public.orders FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_orders AFTER INSERT OR DELETE OR UPDATE ON public.orders FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: reservations audited_change_on_reservations; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_reservations AFTER INSERT OR DELETE OR UPDATE ON public.reservations FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_reservations AFTER INSERT OR DELETE OR UPDATE ON public.reservations FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: settings audited_change_on_settings; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_settings AFTER INSERT OR DELETE OR UPDATE ON public.settings FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_settings AFTER INSERT OR DELETE OR UPDATE ON public.settings FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: smtp_settings audited_change_on_smtp_settings; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_smtp_settings AFTER INSERT OR DELETE OR UPDATE ON public.smtp_settings FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_smtp_settings AFTER INSERT OR DELETE OR UPDATE ON public.smtp_settings FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: suspensions audited_change_on_suspensions; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_suspensions AFTER INSERT OR DELETE OR UPDATE ON public.suspensions FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_suspensions AFTER INSERT OR DELETE OR UPDATE ON public.suspensions FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: system_and_security_settings audited_change_on_system_and_security_settings; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_system_and_security_settings AFTER INSERT OR DELETE OR UPDATE ON public.system_and_security_settings FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_system_and_security_settings AFTER INSERT OR DELETE OR UPDATE ON public.system_and_security_settings FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: user_password_resets audited_change_on_user_password_resets; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_user_password_resets AFTER INSERT OR DELETE OR UPDATE ON public.user_password_resets FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_user_password_resets AFTER INSERT OR DELETE OR UPDATE ON public.user_password_resets FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: user_sessions audited_change_on_user_sessions; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_user_sessions AFTER INSERT OR DELETE OR UPDATE ON public.user_sessions FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_user_sessions AFTER INSERT OR DELETE OR UPDATE ON public.user_sessions FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: users audited_change_on_users; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER audited_change_on_users AFTER INSERT OR DELETE OR UPDATE ON public.users FOR EACH ROW EXECUTE PROCEDURE public.audit_change();
+CREATE TRIGGER audited_change_on_users AFTER INSERT OR DELETE OR UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
 -- Name: buildings buildings_on_insert_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER buildings_on_insert_t AFTER INSERT ON public.buildings NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.buildings_on_insert_f();
+CREATE CONSTRAINT TRIGGER buildings_on_insert_t AFTER INSERT ON public.buildings NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION public.buildings_on_insert_f();
 
 
 --
 -- Name: customer_orders check_consistent_user_id_for_all_contained_orders_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER check_consistent_user_id_for_all_contained_orders_t AFTER INSERT OR UPDATE ON public.customer_orders DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_consistent_user_id_for_all_contained_orders_f();
+CREATE CONSTRAINT TRIGGER check_consistent_user_id_for_all_contained_orders_t AFTER INSERT OR UPDATE ON public.customer_orders DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_consistent_user_id_for_all_contained_orders_f();
 
 
 --
 -- Name: contracts check_contracts_purpose_is_not_null_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER check_contracts_purpose_is_not_null_t AFTER INSERT OR UPDATE ON public.contracts FOR EACH ROW EXECUTE PROCEDURE public.check_contracts_purpose_is_not_null_f();
+CREATE TRIGGER check_contracts_purpose_is_not_null_t AFTER INSERT OR UPDATE ON public.contracts FOR EACH ROW EXECUTE FUNCTION public.check_contracts_purpose_is_not_null_f();
 
 
 --
 -- Name: orders check_customer_orders_user_id_is_same_as_orders_user_id_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER check_customer_orders_user_id_is_same_as_orders_user_id_t AFTER INSERT OR UPDATE ON public.orders DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_customer_orders_user_id_is_same_as_orders_user_id_f();
+CREATE CONSTRAINT TRIGGER check_customer_orders_user_id_is_same_as_orders_user_id_t AFTER INSERT OR UPDATE ON public.orders DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_customer_orders_user_id_is_same_as_orders_user_id_f();
 
 
 --
 -- Name: users check_delegations_name_is_not_null_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER check_delegations_name_is_not_null_t AFTER INSERT OR UPDATE ON public.users DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_delegations_name_is_not_null_f();
+CREATE CONSTRAINT TRIGGER check_delegations_name_is_not_null_t AFTER INSERT OR UPDATE ON public.users DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_delegations_name_is_not_null_f();
 
 
 --
 -- Name: users check_delegations_responsible_user_is_not_null_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER check_delegations_responsible_user_is_not_null_t AFTER INSERT OR UPDATE ON public.users DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_delegations_responsible_user_is_not_null_f();
+CREATE CONSTRAINT TRIGGER check_delegations_responsible_user_is_not_null_t AFTER INSERT OR UPDATE ON public.users DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_delegations_responsible_user_is_not_null_f();
 
 
 --
 -- Name: emails check_emails_to_address_not_null_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER check_emails_to_address_not_null_t AFTER INSERT OR UPDATE ON public.emails NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.check_emails_to_address_not_null_f();
+CREATE CONSTRAINT TRIGGER check_emails_to_address_not_null_t AFTER INSERT OR UPDATE ON public.emails NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION public.check_emails_to_address_not_null_f();
 
 
 --
 -- Name: delegations_direct_users check_if_responsible_user_after_delete_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER check_if_responsible_user_after_delete_t AFTER DELETE ON public.delegations_direct_users NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.check_if_responsible_user_after_delete_f();
+CREATE CONSTRAINT TRIGGER check_if_responsible_user_after_delete_t AFTER DELETE ON public.delegations_direct_users NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION public.check_if_responsible_user_after_delete_f();
 
 
 --
 -- Name: delegations_direct_users check_if_responsible_user_after_update_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER check_if_responsible_user_after_update_t AFTER UPDATE ON public.delegations_direct_users NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.check_if_responsible_user_after_update_f();
+CREATE CONSTRAINT TRIGGER check_if_responsible_user_after_update_t AFTER UPDATE ON public.delegations_direct_users NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION public.check_if_responsible_user_after_update_f();
 
 
 --
 -- Name: inventory_pools check_inventory_pools_workdays_entry_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER check_inventory_pools_workdays_entry_t AFTER INSERT OR UPDATE ON public.inventory_pools DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_inventory_pools_workdays_entry_f();
+CREATE CONSTRAINT TRIGGER check_inventory_pools_workdays_entry_t AFTER INSERT OR UPDATE ON public.inventory_pools DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_inventory_pools_workdays_entry_f();
 
 
 --
 -- Name: users check_responsible_user_is_not_delegation_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER check_responsible_user_is_not_delegation_t AFTER INSERT OR UPDATE ON public.users DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_responsible_user_is_not_delegation_f();
+CREATE CONSTRAINT TRIGGER check_responsible_user_is_not_delegation_t AFTER INSERT OR UPDATE ON public.users DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_responsible_user_is_not_delegation_f();
 
 
 --
 -- Name: reservations check_unique_start_date_for_same_contract_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER check_unique_start_date_for_same_contract_t AFTER INSERT OR UPDATE ON public.reservations NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.check_unique_start_date_for_same_contract_f();
+CREATE CONSTRAINT TRIGGER check_unique_start_date_for_same_contract_t AFTER INSERT OR UPDATE ON public.reservations NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION public.check_unique_start_date_for_same_contract_f();
 
 
 --
 -- Name: workdays check_workdays_entry_for_inventory_pools_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER check_workdays_entry_for_inventory_pools_t AFTER DELETE ON public.workdays NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.check_workdays_entry_for_inventory_pools_f();
+CREATE CONSTRAINT TRIGGER check_workdays_entry_for_inventory_pools_t AFTER DELETE ON public.workdays NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION public.check_workdays_entry_for_inventory_pools_f();
 
 
 --
 -- Name: users clean_email; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER clean_email AFTER INSERT OR UPDATE ON public.users FOR EACH ROW EXECUTE PROCEDURE public.clean_email();
+CREATE TRIGGER clean_email AFTER INSERT OR UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.clean_email();
 
 
 --
 -- Name: delegations_users delegations_users_on_delete_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER delegations_users_on_delete_t INSTEAD OF DELETE ON public.delegations_users FOR EACH ROW EXECUTE PROCEDURE public.delegations_users_on_delete_f();
+CREATE TRIGGER delegations_users_on_delete_t INSTEAD OF DELETE ON public.delegations_users FOR EACH ROW EXECUTE FUNCTION public.delegations_users_on_delete_f();
 
 
 --
 -- Name: delegations_users delegations_users_on_insert_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER delegations_users_on_insert_t INSTEAD OF INSERT ON public.delegations_users FOR EACH ROW EXECUTE PROCEDURE public.delegations_users_on_insert_f();
+CREATE TRIGGER delegations_users_on_insert_t INSTEAD OF INSERT ON public.delegations_users FOR EACH ROW EXECUTE FUNCTION public.delegations_users_on_insert_f();
 
 
 --
 -- Name: emails delete_old_emails_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER delete_old_emails_t AFTER INSERT OR UPDATE ON public.emails NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.delete_old_emails_f();
+CREATE CONSTRAINT TRIGGER delete_old_emails_t AFTER INSERT OR UPDATE ON public.emails NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION public.delete_old_emails_f();
 
 
 --
 -- Name: procurement_requests ensure_not_noll_order_status_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER ensure_not_noll_order_status_t AFTER INSERT OR UPDATE ON public.procurement_requests DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.ensure_not_noll_order_status_f();
+CREATE CONSTRAINT TRIGGER ensure_not_noll_order_status_t AFTER INSERT OR UPDATE ON public.procurement_requests DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.ensure_not_noll_order_status_f();
 
 
 --
 -- Name: entitlement_groups_users entitlement_groups_users_on_delete_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER entitlement_groups_users_on_delete_t INSTEAD OF DELETE ON public.entitlement_groups_users FOR EACH ROW EXECUTE PROCEDURE public.entitlement_groups_users_on_delete_f();
+CREATE TRIGGER entitlement_groups_users_on_delete_t INSTEAD OF DELETE ON public.entitlement_groups_users FOR EACH ROW EXECUTE FUNCTION public.entitlement_groups_users_on_delete_f();
 
 
 --
 -- Name: entitlement_groups_users entitlement_groups_users_on_insert_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER entitlement_groups_users_on_insert_t INSTEAD OF INSERT ON public.entitlement_groups_users FOR EACH ROW EXECUTE PROCEDURE public.entitlement_groups_users_on_insert_f();
+CREATE TRIGGER entitlement_groups_users_on_insert_t INSTEAD OF INSERT ON public.entitlement_groups_users FOR EACH ROW EXECUTE FUNCTION public.entitlement_groups_users_on_insert_f();
 
 
 --
 -- Name: fields fields_insert_check_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER fields_insert_check_trigger BEFORE INSERT ON public.fields FOR EACH ROW EXECUTE PROCEDURE public.fields_insert_check_function();
+CREATE TRIGGER fields_insert_check_trigger BEFORE INSERT ON public.fields FOR EACH ROW EXECUTE FUNCTION public.fields_insert_check_function();
 
 
 --
 -- Name: fields fields_update_check_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER fields_update_check_trigger BEFORE UPDATE ON public.fields FOR EACH ROW EXECUTE PROCEDURE public.fields_update_check_function();
+CREATE TRIGGER fields_update_check_trigger BEFORE UPDATE ON public.fields FOR EACH ROW EXECUTE FUNCTION public.fields_update_check_function();
 
 
 --
 -- Name: procurement_requests increase_counter_for_new_procurement_request_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER increase_counter_for_new_procurement_request_t AFTER INSERT ON public.procurement_requests FOR EACH ROW EXECUTE PROCEDURE public.increase_counter_for_new_procurement_request_f();
+CREATE TRIGGER increase_counter_for_new_procurement_request_t AFTER INSERT ON public.procurement_requests FOR EACH ROW EXECUTE FUNCTION public.increase_counter_for_new_procurement_request_f();
 
 
 --
 -- Name: procurement_budget_periods insert_counter_for_new_procurement_budget_period_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER insert_counter_for_new_procurement_budget_period_t AFTER INSERT OR UPDATE ON public.procurement_budget_periods FOR EACH ROW EXECUTE PROCEDURE public.insert_counter_for_new_procurement_budget_period_f();
+CREATE TRIGGER insert_counter_for_new_procurement_budget_period_t AFTER INSERT OR UPDATE ON public.procurement_budget_periods FOR EACH ROW EXECUTE FUNCTION public.insert_counter_for_new_procurement_budget_period_f();
 
 
 --
 -- Name: users insert_into_delegations_direct_users_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER insert_into_delegations_direct_users_t AFTER INSERT OR UPDATE ON public.users FOR EACH ROW EXECUTE PROCEDURE public.insert_into_delegations_direct_users_f();
+CREATE TRIGGER insert_into_delegations_direct_users_t AFTER INSERT OR UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.insert_into_delegations_direct_users_f();
 
 
 --
 -- Name: orders orders_insert_check_function_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER orders_insert_check_function_trigger BEFORE INSERT ON public.orders FOR EACH ROW EXECUTE PROCEDURE public.orders_insert_check_function();
+CREATE TRIGGER orders_insert_check_function_trigger BEFORE INSERT ON public.orders FOR EACH ROW EXECUTE FUNCTION public.orders_insert_check_function();
 
 
 --
 -- Name: users populate_all_users_group_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER populate_all_users_group_t AFTER INSERT ON public.users FOR EACH STATEMENT EXECUTE PROCEDURE public.populate_all_users_group_f();
+CREATE TRIGGER populate_all_users_group_t AFTER INSERT ON public.users FOR EACH STATEMENT EXECUTE FUNCTION public.populate_all_users_group_f();
 
 
 --
 -- Name: groups prevent_deleting_all_users_group_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER prevent_deleting_all_users_group_t BEFORE DELETE ON public.groups FOR EACH ROW EXECUTE PROCEDURE public.prevent_deleting_all_users_group_f();
+CREATE TRIGGER prevent_deleting_all_users_group_t BEFORE DELETE ON public.groups FOR EACH ROW EXECUTE FUNCTION public.prevent_deleting_all_users_group_f();
 
 
 --
 -- Name: procurement_requests set_short_id_for_new_procurement_request_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER set_short_id_for_new_procurement_request_t BEFORE INSERT ON public.procurement_requests FOR EACH ROW EXECUTE PROCEDURE public.set_short_id_for_new_procurement_request_f();
+CREATE TRIGGER set_short_id_for_new_procurement_request_t BEFORE INSERT ON public.procurement_requests FOR EACH ROW EXECUTE FUNCTION public.set_short_id_for_new_procurement_request_f();
 
 
 --
 -- Name: reservations trigger_check_closed_reservations_contract_state; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_closed_reservations_contract_state AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_closed_reservations_contract_state();
+CREATE CONSTRAINT TRIGGER trigger_check_closed_reservations_contract_state AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_closed_reservations_contract_state();
 
 
 --
 -- Name: contracts trigger_check_contract_has_at_least_one_reservation; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_contract_has_at_least_one_reservation AFTER INSERT OR UPDATE ON public.contracts DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_contract_has_at_least_one_reservation();
+CREATE CONSTRAINT TRIGGER trigger_check_contract_has_at_least_one_reservation AFTER INSERT OR UPDATE ON public.contracts DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_contract_has_at_least_one_reservation();
 
 
 --
 -- Name: languages trigger_check_exactly_one_default_language; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_exactly_one_default_language AFTER INSERT OR DELETE OR UPDATE ON public.languages DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_exactly_one_default_language();
+CREATE CONSTRAINT TRIGGER trigger_check_exactly_one_default_language AFTER INSERT OR DELETE OR UPDATE ON public.languages DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_exactly_one_default_language();
 
 
 --
 -- Name: rooms trigger_check_general_building_id_for_general_room; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_general_building_id_for_general_room AFTER UPDATE ON public.rooms NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.check_general_building_id_for_general_room();
+CREATE CONSTRAINT TRIGGER trigger_check_general_building_id_for_general_room AFTER UPDATE ON public.rooms NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION public.check_general_building_id_for_general_room();
 
 
 --
 -- Name: reservations trigger_check_item_line_state_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_item_line_state_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_item_line_state_consistency();
+CREATE CONSTRAINT TRIGGER trigger_check_item_line_state_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_item_line_state_consistency();
 
 
 --
 -- Name: reservations trigger_check_option_line_state_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_option_line_state_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_option_line_state_consistency();
+CREATE CONSTRAINT TRIGGER trigger_check_option_line_state_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_option_line_state_consistency();
 
 
 --
 -- Name: procurement_requesters_organizations trigger_check_parent_id_for_organization_id; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_parent_id_for_organization_id AFTER INSERT OR UPDATE ON public.procurement_requesters_organizations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_parent_id_for_organization_id();
+CREATE CONSTRAINT TRIGGER trigger_check_parent_id_for_organization_id AFTER INSERT OR UPDATE ON public.procurement_requesters_organizations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_parent_id_for_organization_id();
 
 
 --
 -- Name: inventory_pools trigger_check_presence_of_workday_for_inventory_pool; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_presence_of_workday_for_inventory_pool AFTER INSERT OR UPDATE ON public.inventory_pools DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_presence_of_workday_for_inventory_pool();
+CREATE CONSTRAINT TRIGGER trigger_check_presence_of_workday_for_inventory_pool AFTER INSERT OR UPDATE ON public.inventory_pools DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_presence_of_workday_for_inventory_pool();
 
 
 --
 -- Name: reservations trigger_check_reservation_contract_inventory_pool_id_consistenc; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_reservation_contract_inventory_pool_id_consistenc AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_reservation_contract_inventory_pool_id_consistency();
+CREATE CONSTRAINT TRIGGER trigger_check_reservation_contract_inventory_pool_id_consistenc AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_reservation_contract_inventory_pool_id_consistency();
 
 
 --
 -- Name: reservations trigger_check_reservation_contract_user_id_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_reservation_contract_user_id_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_reservation_contract_user_id_consistency();
+CREATE CONSTRAINT TRIGGER trigger_check_reservation_contract_user_id_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_reservation_contract_user_id_consistency();
 
 
 --
 -- Name: reservations trigger_check_reservation_order_inventory_pool_id_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_reservation_order_inventory_pool_id_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_reservation_order_inventory_pool_id_consistency();
+CREATE CONSTRAINT TRIGGER trigger_check_reservation_order_inventory_pool_id_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_reservation_order_inventory_pool_id_consistency();
 
 
 --
 -- Name: reservations trigger_check_reservation_order_user_id_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_reservation_order_user_id_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_reservation_order_user_id_consistency();
+CREATE CONSTRAINT TRIGGER trigger_check_reservation_order_user_id_consistency AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_reservation_order_user_id_consistency();
 
 
 --
 -- Name: contracts trigger_check_reservations_contracts_state_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_check_reservations_contracts_state_consistency AFTER INSERT OR UPDATE ON public.contracts DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.check_reservations_contracts_state_consistency();
+CREATE CONSTRAINT TRIGGER trigger_check_reservations_contracts_state_consistency AFTER INSERT OR UPDATE ON public.contracts DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_reservations_contracts_state_consistency();
 
 
 --
 -- Name: orders trigger_delete_empty_customer_order_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_delete_empty_customer_order_t AFTER DELETE ON public.orders DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.delete_empty_customer_order_f();
+CREATE CONSTRAINT TRIGGER trigger_delete_empty_customer_order_t AFTER DELETE ON public.orders DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.delete_empty_customer_order_f();
 
 
 --
 -- Name: reservations trigger_delete_empty_order; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_delete_empty_order AFTER DELETE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.delete_empty_order();
+CREATE CONSTRAINT TRIGGER trigger_delete_empty_order AFTER DELETE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.delete_empty_order();
 
 
 --
 -- Name: authentication_systems_users trigger_delete_obsolete_user_password_resets; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER trigger_delete_obsolete_user_password_resets AFTER INSERT OR UPDATE ON public.authentication_systems_users FOR EACH ROW EXECUTE PROCEDURE public.delete_obsolete_user_password_resets_2();
+CREATE TRIGGER trigger_delete_obsolete_user_password_resets AFTER INSERT OR UPDATE ON public.authentication_systems_users FOR EACH ROW EXECUTE FUNCTION public.delete_obsolete_user_password_resets_2();
 
 
 --
 -- Name: user_password_resets trigger_delete_obsolete_user_password_resets; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER trigger_delete_obsolete_user_password_resets BEFORE INSERT ON public.user_password_resets FOR EACH ROW EXECUTE PROCEDURE public.delete_obsolete_user_password_resets_1();
+CREATE TRIGGER trigger_delete_obsolete_user_password_resets BEFORE INSERT ON public.user_password_resets FOR EACH ROW EXECUTE FUNCTION public.delete_obsolete_user_password_resets_1();
 
 
 --
 -- Name: users trigger_delete_procurement_users_filters_after_users; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_delete_procurement_users_filters_after_users AFTER DELETE ON public.users DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.delete_procurement_users_filters_after_users();
+CREATE CONSTRAINT TRIGGER trigger_delete_procurement_users_filters_after_users AFTER DELETE ON public.users DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.delete_procurement_users_filters_after_users();
 
 
 --
 -- Name: buildings trigger_ensure_general_building_cannot_be_deleted; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_ensure_general_building_cannot_be_deleted AFTER DELETE ON public.buildings NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.ensure_general_building_cannot_be_deleted();
+CREATE CONSTRAINT TRIGGER trigger_ensure_general_building_cannot_be_deleted AFTER DELETE ON public.buildings NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION public.ensure_general_building_cannot_be_deleted();
 
 
 --
 -- Name: rooms trigger_ensure_general_room_cannot_be_deleted; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_ensure_general_room_cannot_be_deleted AFTER DELETE ON public.rooms NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE public.ensure_general_room_cannot_be_deleted();
+CREATE CONSTRAINT TRIGGER trigger_ensure_general_room_cannot_be_deleted AFTER DELETE ON public.rooms NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION public.ensure_general_room_cannot_be_deleted();
 
 
 --
 -- Name: fields trigger_fields_delete_check_function; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER trigger_fields_delete_check_function BEFORE DELETE ON public.fields FOR EACH ROW EXECUTE PROCEDURE public.fields_delete_check_function();
+CREATE TRIGGER trigger_fields_delete_check_function BEFORE DELETE ON public.fields FOR EACH ROW EXECUTE FUNCTION public.fields_delete_check_function();
 
 
 --
 -- Name: groups update_searchable_column_of_groups; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER update_searchable_column_of_groups BEFORE INSERT OR UPDATE ON public.groups FOR EACH ROW EXECUTE PROCEDURE public.groups_update_searchable_column();
+CREATE TRIGGER update_searchable_column_of_groups BEFORE INSERT OR UPDATE ON public.groups FOR EACH ROW EXECUTE FUNCTION public.groups_update_searchable_column();
 
 
 --
 -- Name: users update_searchable_column_of_users; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER update_searchable_column_of_users BEFORE INSERT OR UPDATE ON public.users FOR EACH ROW EXECUTE PROCEDURE public.users_update_searchable_column();
+CREATE TRIGGER update_searchable_column_of_users BEFORE INSERT OR UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.users_update_searchable_column();
 
 
 --
 -- Name: authentication_systems update_updated_at_column_of_authentication_systems; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER update_updated_at_column_of_authentication_systems BEFORE UPDATE ON public.authentication_systems FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+CREATE TRIGGER update_updated_at_column_of_authentication_systems BEFORE UPDATE ON public.authentication_systems FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
 
 
 --
 -- Name: authentication_systems_groups update_updated_at_column_of_authentication_systems_groups; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER update_updated_at_column_of_authentication_systems_groups BEFORE UPDATE ON public.authentication_systems_groups FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+CREATE TRIGGER update_updated_at_column_of_authentication_systems_groups BEFORE UPDATE ON public.authentication_systems_groups FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
 
 
 --
 -- Name: authentication_systems_users update_updated_at_column_of_authentication_systems_users; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER update_updated_at_column_of_authentication_systems_users BEFORE UPDATE ON public.authentication_systems_users FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+CREATE TRIGGER update_updated_at_column_of_authentication_systems_users BEFORE UPDATE ON public.authentication_systems_users FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
 
 
 --
 -- Name: delegations_groups update_updated_at_column_of_delegations_groups; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER update_updated_at_column_of_delegations_groups BEFORE UPDATE ON public.delegations_groups FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+CREATE TRIGGER update_updated_at_column_of_delegations_groups BEFORE UPDATE ON public.delegations_groups FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
 
 
 --
 -- Name: entitlement_groups_groups update_updated_at_column_of_entitlement_groups_groups; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER update_updated_at_column_of_entitlement_groups_groups BEFORE UPDATE ON public.entitlement_groups_groups FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+CREATE TRIGGER update_updated_at_column_of_entitlement_groups_groups BEFORE UPDATE ON public.entitlement_groups_groups FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
 
 
 --
 -- Name: group_access_rights update_updated_at_column_of_group_access_rights; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER update_updated_at_column_of_group_access_rights BEFORE UPDATE ON public.group_access_rights FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+CREATE TRIGGER update_updated_at_column_of_group_access_rights BEFORE UPDATE ON public.group_access_rights FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
 
 
 --
 -- Name: groups update_updated_at_column_of_groups; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER update_updated_at_column_of_groups BEFORE UPDATE ON public.groups FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+CREATE TRIGGER update_updated_at_column_of_groups BEFORE UPDATE ON public.groups FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
 
 
 --
 -- Name: procurement_requests_counters update_updated_at_column_of_procurement_requests_counters; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER update_updated_at_column_of_procurement_requests_counters BEFORE UPDATE ON public.procurement_requests_counters FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+CREATE TRIGGER update_updated_at_column_of_procurement_requests_counters BEFORE UPDATE ON public.procurement_requests_counters FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
 
 
 --
 -- Name: settings update_updated_at_column_of_settings; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER update_updated_at_column_of_settings BEFORE UPDATE ON public.settings FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+CREATE TRIGGER update_updated_at_column_of_settings BEFORE UPDATE ON public.settings FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
 
 
 --
 -- Name: suspensions update_updated_at_column_of_suspensions; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER update_updated_at_column_of_suspensions BEFORE UPDATE ON public.suspensions FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+CREATE TRIGGER update_updated_at_column_of_suspensions BEFORE UPDATE ON public.suspensions FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
 
 
 --
 -- Name: users update_updated_at_column_of_users; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER update_updated_at_column_of_users BEFORE UPDATE ON public.users FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+CREATE TRIGGER update_updated_at_column_of_users BEFORE UPDATE ON public.users FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
 
 
 --
 -- Name: users users_set_account_disabled_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER users_set_account_disabled_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE PROCEDURE public.users_set_account_disabled_at();
+CREATE TRIGGER users_set_account_disabled_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.users_set_account_disabled_at();
 
 
 --
 -- Name: user_sessions users_set_last_sign_in_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER users_set_last_sign_in_at AFTER INSERT ON public.user_sessions FOR EACH ROW EXECUTE PROCEDURE public.users_set_last_sign_in_at();
+CREATE TRIGGER users_set_last_sign_in_at AFTER INSERT ON public.user_sessions FOR EACH ROW EXECUTE FUNCTION public.users_set_last_sign_in_at();
 
 
 --
@@ -6813,206 +6799,11 @@ ALTER TABLE ONLY public.users
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO "$user", public;
+SET search_path TO public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('0'),
 ('1'),
-('10'),
-('100'),
-('101'),
-('102'),
-('103'),
-('104'),
-('105'),
-('106'),
-('107'),
-('108'),
-('109'),
-('11'),
-('110'),
-('111'),
-('112'),
-('113'),
-('114'),
-('115'),
-('116'),
-('117'),
-('118'),
-('119'),
-('12'),
-('120'),
-('121'),
-('122'),
-('13'),
 ('2'),
-('200'),
-('201'),
-('202'),
-('203'),
-('204'),
-('205'),
-('206'),
-('207'),
-('208'),
-('209'),
-('210'),
-('211'),
-('212'),
-('213'),
-('214'),
-('215'),
-('216'),
-('217'),
-('218'),
-('219'),
-('220'),
-('221'),
-('222'),
-('223'),
-('300'),
-('301'),
-('302'),
-('303'),
-('304'),
-('305'),
-('306'),
-('307'),
-('308'),
-('309'),
-('310'),
-('311'),
-('312'),
-('313'),
-('314'),
-('315'),
-('316'),
-('317'),
-('318'),
-('319'),
-('320'),
-('321'),
-('322'),
-('4'),
-('5'),
-('500'),
-('501'),
-('502'),
-('503'),
-('504'),
-('505'),
-('506'),
-('507'),
-('508'),
-('509'),
-('510'),
-('511'),
-('512'),
-('513'),
-('514'),
-('515'),
-('516'),
-('517'),
-('518'),
-('519'),
-('520'),
-('521'),
-('522'),
-('523'),
-('524'),
-('525'),
-('526'),
-('530'),
-('531'),
-('532'),
-('533'),
-('534'),
-('535'),
-('536'),
-('537'),
-('538'),
-('539'),
-('540'),
-('541'),
-('542'),
-('543'),
-('544'),
-('545'),
-('546'),
-('547'),
-('548'),
-('549'),
-('550'),
-('551'),
-('552'),
-('553'),
-('554'),
-('555'),
-('556'),
-('557'),
-('578'),
-('579'),
-('580'),
-('581'),
-('582'),
-('583'),
-('584'),
-('585'),
-('586'),
-('587'),
-('588'),
-('589'),
-('590'),
-('591'),
-('592'),
-('593'),
-('594'),
-('595'),
-('596'),
-('597'),
-('598'),
-('599'),
-('6'),
-('600'),
-('601'),
-('602'),
-('603'),
-('604'),
-('605'),
-('606'),
-('607'),
-('608'),
-('609'),
-('610'),
-('611'),
-('612'),
-('613'),
-('614'),
-('615'),
-('616'),
-('617'),
-('618'),
-('619'),
-('620'),
-('621'),
-('622'),
-('623'),
-('625'),
-('626'),
-('627'),
-('628'),
-('629'),
-('630'),
-('631'),
-('632'),
-('633'),
-('634'),
-('635'),
-('636'),
-('637'),
-('638'),
-('7'),
-('8'),
-('9');
+('3');
 
 

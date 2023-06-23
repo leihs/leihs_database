@@ -1,9 +1,6 @@
-environment_variables:
-  PGVERSION: '10'
-
 traits:
   Ruby: true
-  PostgreSQL 10: true
+  PostgreSQL 15: true
 
 include:
   - cider-ci/task-components/bundle-rspec-ruby.yml
@@ -13,6 +10,8 @@ scripts:
   show-db-env:
     body: |
       #!/usr/bin/env bash
+      unset PGPORT unset PGUSER
+      export PGUSER="${PG15USER}"; export PGPORT="${PG15PORT}"
       env | egrep '(^PG|^LEIHS_|^DATABASE_)' | sort
 
   database-configure-rails-db:
@@ -27,34 +26,30 @@ scripts:
       #!/usr/bin/env bash
       set -euo pipefail
       cd $LEIHS_DATABASE_DIR
-      source $LEIHS_DATABASE_DIR/cider-ci/bin/pg_env_set
+      unset PGPORT unset PGUSER
+      export PGUSER="${PG15USER}"; export PGPORT="${PG15PORT}"
       ./bin/ruby cider-ci/scripts/configure-database.rb
 
   create-database:
     start_when:
       db-configured:
-        # this is not a dependency anymore since we don't use rails
-        # we keep it for the time beeing
         script_key: database-configure-rails-db
         states: [passed]
     body: |
       #!/usr/bin/env bash
       set -euo pipefail
-      unset PGPORT
-      unset PGUSER
-      source $LEIHS_DATABASE_DIR/cider-ci/bin/pg_env_set
-      createdb -p "${PG10PORT}" -U "${PG10USER}" "$LEIHS_DATABASE_NAME"
-      psql -p "${PG10PORT}" -U "${PG10USER}" -d "$LEIHS_DATABASE_NAME" -f $LEIHS_DATABASE_DIR/db/structure.sql
-      PGPORT="${PG10PORT}" PGUSER="${PG10USER}" $LEIHS_DATABASE_DIR/scripts/restore-seeds
+      cd $LEIHS_DATABASE_DIR
+      unset PGPORT unset PGUSER
+      export PGUSER="${PG15USER}"; export PGPORT="${PG15PORT}"
+      bundle exec rake db:reset
 
   delete-database:
     body: |
       #!/usr/bin/env bash
       set -euo pipefail
-      unset PGPORT
-      unset PGUSER
-      source $LEIHS_DATABASE_DIR/cider-ci/bin/pg_env_set
-      dropdb -p "${PG10PORT}" -U "${PG10USER}" "$LEIHS_DATABASE_NAME"
+      unset PGPORT unset PGUSER
+      export PGUSER="${PG15USER}"; export PGPORT="${PG15PORT}"
+      dropdb "$LEIHS_DATABASE_NAME"
     start_when:
       test is in terminal state:
         script_key: test

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# set -x
+
+PROJECT_DIR="$(cd -- "$(dirname "${BASH_SOURCE}")" ; cd .. > /dev/null 2>&1 && pwd -P)"
+cd $PROJECT_DIR
+./bin/env/ruby-setup
+
+RAILS_ENV=${RAILS_ENV:-test}
+source bin/db-set-env
+source bin/data-migration
+
+
+db_prepare_001
+db_restore_001_data "personas"
+bundle exec rake db:migrate
+db_dump_full "personas"
+db_dump_data "personas"
+

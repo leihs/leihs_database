@@ -14,29 +14,49 @@ jobs:
       task_defaults:
         max_trials: 1
         environment_variables:
-          PGVERSION: '10'
           LEIHS_DATABASE_DIR: "{{CIDER_CI_WORKING_DIR}}"
           RAILS_ENV: test
-        traits:
-          Ruby: true
+
       tasks:
-        migration-of-seeds-dump:
-          include:
-            - cider-ci/task-components/database-no-schema.yml
-          name: "Check if seeds dump needs to be and has been migrated"
+
+        check-migration-of-seeds:
+          name: "Check if seeds-dump needs to be migrated"
           scripts:
             test:
               body: |
                 #!/usr/bin/env bash
                 set -euo pipefail
-                source $LEIHS_DATABASE_DIR/cider-ci/bin/pg_env_set
-                pg_restore --disable-triggers -x -O -d $LEIHS_DATABASE_NAME db/structure_and_seeds.pgbin
-                if bundle exec rake db:migrate:status | grep -q -E "\s*down\s*\d*\s*"; then
-                  echo "Run ./scripts/migrate-and-dump-seeds"
-                  exit 1
-                else
-                  exit 0
-                fi
+                cd $LEIHS_DATABASE_DIR
+                unset PGPORT
+                unset PGUSER
+                PGPORT=${PG15PORT} PGUSER=${PG15USER} ./bin/seeds-check
+
+        check-migration-of-personas:
+          name: "Check if personas-dump needs to be migrated"
+          scripts:
+            test:
+              body: |
+                #!/usr/bin/env bash
+                set -euo pipefail
+                cd $LEIHS_DATABASE_DIR
+                unset PGPORT
+                unset PGUSER
+                PGPORT=${PG15PORT} PGUSER=${PG15USER} ./bin/personas-check
+
+        check-migration-of-demo:
+          name: "Check if demo-dump needs to be migrated"
+          scripts:
+            test:
+              body: |
+                #!/usr/bin/env bash
+                set -euo pipefail
+                cd $LEIHS_DATABASE_DIR
+                unset PGPORT
+                unset PGUSER
+                PGPORT=${PG15PORT} PGUSER=${PG15USER} ./bin/demo-check
+
+
+
   specs:
     name: 'Run specs'
     run_when:
@@ -52,7 +72,6 @@ jobs:
         include:
           - cider-ci/task-components/database.yml
         environment_variables:
-          PGVERSION: '10'
           LEIHS_DATABASE_DIR: "{{CIDER_CI_WORKING_DIR}}"
           LEIHS_DATABASE_NAME: leihs_{{CIDER_CI_TRIAL_ID}}
           RAILS_ENV: test
@@ -70,7 +89,8 @@ jobs:
               mkdir -p log
               unset PGPORT
               unset PGUSER
-              PGUSER="${PG10USER}" PGPORT="${PG10PORT}" ./bin/rspec --backtrace $CIDER_CI_TASK_FILE
+              PGUSER="${PG15USER}" PGPORT="${PG15PORT}" ./bin/rspec --backtrace $CIDER_CI_TASK_FILE
+
   good-to-merge:
     name: Good To Merge
     description: |
