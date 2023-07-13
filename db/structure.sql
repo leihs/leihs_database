@@ -2715,17 +2715,6 @@ CREATE TABLE public.fields (
 
 
 --
--- Name: hidden_fields; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hidden_fields (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    field_id character varying,
-    user_id uuid
-);
-
-
---
 -- Name: holidays; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3811,14 +3800,6 @@ ALTER TABLE ONLY public.groups
 
 ALTER TABLE ONLY public.groups_users
     ADD CONSTRAINT groups_users_pkey PRIMARY KEY (id);
-
-
---
--- Name: hidden_fields hidden_fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hidden_fields
-    ADD CONSTRAINT hidden_fields_pkey PRIMARY KEY (id);
 
 
 --
@@ -5956,14 +5937,6 @@ ALTER TABLE ONLY public.emails
 
 
 --
--- Name: hidden_fields fk_rails_00a4ef0c4f; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hidden_fields
-    ADD CONSTRAINT fk_rails_00a4ef0c4f FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-
-
---
 -- Name: user_sessions fk_rails_033055139d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6097,14 +6070,6 @@ ALTER TABLE ONLY public.procurement_attachments
 
 ALTER TABLE ONLY public.reservations
     ADD CONSTRAINT fk_rails_3cc4562273 FOREIGN KEY (handed_over_by_user_id) REFERENCES public.users(id);
-
-
---
--- Name: hidden_fields fk_rails_3dac013d86; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hidden_fields
-    ADD CONSTRAINT fk_rails_3dac013d86 FOREIGN KEY (field_id) REFERENCES public.fields(id) ON DELETE CASCADE;
 
 
 --
@@ -6799,11 +6764,12 @@ ALTER TABLE ONLY public.users
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO public;
+SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('1'),
 ('2'),
-('3');
+('3'),
+('4');
 
 
