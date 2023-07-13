@@ -2268,21 +2268,6 @@ CREATE TABLE public.accessories_inventory_pools (
 
 
 --
--- Name: addresses; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.addresses (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    street character varying,
-    zip_code character varying,
-    city character varying,
-    country_code character varying,
-    latitude double precision,
-    longitude double precision
-);
-
-
---
 -- Name: api_tokens; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2763,7 +2748,6 @@ CREATE TABLE public.inventory_pools (
     color text,
     print_contracts boolean DEFAULT true,
     opening_hours text,
-    address_id uuid,
     automatic_suspension boolean DEFAULT false NOT NULL,
     automatic_suspension_reason text,
     required_purpose boolean DEFAULT true,
@@ -2919,29 +2903,6 @@ CREATE TABLE public.models (
 CREATE TABLE public.models_compatibles (
     model_id uuid,
     compatible_id uuid
-);
-
-
---
--- Name: numerators; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.numerators (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    item integer
-);
-
-
---
--- Name: old_empty_contracts; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.old_empty_contracts (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    compact_id text NOT NULL,
-    note text,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -3595,14 +3556,6 @@ ALTER TABLE ONLY public.accessories
 
 
 --
--- Name: addresses addresses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.addresses
-    ADD CONSTRAINT addresses_pkey PRIMARY KEY (id);
-
-
---
 -- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3880,22 +3833,6 @@ ALTER TABLE ONLY public.model_links
 
 ALTER TABLE ONLY public.models
     ADD CONSTRAINT models_pkey PRIMARY KEY (id);
-
-
---
--- Name: numerators numerators_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.numerators
-    ADD CONSTRAINT numerators_pkey PRIMARY KEY (id);
-
-
---
--- Name: old_empty_contracts old_empty_contracts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.old_empty_contracts
-    ADD CONSTRAINT old_empty_contracts_pkey PRIMARY KEY (id);
 
 
 --
@@ -4340,13 +4277,6 @@ CREATE INDEX index_accessories_inventory_pools_on_inventory_pool_id ON public.ac
 --
 
 CREATE INDEX index_accessories_on_model_id ON public.accessories USING btree (model_id);
-
-
---
--- Name: index_addresses_szcc; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_addresses_szcc ON public.addresses USING btree (street, zip_code, city, country_code);
 
 
 --
@@ -4837,13 +4767,6 @@ CREATE INDEX index_models_on_is_package ON public.models USING btree (is_package
 --
 
 CREATE INDEX index_models_on_type ON public.models USING btree (type);
-
-
---
--- Name: index_old_empty_contracts_on_compact_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_old_empty_contracts_on_compact_id ON public.old_empty_contracts USING btree (compact_id);
 
 
 --
@@ -6241,14 +6164,6 @@ ALTER TABLE ONLY public.entitlements
 
 
 --
--- Name: inventory_pools fk_rails_6a55965722; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.inventory_pools
-    ADD CONSTRAINT fk_rails_6a55965722 FOREIGN KEY (address_id) REFERENCES public.addresses(id);
-
-
---
 -- Name: inventory_pools_model_groups fk_rails_6a7781d99f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6649,6 +6564,14 @@ ALTER TABLE ONLY public.items
 
 
 --
+-- Name: api_tokens fk_rails_f16b5e0447; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.api_tokens
+    ADD CONSTRAINT fk_rails_f16b5e0447 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: contracts fk_rails_f191b5ed7a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6770,6 +6693,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('1'),
 ('2'),
 ('3'),
-('4');
+('4'),
+('5');
 
 

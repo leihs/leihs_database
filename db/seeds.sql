@@ -42,12 +42,6 @@ SET row_security = off;
 
 
 --
--- Data for Name: addresses; Type: TABLE DATA; Schema: public; Owner: -
---
-
-
-
---
 -- Data for Name: inventory_pools; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -55,6 +49,24 @@ SET row_security = off;
 
 --
 -- Data for Name: accessories_inventory_pools; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Data for Name: languages; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.languages (name, locale, "default", active) VALUES ('English (UK)', 'en-GB', true, true);
+INSERT INTO public.languages (name, locale, "default", active) VALUES ('English (US)', 'en-US', false, true);
+INSERT INTO public.languages (name, locale, "default", active) VALUES ('Deutsch', 'de-CH', false, true);
+INSERT INTO public.languages (name, locale, "default", active) VALUES ('Züritüütsch', 'gsw-CH', false, true);
+INSERT INTO public.languages (name, locale, "default", active) VALUES ('Castellano', 'es', false, false);
+INSERT INTO public.languages (name, locale, "default", active) VALUES ('Français (CH)', 'fr-CH', false, false);
+
+
+--
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 
@@ -113,24 +125,6 @@ INSERT INTO public.groups (id, name, description, org_id, searchable, created_at
 
 --
 -- Data for Name: authentication_systems_groups; Type: TABLE DATA; Schema: public; Owner: -
---
-
-
-
---
--- Data for Name: languages; Type: TABLE DATA; Schema: public; Owner: -
---
-
-INSERT INTO public.languages (name, locale, "default", active) VALUES ('English (UK)', 'en-GB', true, true);
-INSERT INTO public.languages (name, locale, "default", active) VALUES ('English (US)', 'en-US', false, true);
-INSERT INTO public.languages (name, locale, "default", active) VALUES ('Deutsch', 'de-CH', false, true);
-INSERT INTO public.languages (name, locale, "default", active) VALUES ('Züritüütsch', 'gsw-CH', false, true);
-INSERT INTO public.languages (name, locale, "default", active) VALUES ('Castellano', 'es', false, false);
-INSERT INTO public.languages (name, locale, "default", active) VALUES ('Français (CH)', 'fr-CH', false, false);
-
-
---
--- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 
@@ -1293,18 +1287,6 @@ Kind regards,
 
 --
 -- Data for Name: models_compatibles; Type: TABLE DATA; Schema: public; Owner: -
---
-
-
-
---
--- Data for Name: numerators; Type: TABLE DATA; Schema: public; Owner: -
---
-
-
-
---
--- Data for Name: old_empty_contracts; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 
