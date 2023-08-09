@@ -3174,6 +3174,7 @@ CREATE TABLE public.procurement_templates (
     price_currency character varying DEFAULT 'CHF'::character varying NOT NULL,
     supplier_name character varying,
     category_id uuid NOT NULL,
+    is_archived boolean DEFAULT false,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
     CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
     CONSTRAINT check_either_supplier_id_or_supplier_name CHECK ((((supplier_id IS NOT NULL) AND (supplier_name IS NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NOT NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NULL)))),
@@ -6690,7 +6691,7 @@ ALTER TABLE ONLY public.users
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO public;
+SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('1'),
@@ -6700,6 +6701,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('5'),
 ('6'),
 ('7'),
-('8');
+('8'),
+('9');
 
 
