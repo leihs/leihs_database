@@ -467,6 +467,22 @@ CREATE FUNCTION public.check_if_responsible_user_after_update_f() RETURNS trigge
 
 
 --
+-- Name: check_if_template_is_used_when_updating_or_deleting_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_if_template_is_used_when_updating_or_deleting_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF ( EXISTS ( SELECT TRUE FROM procurement_requests pr WHERE pr.template_id = NEW.id ) ) THEN
+    RAISE EXCEPTION 'The template has already been used by one or more requests.';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+--
 -- Name: check_inventory_pools_workdays_entry_f(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -3172,6 +3188,7 @@ CREATE TABLE public.procurement_templates (
     price_currency character varying DEFAULT 'CHF'::character varying NOT NULL,
     supplier_name character varying,
     category_id uuid NOT NULL,
+    is_archived boolean DEFAULT false,
     CONSTRAINT article_name_is_not_blank CHECK ((article_name !~ '^\s*$'::text)),
     CONSTRAINT check_either_model_id_or_article_name CHECK ((((model_id IS NOT NULL) AND (article_name IS NULL)) OR ((model_id IS NULL) AND (article_name IS NOT NULL)))),
     CONSTRAINT check_either_supplier_id_or_supplier_name CHECK ((((supplier_id IS NOT NULL) AND (supplier_name IS NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NOT NULL)) OR ((supplier_id IS NULL) AND (supplier_name IS NULL)))),
@@ -5452,6 +5469,13 @@ CREATE CONSTRAINT TRIGGER check_if_responsible_user_after_update_t AFTER UPDATE 
 
 
 --
+-- Name: procurement_templates check_if_template_is_used_when_updating_or_deleting_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER check_if_template_is_used_when_updating_or_deleting_t AFTER UPDATE ON public.procurement_templates FOR EACH ROW EXECUTE FUNCTION public.check_if_template_is_used_when_updating_or_deleting_f();
+
+
+--
 -- Name: inventory_pools check_inventory_pools_workdays_entry_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6695,6 +6719,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('3'),
 ('4'),
 ('5'),
-('6');
+('6'),
+('7');
 
 
