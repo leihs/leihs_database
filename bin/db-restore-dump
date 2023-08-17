@@ -63,8 +63,7 @@ fi
 
 ################################################################################
 
-
-if [[ DEV_MODE == 'YES' ]]; then
+if [[ $DEV_MODE == 'YES' ]]; then
   set_dev_and_debug_values
 fi
 
