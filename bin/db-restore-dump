@@ -19,6 +19,13 @@ else
   exit 1
 fi
 
+SET_PWD="${SET_PWD:-NO}"
+if [ $SET_PWD == "YES" ] ||  [ $SET_PWD == "NO" ]; then
+  echo "SET_PWD=$SET_PWD"
+else
+  echo 'SET_PWD must be unset, or "YES", or "NO"'
+  exit 1
+fi
 
 
 START_DIR=$(pwd)
@@ -67,4 +74,8 @@ if [[ $DEV_MODE == 'YES' ]]; then
   set_dev_and_debug_values
 fi
 
-
+if [[ $SET_PWD == 'YES' ]]; then
+  cd $PROJECT_DIR
+  ./bin/db-set-passwords
+  cd -
+fi

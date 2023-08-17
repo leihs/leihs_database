@@ -5693,7 +5693,7 @@ CREATE CONSTRAINT TRIGGER trigger_delete_empty_customer_order_t AFTER DELETE ON 
 -- Name: reservations trigger_delete_empty_order; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE CONSTRAINT TRIGGER trigger_delete_empty_order AFTER DELETE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.delete_empty_order();
+CREATE CONSTRAINT TRIGGER trigger_delete_empty_order AFTER DELETE OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.delete_empty_order();
 
 
 --
@@ -6694,6 +6694,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('2'),
 ('3'),
 ('4'),
-('5');
+('5'),
+('6');
 
 

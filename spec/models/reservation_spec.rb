@@ -50,5 +50,24 @@ describe 'reservation' do
     expect { r2.update(start_date: sd + 1.day) }
       .to raise_error /Start date must be same for all reservations of the same contract/
   end
+
+  it 'deletes also an empty order and respective customer order' do
+    pool = FactoryBot.create(:inventory_pool)
+    user = FactoryBot.create(:user)
+    co = FactoryBot.create(:customer_order, user: user)
+    o = FactoryBot.create(:order,
+                          inventory_pool: pool,
+                          user: user,
+                          customer_order: co,
+                          state: :approved)
+    r = FactoryBot.create(:reservation,
+                          inventory_pool: pool,
+                          user: user,
+                          order: o,
+                          status: :approved)
+    r.delete
+    expect { o.reload }.to raise_error /Record not found/
+    expect { co.reload }.to raise_error /Record not found/
+  end
 end
 
