@@ -9,8 +9,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 15.1
--- Dumped by pg_dump version 15.1
+-- Dumped from database version 15.3
+-- Dumped by pg_dump version 15.3
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -113,14 +113,14 @@ INSERT INTO public.rooms (id, name, description, building_id, general) VALUES ('
 -- Data for Name: authentication_systems; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.authentication_systems (id, name, description, type, enabled, priority, internal_private_key, internal_public_key, external_public_key, external_sign_in_url, send_email, send_org_id, send_login, shortcut_sign_in_enabled, created_at, updated_at, external_sign_out_url, sign_up_email_match) VALUES ('password', 'leihs password', NULL, 'password', true, 0, NULL, NULL, NULL, NULL, true, false, false, false, '2020-11-05 18:20:39.546594+05:30', '2020-11-05 18:20:39.546594+05:30', NULL, NULL);
+INSERT INTO public.authentication_systems (id, name, description, type, enabled, priority, internal_private_key, internal_public_key, external_public_key, external_sign_in_url, send_email, send_org_id, send_login, shortcut_sign_in_enabled, created_at, updated_at, external_sign_out_url, sign_up_email_match) VALUES ('password', 'leihs password', NULL, 'password', true, 0, NULL, NULL, NULL, NULL, true, false, false, false, '2020-11-05 12:50:39.546594+00', '2020-11-05 12:50:39.546594+00', NULL, NULL);
 
 
 --
 -- Data for Name: groups; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.groups (id, name, description, org_id, searchable, created_at, updated_at, admin_protected, system_admin_protected, organization) VALUES ('4dd87663-f731-5766-b97d-9494889ca66c', 'All users', NULL, 'all-users', 'All users all-users', '2021-03-08 15:32:51.767533+05:30', '2021-03-08 15:32:51.779113+05:30', true, true, 'leihs-core');
+INSERT INTO public.groups (id, name, description, org_id, searchable, created_at, updated_at, admin_protected, system_admin_protected, organization) VALUES ('4dd87663-f731-5766-b97d-9494889ca66c', 'All users', NULL, 'all-users', 'All users all-users', '2021-03-08 10:02:51.767533+00', '2021-03-08 10:02:51.779113+00', true, true, 'leihs-core');
 
 
 --
@@ -1421,7 +1421,7 @@ Kind regards,
 -- Data for Name: settings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.settings (local_currency_string, contract_lending_party_string, email_signature, deliver_received_order_notifications, user_image_url, ldap_config, logo_url, time_zone, text, timeout_minutes, custom_head_tag, documentation_link, id, created_at, updated_at, maximum_reservation_time, lending_terms_acceptance_required_for_order, lending_terms_url, include_customer_email_in_contracts, show_contact_details_on_customer_order, home_page_image_url) VALUES ('GBP', NULL, 'Cheers,', false, NULL, NULL, NULL, 'Bern', NULL, 30, NULL, NULL, 0, '2020-11-05 18:20:29.190792+05:30', '2020-11-05 18:20:29.190792+05:30', NULL, false, NULL, false, false, NULL);
+INSERT INTO public.settings (local_currency_string, contract_lending_party_string, email_signature, deliver_received_order_notifications, user_image_url, ldap_config, logo_url, time_zone, text, timeout_minutes, custom_head_tag, documentation_link, id, created_at, updated_at, maximum_reservation_time, lending_terms_acceptance_required_for_order, lending_terms_url, include_customer_email_in_contracts, show_contact_details_on_customer_order, home_page_image_url) VALUES ('GBP', NULL, 'Cheers,', false, NULL, NULL, NULL, 'Bern', NULL, 30, NULL, NULL, 0, '2020-11-05 12:50:29.190792+00', '2020-11-05 12:50:29.190792+00', NULL, false, NULL, false, false, NULL);
 
 
 --

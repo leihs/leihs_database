@@ -25,11 +25,11 @@ function db_restore_001_data {
 function db_dump_full {
   NAME_PREFIX=$1
   FILE="db/${NAME_PREFIX}.pgbin"
+  psql -d $PGDATABASE -c \
+    "TRUNCATE ar_internal_metadata, audits, audited_changes, audited_requests, audited_responses CASCADE;"
   pg_dump \
     $PGDATABASE \
     --no-owner --no-privileges \
-    -T ar_internal_metadata \
-    -T audits -T audited_changes -T audited_requests -T audited_responses \
     --format c --file $FILE
 }
 
@@ -39,6 +39,9 @@ function db_dump_data {
 
   NAME_PREFIX=$1
   FILE="db/${NAME_PREFIX}.sql"
+
+  psql -d $PGDATABASE -c "ALTER DATABASE ${PGDATABASE} SET TimeZone = 'UTC';"
+
 
 cat <<-SQL > $FILE
   --
