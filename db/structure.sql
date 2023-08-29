@@ -467,22 +467,6 @@ CREATE FUNCTION public.check_if_responsible_user_after_update_f() RETURNS trigge
 
 
 --
--- Name: check_if_template_is_used_when_updating_or_deleting_f(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.check_if_template_is_used_when_updating_or_deleting_f() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-  IF ( EXISTS ( SELECT TRUE FROM procurement_requests pr WHERE pr.template_id = NEW.id ) ) THEN
-    RAISE EXCEPTION 'The template has already been used by one or more requests.';
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-
---
 -- Name: check_inventory_pools_workdays_entry_f(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -5466,13 +5450,6 @@ CREATE CONSTRAINT TRIGGER check_if_responsible_user_after_delete_t AFTER DELETE 
 --
 
 CREATE CONSTRAINT TRIGGER check_if_responsible_user_after_update_t AFTER UPDATE ON public.delegations_direct_users NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION public.check_if_responsible_user_after_update_f();
-
-
---
--- Name: procurement_templates check_if_template_is_used_when_updating_or_deleting_t; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER check_if_template_is_used_when_updating_or_deleting_t AFTER UPDATE ON public.procurement_templates FOR EACH ROW EXECUTE FUNCTION public.check_if_template_is_used_when_updating_or_deleting_f();
 
 
 --
