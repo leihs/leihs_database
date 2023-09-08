@@ -3369,6 +3369,7 @@ CREATE TABLE public.system_and_security_settings (
     sessions_force_uniqueness boolean DEFAULT false NOT NULL,
     sessions_max_lifetime_secs integer DEFAULT 432000,
     instance_element text,
+    public_image_caching_enabled boolean DEFAULT true,
     CONSTRAINT id_is_zero CHECK ((id = 0))
 );
 
@@ -6687,7 +6688,7 @@ ALTER TABLE ONLY public.users
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO "$user", public;
+SET search_path TO public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('1'),
@@ -6695,6 +6696,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('3'),
 ('4'),
 ('5'),
-('6');
+('6'),
+('7');
 
 

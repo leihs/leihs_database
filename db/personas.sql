@@ -15684,7 +15684,7 @@ INSERT INTO public.smtp_settings (id, enabled, address, authentication_type, def
 -- Data for Name: system_and_security_settings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.system_and_security_settings (id, accept_server_secret_as_universal_password, external_base_url, sessions_force_secure, sessions_force_uniqueness, sessions_max_lifetime_secs, instance_element) VALUES (0, true, NULL, false, true, 432000, NULL);
+INSERT INTO public.system_and_security_settings (id, accept_server_secret_as_universal_password, external_base_url, sessions_force_secure, sessions_force_uniqueness, sessions_max_lifetime_secs, instance_element, public_image_caching_enabled) VALUES (0, true, NULL, false, true, 432000, NULL, true);
 
 
 --
