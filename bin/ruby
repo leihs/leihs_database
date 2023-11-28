@@ -2,6 +2,7 @@
 set -euo pipefail
 
 RAILS_ENV=${RAILS_ENV:-development}
+echo "RAILS_ENV=$RAILS_ENV"
 
 PROJECT_DIR="$(cd -- "$(dirname "${BASH_SOURCE}")" ; cd .. > /dev/null 2>&1 && pwd -P)"
 cd $PROJECT_DIR

@@ -7,6 +7,7 @@ cd $PROJECT_DIR
 ./bin/env/ruby-setup
 
 export RAILS_ENV=${RAILS_ENV:-test}
+echo "RAILS_ENV=$RAILS_ENV"
 source bin/db-set-env
 source bin/data-migration
 
