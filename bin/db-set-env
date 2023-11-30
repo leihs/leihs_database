@@ -8,7 +8,8 @@ if [ ! -e $PROJECT_DIR/config/database.yml ]; then
 fi
 
 DBCONFIG=$(RAILS_ENV=$RAILS_ENV bundle exec rails runner "print(ActiveRecord::Base.configurations[Rails.env].to_json) & STDOUT.flush")
-PGDATABASE=$(echo $DBCONFIG | jq -r .database)
+export PGDATABASE=$(echo $DBCONFIG | jq -r .database)
+export DB_NAME=$PGDATABASE
 PGPORT=$(echo $DBCONFIG | jq -r .port)
 PGUSER=$(echo $DBCONFIG | jq -r .username)
 PGPASSWORD=$(echo $DBCONFIG | jq -r .password)

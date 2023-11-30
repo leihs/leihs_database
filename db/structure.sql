@@ -556,8 +556,8 @@ CREATE FUNCTION public.check_parent_id_for_organization_id() RETURNS trigger
         IF (
           SELECT true
           FROM procurement_organizations
-          WHERE id = NEW.organization_id
-            AND parent_id IS NULL
+          WHERE id = NEW.organization_id 
+            AND parent_id IS NULL 
         ) THEN
           RAISE EXCEPTION 'Associated organization must have a parent.';
         END IF;
@@ -1809,7 +1809,7 @@ CREATE FUNCTION public.insert_into_delegations_direct_users_f() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       BEGIN
-        IF (NEW.delegator_user_id IS NOT NULL) THEN
+        IF (NEW.delegator_user_id IS NOT NULL) THEN 
           INSERT INTO delegations_direct_users (delegation_id, user_id)
           VALUES (NEW.id, NEW.delegator_user_id)
           ON CONFLICT DO NOTHING;

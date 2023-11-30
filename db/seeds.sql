@@ -9,8 +9,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 15.4
--- Dumped by pg_dump version 15.4
+-- Dumped from database version 15.1
+-- Dumped by pg_dump version 15.1
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -81,7 +81,7 @@ INSERT INTO public.languages (name, locale, "default", active) VALUES ('Françai
 -- Data for Name: buildings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.buildings (id, name, code) VALUES ('abae04c5-d767-425e-acc2-7ce04df645d1', 'general building', NULL);
+INSERT INTO public.buildings (id, name, code) VALUES ('abae04c5-d767-425e-acc2-7ce04df645d1', 'general building', 'GB');
 
 
 --

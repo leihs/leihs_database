@@ -9,8 +9,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 15.4
--- Dumped by pg_dump version 15.4
+-- Dumped from database version 15.1
+-- Dumped by pg_dump version 15.1
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -891,7 +891,7 @@ INSERT INTO public.buildings (id, name, code) VALUES ('154bf85a-cd55-5e0b-a391-5
 INSERT INTO public.buildings (id, name, code) VALUES ('4885669d-ddab-5fc8-a18f-b2a276420fad', 'Nesciuntcumquesuscipit', 'nos');
 INSERT INTO public.buildings (id, name, code) VALUES ('7b3df879-feee-5d13-8934-00265aa81c0f', 'Molestiaeautaliquid', 'lab');
 INSERT INTO public.buildings (id, name, code) VALUES ('e49fc3d7-f0aa-50bd-b9dd-df522c414bb7', 'Quiarerumaccusamus', 'adi');
-INSERT INTO public.buildings (id, name, code) VALUES ('abae04c5-d767-425e-acc2-7ce04df645d1', 'general building', NULL);
+INSERT INTO public.buildings (id, name, code) VALUES ('abae04c5-d767-425e-acc2-7ce04df645d1', 'general building', 'GB');
 INSERT INTO public.buildings (id, name, code) VALUES ('7231df31-d2f8-54e2-b8d2-2b1782137e78', 'Perspiciatistemporasuscipit', 'dol1');
 INSERT INTO public.buildings (id, name, code) VALUES ('d134ca41-3f2b-52fe-8f36-3a3d3a348854', 'Sintexpeditaoccaecati', 'dol2');
 INSERT INTO public.buildings (id, name, code) VALUES ('70717dec-81b4-54b9-9dfd-bf8ea1f09c1e', 'Estrationererum', 'dol3');
