@@ -556,8 +556,8 @@ CREATE FUNCTION public.check_parent_id_for_organization_id() RETURNS trigger
         IF (
           SELECT true
           FROM procurement_organizations
-          WHERE id = NEW.organization_id 
-            AND parent_id IS NULL 
+          WHERE id = NEW.organization_id
+            AND parent_id IS NULL
         ) THEN
           RAISE EXCEPTION 'Associated organization must have a parent.';
         END IF;
@@ -1809,7 +1809,7 @@ CREATE FUNCTION public.insert_into_delegations_direct_users_f() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       BEGIN
-        IF (NEW.delegator_user_id IS NOT NULL) THEN 
+        IF (NEW.delegator_user_id IS NOT NULL) THEN
           INSERT INTO delegations_direct_users (delegation_id, user_id)
           VALUES (NEW.id, NEW.delegator_user_id)
           ON CONFLICT DO NOTHING;
@@ -3430,7 +3430,8 @@ CREATE TABLE public.user_sessions (
     delegation_id uuid,
     created_at timestamp with time zone DEFAULT now(),
     meta_data jsonb,
-    authentication_system_id text NOT NULL
+    authentication_system_id text NOT NULL,
+    external_session_id text
 );
 
 
@@ -4330,6 +4331,13 @@ CREATE INDEX index_audits_on_created_at ON public.audits USING btree (created_at
 --
 
 CREATE INDEX index_audits_on_request_uuid ON public.audits USING btree (request_uuid);
+
+
+--
+-- Name: index_auth_system_ext_session; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_auth_system_ext_session ON public.user_sessions USING btree (authentication_system_id, external_session_id);
 
 
 --
@@ -6710,6 +6718,7 @@ SET search_path TO "$user", public;
 INSERT INTO "schema_migrations" (version) VALUES
 ('1'),
 ('10'),
+('11'),
 ('2'),
 ('3'),
 ('4'),
