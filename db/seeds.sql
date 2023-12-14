@@ -81,7 +81,7 @@ INSERT INTO public.languages (name, locale, "default", active) VALUES ('Françai
 -- Data for Name: buildings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.buildings (id, name, code) VALUES ('abae04c5-d767-425e-acc2-7ce04df645d1', 'general building', 'GB');
+INSERT INTO public.buildings (id, name, code) VALUES ('abae04c5-d767-425e-acc2-7ce04df645d1', 'general building', NULL);
 
 
 --
