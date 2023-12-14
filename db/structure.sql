@@ -4369,6 +4369,20 @@ CREATE INDEX index_authentication_systems_users_on_user_id ON public.authenticat
 
 
 --
+-- Name: index_buildings_on_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_buildings_on_code ON public.buildings USING btree (code);
+
+
+--
+-- Name: index_buildings_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_buildings_on_name ON public.buildings USING btree (name);
+
+
+--
 -- Name: index_contracts_on_compact_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6704,6 +6718,7 @@ SET search_path TO "$user", public;
 INSERT INTO "schema_migrations" (version) VALUES
 ('1'),
 ('10'),
+('11'),
 ('2'),
 ('3'),
 ('4'),
