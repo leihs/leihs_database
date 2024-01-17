@@ -26,7 +26,7 @@ function db_dump_full {
   NAME_PREFIX=$1
   FILE="db/${NAME_PREFIX}.pgbin"
   psql -d $PGDATABASE -c \
-    "TRUNCATE ar_internal_metadata, audits, audited_changes, audited_requests, audited_responses CASCADE;"
+    "TRUNCATE ar_internal_metadata, audited_changes, audited_requests, audited_responses CASCADE;"
   pg_dump \
     $PGDATABASE \
     --no-owner --no-privileges \
@@ -57,7 +57,7 @@ SQL
   pg_dump --data-only --inserts --column-inserts \
     --no-owner --no-privileges \
     -T schema_migrations  -T ar_internal_metadata \
-    -T audits -T audited_changes -T audited_requests -T audited_responses \
+    -T audited_changes -T audited_requests -T audited_responses \
     $PGDATABASE >> $FILE
 
 }

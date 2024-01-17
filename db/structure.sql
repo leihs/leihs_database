@@ -556,8 +556,8 @@ CREATE FUNCTION public.check_parent_id_for_organization_id() RETURNS trigger
         IF (
           SELECT true
           FROM procurement_organizations
-          WHERE id = NEW.organization_id
-            AND parent_id IS NULL
+          WHERE id = NEW.organization_id 
+            AND parent_id IS NULL 
         ) THEN
           RAISE EXCEPTION 'Associated organization must have a parent.';
         END IF;
@@ -1809,7 +1809,7 @@ CREATE FUNCTION public.insert_into_delegations_direct_users_f() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
       BEGIN
-        IF (NEW.delegator_user_id IS NOT NULL) THEN
+        IF (NEW.delegator_user_id IS NOT NULL) THEN 
           INSERT INTO delegations_direct_users (delegation_id, user_id)
           VALUES (NEW.id, NEW.delegator_user_id)
           ON CONFLICT DO NOTHING;
@@ -2369,29 +2369,6 @@ CREATE TABLE public.audited_responses (
     created_at timestamp with time zone DEFAULT now(),
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     tx2id uuid
-);
-
-
---
--- Name: audits; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.audits (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    auditable_id uuid,
-    auditable_type character varying,
-    associated_id uuid,
-    associated_type character varying,
-    user_id uuid,
-    user_type character varying,
-    username character varying,
-    action character varying,
-    audited_changes text,
-    version integer DEFAULT 0,
-    comment character varying,
-    remote_address character varying,
-    request_uuid character varying,
-    created_at timestamp without time zone
 );
 
 
@@ -3601,14 +3578,6 @@ ALTER TABLE ONLY public.audited_responses
 
 
 --
--- Name: audits audits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.audits
-    ADD CONSTRAINT audits_pkey PRIMARY KEY (id);
-
-
---
 -- Name: authentication_systems_groups authentication_systems_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4089,20 +4058,6 @@ ALTER TABLE ONLY public.workdays
 
 
 --
--- Name: associated_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX associated_index ON public.audits USING btree (associated_id, associated_type);
-
-
---
--- Name: auditable_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX auditable_index ON public.audits USING btree (auditable_id, auditable_type);
-
-
---
 -- Name: audited_changes_changed_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4317,20 +4272,6 @@ CREATE INDEX index_audited_responses_on_created_at ON public.audited_responses U
 --
 
 CREATE INDEX index_audited_responses_on_status ON public.audited_responses USING btree (status);
-
-
---
--- Name: index_audits_on_created_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_audits_on_created_at ON public.audits USING btree (created_at);
-
-
---
--- Name: index_audits_on_request_uuid; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_audits_on_request_uuid ON public.audits USING btree (request_uuid);
 
 
 --
@@ -5066,13 +5007,6 @@ CREATE UNIQUE INDEX unique_model_name_idx ON public.models USING btree (((((prod
 --
 
 CREATE UNIQUE INDEX unique_name_procurement_budget_periods ON public.procurement_budget_periods USING btree (lower((name)::text));
-
-
---
--- Name: user_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX user_index ON public.audits USING btree (user_id, user_type);
 
 
 --
@@ -6720,6 +6654,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('10'),
 ('11'),
 ('12'),
+('13'),
 ('2'),
 ('3'),
 ('4'),
