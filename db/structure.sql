@@ -6655,6 +6655,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('11'),
 ('12'),
 ('13'),
+('14'),
 ('2'),
 ('3'),
 ('4'),
