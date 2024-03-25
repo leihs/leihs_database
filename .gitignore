@@ -11,6 +11,8 @@
 /db/*.sqlite3
 /db/*.sqlite3-journal
 
+db/migrate/procurement_attachments_backup.json
+
 # Ignore all logfiles and tempfiles.
 /log/*
 !/log/.keep

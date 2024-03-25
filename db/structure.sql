@@ -1825,6 +1825,53 @@ CREATE FUNCTION public.insert_into_delegations_direct_users_f() RETURNS trigger
 
 
 --
+-- Name: insert_mail_templates_for_new_inventory_pool_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.insert_mail_templates_for_new_inventory_pool_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  INSERT INTO mail_templates (
+    inventory_pool_id,
+    name,
+    format,
+    body,
+    is_template_template,
+    "type",
+    language_locale
+  )
+  SELECT
+    NEW.id,
+    name,
+    format,
+    body,
+    FALSE,
+    "type",
+    language_locale
+  FROM mail_templates
+  WHERE is_template_template = TRUE;
+
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: insert_workdays_for_new_inventory_pool_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.insert_workdays_for_new_inventory_pool_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  INSERT INTO workdays ( inventory_pool_id ) VALUES ( NEW.id );
+  RETURN NEW;
+END;
+$$;
+
+
+--
 -- Name: jsonb_changed(jsonb, jsonb); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -2805,8 +2852,8 @@ CREATE TABLE public.mail_templates (
     name character varying NOT NULL,
     format character varying NOT NULL,
     body text NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
     is_template_template boolean NOT NULL,
     type text NOT NULL,
     language_locale text NOT NULL,
@@ -5524,6 +5571,20 @@ CREATE TRIGGER insert_into_delegations_direct_users_t AFTER INSERT OR UPDATE ON 
 
 
 --
+-- Name: inventory_pools insert_mail_templates_for_new_inventory_pool_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER insert_mail_templates_for_new_inventory_pool_t AFTER INSERT ON public.inventory_pools FOR EACH ROW EXECUTE FUNCTION public.insert_mail_templates_for_new_inventory_pool_f();
+
+
+--
+-- Name: inventory_pools insert_workdays_for_new_inventory_pool_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER insert_workdays_for_new_inventory_pool_t AFTER INSERT ON public.inventory_pools FOR EACH ROW EXECUTE FUNCTION public.insert_workdays_for_new_inventory_pool_f();
+
+
+--
 -- Name: orders orders_insert_check_function_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6656,6 +6717,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('12'),
 ('13'),
 ('14'),
+('15'),
+('16'),
 ('2'),
 ('3'),
 ('4'),

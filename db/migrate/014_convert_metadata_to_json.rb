@@ -43,7 +43,9 @@ class ConvertMetadataToJson < ActiveRecord::Migration[6.1]
 
   def backup_relevant_data
     data = ProcurementAttachment.select(:id, :filename, :metadata).as_json
-
+    unless File.exist?(BACKUP_FILE)
+      File.new(BACKUP_FILE, "w").close
+    end
     File.open(BACKUP_FILE, 'w') do |file|
       file.write(JSON.pretty_generate(data))
     end
