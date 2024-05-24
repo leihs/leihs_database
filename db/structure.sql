@@ -2731,10 +2731,11 @@ CREATE TABLE public.fields (
 
 CREATE TABLE public.holidays (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    inventory_pool_id uuid,
-    start_date date,
-    end_date date,
-    name character varying
+    inventory_pool_id uuid NOT NULL,
+    start_date date NOT NULL,
+    end_date date NOT NULL,
+    name character varying NOT NULL,
+    CONSTRAINT end_date_after_start_date CHECK ((end_date >= start_date))
 );
 
 
@@ -6715,6 +6716,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('16'),
 ('17'),
 ('18'),
+('19'),
 ('2'),
 ('3'),
 ('4'),
