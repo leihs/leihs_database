@@ -2777,7 +2777,8 @@ CREATE TABLE public.inventory_pools (
     automatic_suspension boolean DEFAULT false NOT NULL,
     automatic_suspension_reason text,
     required_purpose boolean DEFAULT true,
-    is_active boolean DEFAULT true NOT NULL
+    is_active boolean DEFAULT true NOT NULL,
+    reservation_advance_days integer DEFAULT 0 NOT NULL
 );
 
 
@@ -3571,7 +3572,6 @@ CREATE TABLE public.workdays (
     friday boolean DEFAULT true NOT NULL,
     saturday boolean DEFAULT false NOT NULL,
     sunday boolean DEFAULT false NOT NULL,
-    reservation_advance_days integer DEFAULT 0 NOT NULL,
     max_visits jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
@@ -6719,6 +6719,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('14'),
 ('15'),
 ('16'),
+('17'),
 ('2'),
 ('3'),
 ('4'),
