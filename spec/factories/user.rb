@@ -1,5 +1,6 @@
 class User < Sequel::Model
   attr_accessor :password
+  many_to_many :groups, join_table: :groups_users
 end
 
 class AuthenticationSystemUser < Sequel::Model(:authentication_systems_users)
