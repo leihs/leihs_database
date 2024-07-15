@@ -2055,6 +2055,20 @@ $$;
 
 
 --
+-- Name: upcase_method_in_audited_requests_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.upcase_method_in_audited_requests_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  NEW.method = UPPER(NEW.method);
+  RETURN NEW;
+END;
+$$;
+
+
+--
 -- Name: update_updated_at_column(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -5755,6 +5769,13 @@ CREATE TRIGGER trigger_fields_delete_check_function BEFORE DELETE ON public.fiel
 
 
 --
+-- Name: audited_requests upcase_method_in_audited_requests_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER upcase_method_in_audited_requests_t BEFORE INSERT OR UPDATE ON public.audited_requests FOR EACH ROW EXECUTE FUNCTION public.upcase_method_in_audited_requests_f();
+
+
+--
 -- Name: groups update_searchable_column_of_groups; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6718,6 +6739,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('18'),
 ('19'),
 ('2'),
+('20'),
 ('3'),
 ('4'),
 ('5'),
