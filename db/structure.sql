@@ -2992,14 +2992,14 @@ CREATE TABLE public.procurement_admins (
 
 CREATE TABLE public.procurement_attachments (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    request_id uuid,
-    filename character varying,
-    content_type character varying,
-    size integer,
-    content text,
-    metadata json,
-    exiftool_version character varying,
-    exiftool_options character varying
+    request_id uuid NOT NULL,
+    filename character varying NOT NULL,
+    content_type character varying NOT NULL,
+    size integer NOT NULL,
+    content text NOT NULL,
+    metadata json NOT NULL,
+    exiftool_version character varying NOT NULL,
+    exiftool_options character varying NOT NULL
 );
 
 
@@ -3078,10 +3078,10 @@ CREATE TABLE public.procurement_images (
     content_type character varying NOT NULL,
     content character varying NOT NULL,
     filename character varying NOT NULL,
-    size integer,
-    metadata json,
-    exiftool_version character varying,
-    exiftool_options character varying
+    size integer NOT NULL,
+    metadata json NOT NULL,
+    exiftool_version character varying NOT NULL,
+    exiftool_options character varying NOT NULL
 );
 
 
@@ -3223,13 +3223,13 @@ CREATE TABLE public.procurement_templates (
 CREATE TABLE public.procurement_uploads (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     filename character varying NOT NULL,
-    content_type character varying,
+    content_type character varying NOT NULL,
     size integer NOT NULL,
     content text NOT NULL,
     metadata json NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    exiftool_version character varying,
-    exiftool_options character varying
+    exiftool_version character varying NOT NULL,
+    exiftool_options character varying NOT NULL
 );
 
 
@@ -6740,6 +6740,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('19'),
 ('2'),
 ('20'),
+('21'),
 ('3'),
 ('4'),
 ('5'),
