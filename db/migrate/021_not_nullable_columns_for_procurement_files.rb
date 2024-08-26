@@ -14,6 +14,10 @@ class NotNullableColumnsForProcurementFiles < ActiveRecord::Migration[6.1]
 
   def up
     TABLES.each do |table|
+      execute <<~SQL
+        DELETE FROM #{table} WHERE content IS NULL
+      SQL
+
       cols = case table
              when :procurement_attachments
                COMMON_COLUMNS + [:request_id]

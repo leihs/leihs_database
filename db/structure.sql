@@ -975,6 +975,21 @@ $$;
 
 
 --
+-- Name: delete_stale_procurement_uploads_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.delete_stale_procurement_uploads_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  DELETE FROM procurement_uploads
+  WHERE created_at < NOW() - INTERVAL '6 months';
+  RETURN NULL;
+END;
+$$;
+
+
+--
 -- Name: ensure_general_building_cannot_be_deleted(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -5524,6 +5539,13 @@ CREATE CONSTRAINT TRIGGER delete_old_emails_t AFTER INSERT OR UPDATE ON public.e
 
 
 --
+-- Name: procurement_uploads delete_stale_procurement_uploads_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER delete_stale_procurement_uploads_t AFTER INSERT ON public.procurement_uploads FOR EACH ROW EXECUTE FUNCTION public.delete_stale_procurement_uploads_f();
+
+
+--
 -- Name: procurement_requests ensure_not_noll_order_status_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6741,6 +6763,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('2'),
 ('20'),
 ('21'),
+('22'),
 ('3'),
 ('4'),
 ('5'),
