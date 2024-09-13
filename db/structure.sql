@@ -1711,6 +1711,22 @@ CREATE FUNCTION public.fields_update_check_function() RETURNS trigger
 
 
 --
+-- Name: fields_validate_id_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fields_validate_id_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $_$
+BEGIN
+  IF NEW.id !~ '^[a-z_]+$' THEN
+    RAISE EXCEPTION 'ID must contain only lowercase letters without accents and underscores';
+  END IF;
+  RETURN NEW;
+END;
+$_$;
+
+
+--
 -- Name: get_translations(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -5581,6 +5597,13 @@ CREATE TRIGGER fields_update_check_trigger BEFORE UPDATE ON public.fields FOR EA
 
 
 --
+-- Name: fields fields_validate_id_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER fields_validate_id_t BEFORE INSERT OR UPDATE ON public.fields FOR EACH ROW EXECUTE FUNCTION public.fields_validate_id_f();
+
+
+--
 -- Name: procurement_requests increase_counter_for_new_procurement_request_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6764,6 +6787,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20'),
 ('21'),
 ('22'),
+('23'),
 ('3'),
 ('4'),
 ('5'),
