@@ -5275,6 +5275,13 @@ CREATE TRIGGER audited_change_on_authentication_systems_users AFTER INSERT OR DE
 
 
 --
+-- Name: buildings audited_change_on_buildings; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_buildings AFTER INSERT OR DELETE OR UPDATE ON public.buildings FOR EACH ROW EXECUTE FUNCTION public.audit_change();
+
+
+--
 -- Name: contracts audited_change_on_contracts; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -5303,6 +5310,13 @@ CREATE TRIGGER audited_change_on_direct_access_rights AFTER INSERT OR DELETE OR 
 
 
 --
+-- Name: disabled_fields audited_change_on_disabled_fields; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_disabled_fields AFTER INSERT OR DELETE OR UPDATE ON public.disabled_fields FOR EACH ROW EXECUTE FUNCTION public.audit_change();
+
+
+--
 -- Name: entitlement_groups audited_change_on_entitlement_groups; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -5321,6 +5335,13 @@ CREATE TRIGGER audited_change_on_entitlement_groups_direct_users AFTER INSERT OR
 --
 
 CREATE TRIGGER audited_change_on_entitlement_groups_groups AFTER INSERT OR DELETE OR UPDATE ON public.entitlement_groups_groups FOR EACH ROW EXECUTE FUNCTION public.audit_change();
+
+
+--
+-- Name: fields audited_change_on_fields; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_fields AFTER INSERT OR DELETE OR UPDATE ON public.fields FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
@@ -5373,6 +5394,13 @@ CREATE TRIGGER audited_change_on_models AFTER INSERT OR DELETE OR UPDATE ON publ
 
 
 --
+-- Name: options audited_change_on_options; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_options AFTER INSERT OR DELETE OR UPDATE ON public.options FOR EACH ROW EXECUTE FUNCTION public.audit_change();
+
+
+--
 -- Name: orders audited_change_on_orders; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -5380,10 +5408,52 @@ CREATE TRIGGER audited_change_on_orders AFTER INSERT OR DELETE OR UPDATE ON publ
 
 
 --
+-- Name: procurement_admins audited_change_on_procurement_admins; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_procurement_admins AFTER INSERT OR DELETE OR UPDATE ON public.procurement_admins FOR EACH ROW EXECUTE FUNCTION public.audit_change();
+
+
+--
+-- Name: procurement_category_inspectors audited_change_on_procurement_category_inspectors; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_procurement_category_inspectors AFTER INSERT OR DELETE OR UPDATE ON public.procurement_category_inspectors FOR EACH ROW EXECUTE FUNCTION public.audit_change();
+
+
+--
+-- Name: procurement_category_viewers audited_change_on_procurement_category_viewers; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_procurement_category_viewers AFTER INSERT OR DELETE OR UPDATE ON public.procurement_category_viewers FOR EACH ROW EXECUTE FUNCTION public.audit_change();
+
+
+--
+-- Name: procurement_requesters_organizations audited_change_on_procurement_requesters_organizations; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_procurement_requesters_organizations AFTER INSERT OR DELETE OR UPDATE ON public.procurement_requesters_organizations FOR EACH ROW EXECUTE FUNCTION public.audit_change();
+
+
+--
+-- Name: procurement_requests audited_change_on_procurement_requests; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_procurement_requests AFTER INSERT OR DELETE OR UPDATE ON public.procurement_requests FOR EACH ROW EXECUTE FUNCTION public.audit_change();
+
+
+--
 -- Name: reservations audited_change_on_reservations; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER audited_change_on_reservations AFTER INSERT OR DELETE OR UPDATE ON public.reservations FOR EACH ROW EXECUTE FUNCTION public.audit_change();
+
+
+--
+-- Name: rooms audited_change_on_rooms; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_rooms AFTER INSERT OR DELETE OR UPDATE ON public.rooms FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
@@ -5398,6 +5468,13 @@ CREATE TRIGGER audited_change_on_settings AFTER INSERT OR DELETE OR UPDATE ON pu
 --
 
 CREATE TRIGGER audited_change_on_smtp_settings AFTER INSERT OR DELETE OR UPDATE ON public.smtp_settings FOR EACH ROW EXECUTE FUNCTION public.audit_change();
+
+
+--
+-- Name: suppliers audited_change_on_suppliers; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_suppliers AFTER INSERT OR DELETE OR UPDATE ON public.suppliers FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
@@ -6788,6 +6865,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('21'),
 ('22'),
 ('23'),
+('24'),
 ('3'),
 ('4'),
 ('5'),
