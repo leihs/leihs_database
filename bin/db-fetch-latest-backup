@@ -8,6 +8,7 @@ if [ -z ${1:-''} ]; then
 fi
 
 HOST=${HOST:-zhdk-leihs-prod-v6.ruby.zhdk.ch}
-SSH_PORT=${SSH_PORT:-22}
 
-rsync -LP -e "ssh -p $SSH_PORT" root@$HOST:/leihs/var/db-backups/latest.pgbin "$@"
+echo "Fetching latest backup from ${HOST} to ${1}..."
+
+rsync -LP root@$HOST:/leihs/var/db-backups/latest.pgbin "$@"
