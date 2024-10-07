@@ -28,6 +28,7 @@ scripts:
       cd $LEIHS_DATABASE_DIR
       unset PGPORT unset PGUSER
       export PGUSER="${PG15USER}"; export PGPORT="${PG15PORT}"
+      export SECRET_KEY_BASE_DUMMY=1
       ./bin/ruby cider-ci/scripts/configure-database.rb
 
   create-database:
@@ -41,6 +42,7 @@ scripts:
       cd $LEIHS_DATABASE_DIR
       unset PGPORT unset PGUSER
       export PGUSER="${PG15USER}"; export PGPORT="${PG15PORT}"
+      export SECRET_KEY_BASE_DUMMY=1
       bundle exec rake db:reset
 
   delete-database:
@@ -49,6 +51,7 @@ scripts:
       set -euo pipefail
       unset PGPORT unset PGUSER
       export PGUSER="${PG15USER}"; export PGPORT="${PG15PORT}"
+      export SECRET_KEY_BASE_DUMMY=1
       dropdb "$LEIHS_DATABASE_NAME"
     start_when:
       test is in terminal state:

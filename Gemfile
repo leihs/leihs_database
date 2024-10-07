@@ -11,7 +11,7 @@ gem 'pg', platform: :mri
 gem 'pg_tasks', git: 'https://github.com/leihs/rails_pg-tasks', branch: 'rails7'
 gem 'pry'
 gem 'psych', '~> 3' # https://github.com/rails/rails/issues/42528
-gem 'rails', '~> 7.1.0'
+gem 'rails', '~> 7.2.0'
 gem 'rspec'
 gem 'sequel'
 gem 'uuidtools'
