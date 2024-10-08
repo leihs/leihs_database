@@ -62,7 +62,8 @@ jobs:
     run_when:
       any branch has been updated:
         type: branch
-        include_match: ^.*$
+        include_match: '^.*$'
+        exclude_match: '^.*(no-ci|hotspot).*$'
     context:
       include:
         - cider-ci/shared/main-context.yml
