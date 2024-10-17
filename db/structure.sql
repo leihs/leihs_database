@@ -2818,7 +2818,8 @@ CREATE TABLE public.inventory_pools (
     automatic_suspension_reason text,
     required_purpose boolean DEFAULT true,
     is_active boolean DEFAULT true NOT NULL,
-    reservation_advance_days integer DEFAULT 0 NOT NULL
+    reservation_advance_days integer DEFAULT 0 NOT NULL,
+    borrow_maximum_reservation_duration integer
 );
 
 
@@ -3365,7 +3366,6 @@ CREATE TABLE public.settings (
     id integer DEFAULT 0 NOT NULL,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
-    maximum_reservation_time integer,
     lending_terms_acceptance_required_for_order boolean DEFAULT false NOT NULL,
     lending_terms_url text,
     include_customer_email_in_contracts boolean DEFAULT false NOT NULL,
@@ -6849,29 +6849,29 @@ ALTER TABLE ONLY public.users
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('1'),
-('10'),
-('11'),
-('12'),
-('13'),
-('14'),
-('15'),
-('16'),
-('17'),
-('18'),
-('19'),
-('2'),
-('20'),
-('21'),
-('22'),
-('23'),
-('24'),
-('3'),
-('4'),
-('5'),
-('6'),
-('7'),
+('9'),
 ('8'),
-('9');
-
+('7'),
+('6'),
+('5'),
+('4'),
+('3'),
+('25'),
+('24'),
+('23'),
+('22'),
+('21'),
+('20'),
+('2'),
+('19'),
+('18'),
+('17'),
+('16'),
+('15'),
+('14'),
+('13'),
+('12'),
+('11'),
+('10'),
+('1');
 
