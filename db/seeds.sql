@@ -1421,7 +1421,7 @@ Kind regards,
 -- Data for Name: settings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.settings (local_currency_string, contract_lending_party_string, email_signature, deliver_received_order_notifications, user_image_url, ldap_config, logo_url, time_zone, text, timeout_minutes, custom_head_tag, documentation_link, id, created_at, updated_at, maximum_reservation_time, lending_terms_acceptance_required_for_order, lending_terms_url, include_customer_email_in_contracts, show_contact_details_on_customer_order, home_page_image_url) VALUES ('GBP', NULL, 'Cheers,', false, NULL, NULL, NULL, 'Bern', NULL, 30, NULL, NULL, 0, '2020-11-05 12:50:29.190792+00', '2020-11-05 12:50:29.190792+00', NULL, false, NULL, false, false, NULL);
+INSERT INTO public.settings (local_currency_string, contract_lending_party_string, email_signature, deliver_received_order_notifications, user_image_url, ldap_config, logo_url, time_zone, text, timeout_minutes, custom_head_tag, documentation_link, id, created_at, updated_at, lending_terms_acceptance_required_for_order, lending_terms_url, include_customer_email_in_contracts, show_contact_details_on_customer_order, home_page_image_url) VALUES ('GBP', NULL, 'Cheers,', false, NULL, NULL, NULL, 'Bern', NULL, 30, NULL, NULL, 0, '2020-11-05 12:50:29.190792+00', '2020-11-05 12:50:29.190792+00', false, NULL, false, false, NULL);
 
 
 --
