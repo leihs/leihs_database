@@ -2818,7 +2818,7 @@ CREATE TABLE public.inventory_pools (
     automatic_suspension_reason text,
     required_purpose boolean DEFAULT true,
     is_active boolean DEFAULT true NOT NULL,
-    reservation_advance_days integer DEFAULT 0 NOT NULL,
+    borrow_reservation_advance_days integer DEFAULT 0 NOT NULL,
     borrow_maximum_reservation_duration integer
 );
 
@@ -6856,6 +6856,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('5'),
 ('4'),
 ('3'),
+('26'),
 ('25'),
 ('24'),
 ('23'),
