@@ -2819,7 +2819,8 @@ CREATE TABLE public.inventory_pools (
     required_purpose boolean DEFAULT true,
     is_active boolean DEFAULT true NOT NULL,
     borrow_reservation_advance_days integer DEFAULT 0 NOT NULL,
-    borrow_maximum_reservation_duration integer
+    borrow_maximum_reservation_duration integer,
+    deliver_received_order_emails boolean DEFAULT false NOT NULL
 );
 
 
@@ -3354,7 +3355,6 @@ CREATE TABLE public.settings (
     local_currency_string character varying,
     contract_lending_party_string text,
     email_signature character varying,
-    deliver_received_order_notifications boolean,
     user_image_url character varying,
     ldap_config character varying,
     logo_url character varying,
@@ -6856,6 +6856,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('5'),
 ('4'),
 ('3'),
+('27'),
 ('26'),
 ('25'),
 ('24'),
