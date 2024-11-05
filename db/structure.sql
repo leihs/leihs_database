@@ -2820,7 +2820,8 @@ CREATE TABLE public.inventory_pools (
     is_active boolean DEFAULT true NOT NULL,
     borrow_reservation_advance_days integer DEFAULT 0 NOT NULL,
     borrow_maximum_reservation_duration integer,
-    deliver_received_order_emails boolean DEFAULT false NOT NULL
+    deliver_received_order_emails boolean DEFAULT false NOT NULL,
+    email_signature text
 );
 
 
@@ -6856,6 +6857,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('5'),
 ('4'),
 ('3'),
+('28'),
 ('27'),
 ('26'),
 ('25'),
