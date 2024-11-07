@@ -1718,8 +1718,8 @@ CREATE FUNCTION public.fields_validate_id_f() RETURNS trigger
     LANGUAGE plpgsql
     AS $_$
 BEGIN
-  IF NEW.id !~ '^[a-z_]+$' THEN
-    RAISE EXCEPTION 'ID must contain only lowercase letters without accents and underscores';
+  IF NEW.id !~ '^[a-z0-9_]+$' THEN
+    RAISE EXCEPTION 'ID must contain only lowercase letters without accents; numbers or underscores';
   END IF;
   RETURN NEW;
 END;
@@ -6857,6 +6857,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('5'),
 ('4'),
 ('3'),
+('29'),
 ('28'),
 ('27'),
 ('26'),
