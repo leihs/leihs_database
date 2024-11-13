@@ -2007,6 +2007,20 @@ ON CONFLICT DO NOTHING;
 
 
 --
+-- Name: prevent_delete_on_items_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.prevent_delete_on_items_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+RAISE EXCEPTION 'Deletion is forbidden on the items table. Update retired and retired_reason columns instead.';
+  RETURN NULL;
+END;
+$$;
+
+
+--
 -- Name: prevent_deleting_all_users_group_f(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -5731,6 +5745,13 @@ CREATE TRIGGER populate_all_users_group_t AFTER INSERT ON public.users FOR EACH 
 
 
 --
+-- Name: items prevent_delete_on_items_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER prevent_delete_on_items_t BEFORE DELETE ON public.items FOR EACH ROW EXECUTE FUNCTION public.prevent_delete_on_items_f();
+
+
+--
 -- Name: groups prevent_deleting_all_users_group_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6856,6 +6877,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('6'),
 ('5'),
 ('4'),
+('30'),
 ('3'),
 ('29'),
 ('28'),
