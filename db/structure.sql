@@ -2812,7 +2812,9 @@ CREATE TABLE public.images (
     parent_id uuid,
     content text,
     thumbnail boolean DEFAULT false,
-    metadata json
+    metadata json,
+    width integer,
+    height integer
 );
 
 
@@ -6877,6 +6879,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('6'),
 ('5'),
 ('4'),
+('31'),
 ('30'),
 ('3'),
 ('29'),
