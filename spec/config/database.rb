@@ -25,8 +25,10 @@ end
 
 
 def database_name
-  ENV['LEIHS_DATABASE_NAME'].presence || 
+  ENV['DB_NAME_TEST'].presence || 
+    ENV['LEIHS_DATABASE_NAME'].presence || 
     ENV['DB_NAME'].presence || 
+    ENV['PGDATABASE'].presence ||
     ENV['PGDATABASE'].presence ||
     'leihs'
 end
