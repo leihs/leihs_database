@@ -2927,8 +2927,8 @@ CREATE TABLE public.mail_templates (
 
 CREATE TABLE public.model_group_links (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    parent_id uuid,
-    child_id uuid,
+    parent_id uuid NOT NULL,
+    child_id uuid NOT NULL,
     label character varying
 );
 
@@ -2941,8 +2941,8 @@ CREATE TABLE public.model_groups (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     type character varying,
     name character varying NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -6879,6 +6879,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('6'),
 ('5'),
 ('4'),
+('32'),
 ('31'),
 ('30'),
 ('3'),
