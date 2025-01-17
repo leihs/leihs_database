@@ -3629,7 +3629,14 @@ CREATE TABLE public.workdays (
     friday boolean DEFAULT true NOT NULL,
     saturday boolean DEFAULT false NOT NULL,
     sunday boolean DEFAULT false NOT NULL,
-    max_visits jsonb DEFAULT '{}'::jsonb NOT NULL
+    max_visits jsonb DEFAULT '{}'::jsonb NOT NULL,
+    monday_info text,
+    tuesday_info text,
+    wednesday_info text,
+    thursday_info text,
+    friday_info text,
+    saturday_info text,
+    sunday_info text
 );
 
 
@@ -6879,6 +6886,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('6'),
 ('5'),
 ('4'),
+('33'),
 ('32'),
 ('31'),
 ('30'),
