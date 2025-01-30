@@ -2837,7 +2837,8 @@ CREATE TABLE public.inventory_pools (
     borrow_reservation_advance_days integer DEFAULT 0 NOT NULL,
     borrow_maximum_reservation_duration integer,
     deliver_received_order_emails boolean DEFAULT false NOT NULL,
-    email_signature text
+    email_signature text,
+    contact text
 );
 
 
@@ -6886,6 +6887,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('6'),
 ('5'),
 ('4'),
+('34'),
 ('33'),
 ('32'),
 ('31'),
