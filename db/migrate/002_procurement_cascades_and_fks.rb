@@ -1,5 +1,4 @@
 class ProcurementCascadesAndFks < ActiveRecord::Migration[6.1]
-
   def up
     execute <<~SQL
       DELETE FROM procurement_requesters_organizations
@@ -42,5 +41,4 @@ class ProcurementCascadesAndFks < ActiveRecord::Migration[6.1]
     remove_foreign_key(:procurement_category_viewers, :users)
     remove_foreign_key(:procurement_category_inspectors, :users)
   end
-
 end

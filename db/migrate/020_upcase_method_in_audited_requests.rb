@@ -1,5 +1,4 @@
 class UpcaseMethodInAuditedRequests < ActiveRecord::Migration[6.1]
-
   def up
     execute <<~SQL
       UPDATE audited_requests
@@ -30,5 +29,4 @@ class UpcaseMethodInAuditedRequests < ActiveRecord::Migration[6.1]
       DROP FUNCTION IF EXISTS upcase_method_in_audited_requests_f();
     SQL
   end
-
 end

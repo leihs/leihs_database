@@ -8,7 +8,7 @@ class DeleteEmptyOrdersTrigger < ActiveRecord::Migration[6.1]
         WHERE reservations.order_id = orders.id
       );
     SQL
-      
+
     execute <<~SQL
       DELETE FROM customer_orders co
       WHERE NOT EXISTS (

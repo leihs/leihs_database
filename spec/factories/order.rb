@@ -10,7 +10,7 @@ FactoryBot.define do
     customer_order { create(:customer_order, user: user) }
     user
     inventory_pool
-    state { 'submitted' }
+    state { "submitted" }
     purpose { Faker::Lorem.sentence }
   end
 end

@@ -1,16 +1,16 @@
 class ResponsibleUserMemberDelegation < ActiveRecord::Migration[6.1]
   class MigrationUser < ActiveRecord::Base
-    self.table_name = 'users'
+    self.table_name = "users"
   end
 
   class MigrationDelegationDirectUser < ActiveRecord::Base
-    self.table_name = 'delegations_direct_users'
+    self.table_name = "delegations_direct_users"
   end
 
   def up
     MigrationUser.all.each do |u|
-      if u.delegator_user_id and \
-          not MigrationDelegationDirectUser.find_by(delegation_id: u.id, user_id: u.delegator_user_id)
+      if u.delegator_user_id &&
+          !MigrationDelegationDirectUser.find_by(delegation_id: u.id, user_id: u.delegator_user_id)
         MigrationDelegationDirectUser.create!(delegation_id: u.id, user_id: u.delegator_user_id)
       end
     end
@@ -102,5 +102,4 @@ class ResponsibleUserMemberDelegation < ActiveRecord::Migration[6.1]
       DROP FUNCTION IF EXISTS check_if_responsible_user_after_update_f();
     SQL
   end
-
 end

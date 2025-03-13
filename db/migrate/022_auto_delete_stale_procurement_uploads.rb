@@ -1,5 +1,4 @@
 class AutoDeleteStaleProcurementUploads < ActiveRecord::Migration[6.1]
-
   def up
     execute <<~SQL
       DELETE FROM procurement_uploads
@@ -29,5 +28,4 @@ class AutoDeleteStaleProcurementUploads < ActiveRecord::Migration[6.1]
       DROP FUNCTION IF EXISTS delete_stale_procurement_uploads_f();
     SQL
   end
-
 end

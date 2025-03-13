@@ -1,6 +1,5 @@
 module Leihs
   module MigrationMailTemplates
-
     TEMPLATE_TEMPLATES = {
       reminder: {
         type: :user,
@@ -195,6 +194,5 @@ module Leihs
         BODY
       }
     }
-
   end
 end
