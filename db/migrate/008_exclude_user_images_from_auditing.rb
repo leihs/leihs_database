@@ -31,4 +31,3 @@ class ExcludeUserImagesFromAuditing < ActiveRecord::Migration[6.1]
     SQL
   end
 end
-

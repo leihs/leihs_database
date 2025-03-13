@@ -1,6 +1,6 @@
-require 'config/database.rb'
-require 'factory_bot'
-require 'faker'
+require "config/database"
+require "factory_bot"
+require "faker"
 
 Sequel::Model.db = database
 

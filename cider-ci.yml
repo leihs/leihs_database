@@ -6,8 +6,8 @@ jobs:
     run_when:
       always:
         type: branch
-        include_match: '^.*$'
-        exclude_match: '^.*(no-ci|hotspot).*$'
+        include_match: "^.*$"
+        exclude_match: "^.*(no-ci|hotspot).*$"
     context:
       include:
         - cider-ci/shared/main-context.yml
@@ -18,7 +18,6 @@ jobs:
           RAILS_ENV: test
 
       tasks:
-
         check-migration-of-seeds:
           name: "Check if seeds-dump needs to be migrated"
           scripts:
@@ -55,15 +54,38 @@ jobs:
                 unset PGUSER
                 PGPORT=${PG15PORT} PGUSER=${PG15USER} ./bin/demo-check
 
-
-
-  specs:
-    name: 'Run specs'
+  lint:
+    name: "Linting"
+    description: |
+      Code checks: static checks and metrics: complexity, duplication, and format,
+        also other consistency checks.
+    priority: 3
     run_when:
       any branch has been updated:
         type: branch
-        include_match: '^.*$'
-        exclude_match: '^.*(no-ci|hotspot).*$'
+        include_match: ^.*$
+        exclude_match: "^.*(no-ci|hotspot).*$"
+    context:
+      task_defaults:
+        git_options:
+          submodules:
+            include_match: ^.*$
+      tasks:
+        ruby-lint:
+          scripts:
+            test:
+              body: |
+                #!/usr/bin/env bash
+                set -euo pipefail
+                ./bin/rblint
+
+  specs:
+    name: "Run specs"
+    run_when:
+      any branch has been updated:
+        type: branch
+        include_match: "^.*$"
+        exclude_match: "^.*(no-ci|hotspot).*$"
     context:
       include:
         - cider-ci/shared/main-context.yml

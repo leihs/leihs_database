@@ -1,19 +1,19 @@
 class UnaccentFieldsId < ActiveRecord::Migration[6.1]
   class MigrationField < ActiveRecord::Base
-    self.table_name = 'fields'
+    self.table_name = "fields"
   end
 
   class MigrationItem < ActiveRecord::Base
-    self.table_name = 'items'
+    self.table_name = "items"
   end
 
-  ALLOWED_ID_REGEX = '^properties_[a-z0-9_]+$'
+  ALLOWED_ID_REGEX = "^properties_[a-z0-9_]+$"
 
   def up
     MigrationField.where(dynamic: true).each do |field|
-      if field.id !~ /#{ALLOWED_ID_REGEX}/
+      if !/#{ALLOWED_ID_REGEX}/o.match?(field.id)
         _, old_attr = field.data["attribute"]
-        new_attr = execute(<<-SQL).first['attr']
+        new_attr = execute(<<-SQL).first["attr"]
           SELECT lower(unaccent('#{old_attr}')) AS attr
         SQL
 
@@ -21,10 +21,10 @@ class UnaccentFieldsId < ActiveRecord::Migration[6.1]
         new_data = old_data.merge(attribute: ["properties", new_attr])
 
         new_field = MigrationField.create!(id: "properties_#{new_attr}",
-                                           active: field.active,
-                                           position: field.position,
-                                           data: new_data,
-                                           dynamic: true)
+          active: field.active,
+          position: field.position,
+          data: new_data,
+          dynamic: true)
 
         execute(<<-SQL)
             UPDATE disabled_fields
@@ -34,14 +34,13 @@ class UnaccentFieldsId < ActiveRecord::Migration[6.1]
 
         MigrationItem.where("properties->'#{old_attr}' IS NOT NULL").each do |item|
           props = item.properties
-          new_props = props.transform_keys { |k| k == old_attr ? new_attr : k }
+          new_props = props.transform_keys { |k| (k == old_attr) ? new_attr : k }
           item.update!(properties: new_props)
         end
 
         field.destroy!
       end
     end
-
 
     execute <<~SQL
       CREATE OR REPLACE FUNCTION fields_validate_id_f()

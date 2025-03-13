@@ -1,7 +1,11 @@
-Database Submodule for Leihs
-============================
+# Database Submodule for Leihs
 
-Development
------------
+## Development
 
-See the scripts in `./bin/`. 
+See the scripts in `./bin/`.
+
+### Formatting Code
+
+#### Ruby
+
+Use `./bin/rblint` and `./bin/rblint --fix`.

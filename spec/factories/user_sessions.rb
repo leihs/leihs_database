@@ -9,6 +9,5 @@ FactoryBot.define do
     after(:build) do |user_session|
       user_session[:token_hash] = Digest::SHA256.hexdigest user_session.token
     end
-
   end
 end

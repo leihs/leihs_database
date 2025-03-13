@@ -4,9 +4,9 @@ end
 FactoryBot.define do
   factory :authentication_system do
     name { Faker::Name.unique.name }
-    id { name.split(/\s+/).map{|s| s[0,1].downcase}.join }
-    enabled  { true }
-    type { 'external' }
+    id { name.split(/\s+/).map { |s| s[0, 1].downcase }.join }
+    enabled { true }
+    type { "external" }
     description { Faker::Lorem.sentence }
     priority { 10 }
     internal_private_key { <<-KEY.strip_heredoc }
@@ -15,18 +15,18 @@ FactoryBot.define do
         AwEHoUQDQgAEzGT0FBI/bvn21TOuLmkzDwzRsIuOyIf9APV7DAZr3fgCqG1wzXce
         MGG42wJIDRduJ9gb3LJiewqzq6VVURvyKQ==
         -----END EC PRIVATE KEY-----
-      KEY
-     internal_public_key  { <<-KEY.strip_heredoc }
+    KEY
+    internal_public_key { <<-KEY.strip_heredoc }
           -----BEGIN PUBLIC KEY-----
           MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEzGT0FBI/bvn21TOuLmkzDwzRsIuO
           yIf9APV7DAZr3fgCqG1wzXceMGG42wJIDRduJ9gb3LJiewqzq6VVURvyKQ==
           -----END PUBLIC KEY-----
-      KEY
-     external_public_key { <<-KEY.strip_heredoc }
+    KEY
+    external_public_key { <<-KEY.strip_heredoc }
           -----BEGIN PUBLIC KEY-----
           MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEzGT0FBI/bvn21TOuLmkzDwzRsIuO
           yIf9APV7DAZr3fgCqG1wzXceMGG42wJIDRduJ9gb3LJiewqzq6VVURvyKQ==
           -----END PUBLIC KEY-----
-      KEY
+    KEY
   end
 end

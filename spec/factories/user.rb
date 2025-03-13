@@ -10,9 +10,9 @@ FactoryBot.define do
   factory :user do
     firstname { Faker::Name.first_name }
     lastname { Faker::Name.unique.last_name }
-    email { firstname + '.' + lastname + '@' + Faker::Internet.domain_name }
-    password { Faker::Internet.password() }
-    is_system_admin { (rand < 1/10) }
+    email { firstname + "." + lastname + "@" + Faker::Internet.domain_name }
+    password { Faker::Internet.password }
+    is_system_admin { (rand < 1 / 10) }
     system_admin_protected { is_system_admin }
     is_admin { is_system_admin }
     admin_protected { is_admin }
@@ -22,8 +22,9 @@ FactoryBot.define do
                          "gen_salt('bf')) AS pw_hash"].first[:pw_hash]
       database[:authentication_systems_users].insert(
         user_id: user.id,
-        authentication_system_id: 'password',
-        data: pw_hash)
+        authentication_system_id: "password",
+        data: pw_hash
+      )
     end
 
     factory :admin do
@@ -34,6 +35,5 @@ FactoryBot.define do
       is_admin { true }
       is_system_admin { true }
     end
-
   end
 end
