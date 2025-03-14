@@ -1867,6 +1867,7 @@ BEGIN
     inventory_pool_id,
     name,
     format,
+    subject,
     body,
     is_template_template,
     "type",
@@ -1876,6 +1877,7 @@ BEGIN
     NEW.id,
     name,
     format,
+    subject,
     body,
     FALSE,
     "type",
@@ -2918,6 +2920,7 @@ CREATE TABLE public.mail_templates (
     is_template_template boolean NOT NULL,
     type text NOT NULL,
     language_locale text NOT NULL,
+    subject text,
     CONSTRAINT mail_templates_check CHECK ((((inventory_pool_id IS NULL) AND (is_template_template IS TRUE)) OR ((inventory_pool_id IS NOT NULL) AND (is_template_template IS FALSE))))
 );
 
@@ -6887,6 +6890,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('6'),
 ('5'),
 ('4'),
+('35'),
 ('34'),
 ('33'),
 ('32'),
