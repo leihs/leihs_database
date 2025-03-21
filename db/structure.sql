@@ -2796,6 +2796,7 @@ CREATE TABLE public.holidays (
     start_date date NOT NULL,
     end_date date NOT NULL,
     name character varying NOT NULL,
+    orders_processing boolean DEFAULT false NOT NULL,
     CONSTRAINT end_date_after_start_date CHECK ((end_date >= start_date))
 );
 
@@ -3640,7 +3641,15 @@ CREATE TABLE public.workdays (
     thursday_info text,
     friday_info text,
     saturday_info text,
-    sunday_info text
+    sunday_info text,
+    monday_orders_processing boolean DEFAULT true NOT NULL,
+    tuesday_orders_processing boolean DEFAULT true NOT NULL,
+    wednesday_orders_processing boolean DEFAULT true NOT NULL,
+    thursday_orders_processing boolean DEFAULT true NOT NULL,
+    friday_orders_processing boolean DEFAULT true NOT NULL,
+    saturday_orders_processing boolean DEFAULT false NOT NULL,
+    sunday_orders_processing boolean DEFAULT false NOT NULL,
+    CONSTRAINT check_orders_processing CHECK (((NOT (monday AND (NOT monday_orders_processing))) AND (NOT (tuesday AND (NOT tuesday_orders_processing))) AND (NOT (wednesday AND (NOT wednesday_orders_processing))) AND (NOT (thursday AND (NOT thursday_orders_processing))) AND (NOT (friday AND (NOT friday_orders_processing))) AND (NOT (saturday AND (NOT saturday_orders_processing))) AND (NOT (sunday AND (NOT sunday_orders_processing)))))
 );
 
 
@@ -6890,6 +6899,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('6'),
 ('5'),
 ('4'),
+('36'),
 ('35'),
 ('34'),
 ('33'),
