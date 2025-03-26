@@ -18,3 +18,4 @@ db/migrate/procurement_attachments_backup.json
 !/log/.keep
 /tmp
 /config/database.yml
+.cider-ci_private/

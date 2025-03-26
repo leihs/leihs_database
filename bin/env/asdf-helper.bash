@@ -30,6 +30,7 @@ function asdf-update-plugin () {
   else
     if [[ $(git -C $PROJECT_DIR status -s) ]]; then
       echo "WARNING ${PROJECT_DIR} has uncommitted changes, forcing asdf plugin and install update"
+      git -C $PROJECT_DIR status
       asdf-update-plugin-base
     else
       DIGEST=$(git log -1 HEAD --pretty=format:%T)
