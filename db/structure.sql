@@ -2426,7 +2426,6 @@ CREATE TABLE public.attachments (
     size integer NOT NULL,
     item_id uuid,
     content text NOT NULL,
-    metadata json,
     CONSTRAINT check_model_id_or_item_id_not_null CHECK (((model_id IS NOT NULL) OR (item_id IS NOT NULL))),
     CONSTRAINT check_non_empty_content CHECK ((content !~ '^\s*$'::text)),
     CONSTRAINT check_non_empty_content_type CHECK (((content_type)::text !~ '^\s*$'::text)),
@@ -2815,7 +2814,6 @@ CREATE TABLE public.images (
     parent_id uuid,
     content text,
     thumbnail boolean DEFAULT false,
-    metadata json,
     width integer,
     height integer
 );
@@ -3052,7 +3050,6 @@ CREATE TABLE public.procurement_attachments (
     content_type character varying NOT NULL,
     size integer NOT NULL,
     content text NOT NULL,
-    metadata json NOT NULL,
     exiftool_version character varying NOT NULL,
     exiftool_options character varying NOT NULL
 );
@@ -3134,7 +3131,6 @@ CREATE TABLE public.procurement_images (
     content character varying NOT NULL,
     filename character varying NOT NULL,
     size integer NOT NULL,
-    metadata json NOT NULL,
     exiftool_version character varying NOT NULL,
     exiftool_options character varying NOT NULL
 );
@@ -3281,7 +3277,6 @@ CREATE TABLE public.procurement_uploads (
     content_type character varying NOT NULL,
     size integer NOT NULL,
     content text NOT NULL,
-    metadata json NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     exiftool_version character varying NOT NULL,
     exiftool_options character varying NOT NULL
@@ -6899,6 +6894,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('6'),
 ('5'),
 ('4'),
+('37'),
 ('36'),
 ('35'),
 ('34'),

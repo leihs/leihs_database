@@ -2,7 +2,6 @@ source "https://rubygems.org"
 
 gem "addressable"
 gem "base32-crockford"
-gem "exiftool_vendored"
 gem "factory_bot"
 gem "faker"
 gem "mimemagic"

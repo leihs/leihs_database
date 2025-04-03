@@ -94,10 +94,6 @@ GEM
     diff-lcs (1.5.1)
     drb (2.2.1)
     erubi (1.13.0)
-    exiftool (1.2.5)
-      json
-    exiftool_vendored (12.76.1)
-      exiftool (>= 0.7.0)
     factory_bot (6.4.6)
       activesupport (>= 5.0.0)
     faker (3.2.3)
@@ -273,7 +269,6 @@ PLATFORMS
 DEPENDENCIES
   addressable
   base32-crockford
-  exiftool_vendored
   factory_bot
   faker
   mimemagic
