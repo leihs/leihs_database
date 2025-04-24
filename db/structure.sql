@@ -4315,6 +4315,13 @@ CREATE UNIQUE INDEX idx_auth_sys_users ON public.authentication_systems_users US
 
 
 --
+-- Name: idx_group_access_rights_on_role; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_group_access_rights_on_role ON public.group_access_rights USING btree (role);
+
+
+--
 -- Name: idx_procurement_category_viewers_uc; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6899,6 +6906,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('6'),
 ('5'),
 ('4'),
+('37'),
 ('36'),
 ('35'),
 ('34'),
