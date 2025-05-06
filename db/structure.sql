@@ -2822,6 +2822,75 @@ CREATE TABLE public.images (
 
 
 --
+-- Name: models; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.models (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    type character varying DEFAULT 'Model'::character varying NOT NULL,
+    manufacturer character varying,
+    product character varying NOT NULL,
+    version character varying,
+    info_url character varying,
+    rental_price numeric(8,2),
+    maintenance_period integer DEFAULT 0,
+    is_package boolean DEFAULT false,
+    hand_over_note text,
+    description text,
+    internal_description text,
+    technical_detail text,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    cover_image_id uuid
+);
+
+
+--
+-- Name: options; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.options (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    inventory_pool_id uuid NOT NULL,
+    inventory_code character varying DEFAULT (public.uuid_generate_v4())::text NOT NULL,
+    manufacturer character varying,
+    product character varying NOT NULL,
+    version character varying,
+    price numeric(8,2)
+);
+
+
+--
+-- Name: inventory; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.inventory AS
+ SELECT models.id,
+    models.product,
+    models.version,
+    models.type,
+    'models'::text AS origin_table,
+    models.is_package,
+    models.manufacturer,
+    NULL::character varying AS inventory_code,
+    NULL::numeric AS price,
+    NULL::uuid AS inventory_pool_id
+   FROM public.models
+UNION
+ SELECT options.id,
+    options.product,
+    options.version,
+    'Option'::character varying AS type,
+    'options'::text AS origin_table,
+    false AS is_package,
+    options.manufacturer,
+    options.inventory_code,
+    options.price,
+    options.inventory_pool_id
+   FROM public.options;
+
+
+--
 -- Name: inventory_pools; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2964,51 +3033,12 @@ CREATE TABLE public.model_links (
 
 
 --
--- Name: models; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.models (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    type character varying DEFAULT 'Model'::character varying NOT NULL,
-    manufacturer character varying,
-    product character varying NOT NULL,
-    version character varying,
-    info_url character varying,
-    rental_price numeric(8,2),
-    maintenance_period integer DEFAULT 0,
-    is_package boolean DEFAULT false,
-    hand_over_note text,
-    description text,
-    internal_description text,
-    technical_detail text,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    cover_image_id uuid
-);
-
-
---
 -- Name: models_compatibles; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.models_compatibles (
     model_id uuid,
     compatible_id uuid
-);
-
-
---
--- Name: options; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.options (
-    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-    inventory_pool_id uuid NOT NULL,
-    inventory_code character varying DEFAULT (public.uuid_generate_v4())::text NOT NULL,
-    manufacturer character varying,
-    product character varying NOT NULL,
-    version character varying,
-    price numeric(8,2)
 );
 
 
@@ -6906,6 +6936,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('6'),
 ('5'),
 ('4'),
+('38'),
 ('37'),
 ('36'),
 ('35'),

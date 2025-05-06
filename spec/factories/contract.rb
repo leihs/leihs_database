@@ -1,3 +1,6 @@
+require "uuidtools"
+require "base32/crockford"
+
 class Contract < Sequel::Model
   many_to_one(:user)
   many_to_one(:inventory_pool)
