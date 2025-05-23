@@ -9,8 +9,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 15.12
--- Dumped by pg_dump version 15.12
+-- Dumped from database version 15.14 (Homebrew)
+-- Dumped by pg_dump version 15.14 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1753,4 +1753,3 @@ INSERT INTO public.system_and_security_settings (id, accept_server_secret_as_uni
 --
 -- PostgreSQL database dump complete
 --
-

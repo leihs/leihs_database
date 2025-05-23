@@ -1,3 +1,6 @@
+-- Dumped from database version 15.14 (Homebrew)
+-- Dumped by pg_dump version 15.14 (Homebrew)
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -2983,7 +2986,12 @@ CREATE TABLE public.models (
     technical_detail text,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    cover_image_id uuid
+    cover_image_id uuid,
+    name text GENERATED ALWAYS AS (
+CASE
+    WHEN (version IS NULL) THEN (product)::text
+    ELSE (((product)::text || ' '::text) || (version)::text)
+END) STORED
 );
 
 
@@ -3008,7 +3016,12 @@ CREATE TABLE public.options (
     manufacturer character varying,
     product character varying NOT NULL,
     version character varying,
-    price numeric(8,2)
+    price numeric(8,2),
+    name text GENERATED ALWAYS AS (
+CASE
+    WHEN (version IS NULL) THEN (product)::text
+    ELSE (((product)::text || ' '::text) || (version)::text)
+END) STORED
 );
 
 
@@ -5130,7 +5143,7 @@ CREATE UNIQUE INDEX rooms_unique_name_and_building_id ON public.rooms USING btre
 -- Name: unique_model_name_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX unique_model_name_idx ON public.models USING btree (((((product)::text || ' '::text) || (COALESCE(version, ''::character varying))::text)));
+CREATE UNIQUE INDEX unique_model_name_idx ON public.models USING btree (name);
 
 
 --
@@ -6906,6 +6919,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('6'),
 ('5'),
 ('4'),
+('38'),
 ('37'),
 ('36'),
 ('35'),
