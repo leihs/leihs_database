@@ -6353,7 +6353,7 @@ ALTER TABLE ONLY public.authentication_systems_users
 --
 
 ALTER TABLE ONLY public.models
-    ADD CONSTRAINT fk_rails_5aa4f56a65 FOREIGN KEY (cover_image_id) REFERENCES public.images(id);
+    ADD CONSTRAINT fk_rails_5aa4f56a65 FOREIGN KEY (cover_image_id) REFERENCES public.images(id) ON DELETE SET NULL;
 
 
 --
@@ -6725,6 +6725,14 @@ ALTER TABLE ONLY public.inventory_pools_model_groups
 
 
 --
+-- Name: images fk_rails_d3995b6223; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.images
+    ADD CONSTRAINT fk_rails_d3995b6223 FOREIGN KEY (parent_id) REFERENCES public.images(id) ON DELETE CASCADE;
+
+
+--
 -- Name: model_group_links fk_rails_d4425f3184; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6909,14 +6917,6 @@ ALTER TABLE ONLY public.delegations_direct_users
 
 
 --
--- Name: images fkey_images_images_parent_id; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.images
-    ADD CONSTRAINT fkey_images_images_parent_id FOREIGN KEY (parent_id) REFERENCES public.images(id);
-
-
---
 -- Name: users fkey_users_delegators; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6936,6 +6936,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('7'),
 ('6'),
 ('5'),
+('42'),
 ('41'),
 ('40'),
 ('4'),
