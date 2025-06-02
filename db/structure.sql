@@ -2877,9 +2877,16 @@ CREATE VIEW public.inventory AS
     models.product,
     models.version,
     models.name,
-    models.type,
+        CASE models.type
+            WHEN 'Software'::text THEN 'Software'::text
+            WHEN 'Model'::text THEN
+            CASE
+                WHEN models.is_package THEN 'Package'::text
+                ELSE 'Model'::text
+            END
+            ELSE NULL::text
+        END AS type,
     'models'::text AS origin_table,
-    models.is_package,
     models.manufacturer,
     NULL::character varying AS inventory_code,
     NULL::numeric AS price,
@@ -2890,9 +2897,8 @@ UNION
     options.product,
     options.version,
     options.name,
-    'Option'::character varying AS type,
+    'Option'::text AS type,
     'options'::text AS origin_table,
-    false AS is_package,
     options.manufacturer,
     options.inventory_code,
     options.price,
@@ -6936,6 +6942,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('7'),
 ('6'),
 ('5'),
+('43'),
 ('42'),
 ('41'),
 ('40'),
