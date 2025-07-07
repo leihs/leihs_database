@@ -2890,7 +2890,8 @@ CREATE VIEW public.inventory AS
     models.manufacturer,
     NULL::character varying AS inventory_code,
     NULL::numeric AS price,
-    NULL::uuid AS inventory_pool_id
+    NULL::uuid AS inventory_pool_id,
+    models.cover_image_id
    FROM public.models
 UNION
  SELECT options.id,
@@ -2902,7 +2903,8 @@ UNION
     options.manufacturer,
     options.inventory_code,
     options.price,
-    options.inventory_pool_id
+    options.inventory_pool_id,
+    NULL::uuid AS cover_image_id
    FROM public.options;
 
 
@@ -4136,14 +4138,6 @@ ALTER TABLE ONLY public.reservations
 
 ALTER TABLE ONLY public.rooms
     ADD CONSTRAINT rooms_pkey PRIMARY KEY (id);
-
-
---
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -6942,6 +6936,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('7'),
 ('6'),
 ('5'),
+('44'),
 ('43'),
 ('42'),
 ('41'),
