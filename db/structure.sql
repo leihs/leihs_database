@@ -2890,7 +2890,8 @@ CREATE VIEW public.inventory AS
     models.manufacturer,
     NULL::character varying AS inventory_code,
     NULL::numeric AS price,
-    NULL::uuid AS inventory_pool_id
+    NULL::uuid AS inventory_pool_id,
+    models.cover_image_id
    FROM public.models
 UNION
  SELECT options.id,
@@ -2902,7 +2903,8 @@ UNION
     options.manufacturer,
     options.inventory_code,
     options.price,
-    options.inventory_pool_id
+    options.inventory_pool_id,
+    NULL::uuid AS cover_image_id
    FROM public.options;
 
 
@@ -6942,6 +6944,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('7'),
 ('6'),
 ('5'),
+('45'),
 ('44'),
 ('43'),
 ('42'),
