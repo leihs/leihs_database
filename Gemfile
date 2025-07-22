@@ -6,6 +6,7 @@ gem "factory_bot"
 gem "faker"
 gem "mimemagic"
 gem "money-rails"
+gem "nokogiri", ">= 1.18.9"
 gem "pg", platform: :mri
 gem "pg_tasks", git: "https://github.com/leihs/rails_pg-tasks", branch: "rails7"
 gem "pry"

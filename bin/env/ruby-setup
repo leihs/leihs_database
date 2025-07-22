@@ -11,5 +11,5 @@ source $PROJECT_DIR/bin/env/asdf-helper.bash
 asdf-load
 asdf-update-plugin
 
-bundle install --quiet "$@"
+bundle install "$@"
 # vi: ft=sh
