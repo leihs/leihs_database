@@ -1,5 +1,6 @@
 class Reservation < Sequel::Model
   many_to_one(:leihs_model, key: :model_id)
+  many_to_one(:option, key: :option_id)
   many_to_one(:order)
   many_to_one(:inventory_pool)
   many_to_one(:user)
@@ -17,5 +18,6 @@ FactoryBot.define do
     end_date { (Date.tomorrow + 1.day).to_s }
     created_at { Time.now }
     updated_at { Time.now }
+    option { nil }
   end
 end
