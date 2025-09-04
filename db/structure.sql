@@ -3909,6 +3909,14 @@ ALTER TABLE ONLY public.images
 
 
 --
+-- Name: inventory_pools_model_groups inventory_pools_model_groups_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.inventory_pools_model_groups
+    ADD CONSTRAINT inventory_pools_model_groups_unique UNIQUE (inventory_pool_id, model_group_id);
+
+
+--
 -- Name: inventory_pools inventory_pools_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6944,6 +6952,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('7'),
 ('6'),
 ('5'),
+('46'),
 ('45'),
 ('44'),
 ('43'),
