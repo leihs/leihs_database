@@ -1,4 +1,4 @@
-class InventoryViewTemplate < ActiveRecord::Migration[7.2]
+class AddConstraintToInventoryPoolsModelGroups < ActiveRecord::Migration[7.2]
   def up
     say_with_time "Removing duplicate rows from inventory_pools_model_groups" do
       deleted = execute(<<~SQL).cmd_tuples
