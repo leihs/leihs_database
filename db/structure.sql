@@ -3646,14 +3646,14 @@ CREATE VIEW public.visits AS
             reservations.status,
             reservations.quantity,
             (EXISTS ( SELECT 1
-                   FROM (public.entitlement_groups_direct_users
-                     JOIN public.entitlement_groups ON ((entitlement_groups.id = entitlement_groups_direct_users.entitlement_group_id)))
-                  WHERE ((entitlement_groups_direct_users.user_id = reservations.user_id) AND (entitlement_groups.is_verification_required IS TRUE)))) AS with_user_to_verify,
+                   FROM (public.entitlement_groups_users
+                     JOIN public.entitlement_groups ON ((entitlement_groups.id = entitlement_groups_users.entitlement_group_id)))
+                  WHERE ((entitlement_groups_users.user_id = reservations.user_id) AND (entitlement_groups.is_verification_required IS TRUE)))) AS with_user_to_verify,
             (EXISTS ( SELECT 1
                    FROM ((public.entitlements
                      JOIN public.entitlement_groups ON ((entitlement_groups.id = entitlements.entitlement_group_id)))
-                     JOIN public.entitlement_groups_direct_users ON ((entitlement_groups_direct_users.entitlement_group_id = entitlement_groups.id)))
-                  WHERE ((entitlements.model_id = reservations.model_id) AND (entitlement_groups_direct_users.user_id = reservations.user_id) AND (entitlement_groups.is_verification_required IS TRUE)))) AS with_user_and_model_to_verify
+                     JOIN public.entitlement_groups_users ON ((entitlement_groups_users.entitlement_group_id = entitlement_groups.id)))
+                  WHERE ((entitlements.model_id = reservations.model_id) AND (entitlement_groups_users.user_id = reservations.user_id) AND (entitlement_groups.is_verification_required IS TRUE)))) AS with_user_and_model_to_verify
            FROM public.reservations
           WHERE (reservations.status = ANY (ARRAY['submitted'::text, 'approved'::text, 'signed'::text]))) visit_reservations
   GROUP BY visit_reservations.user_id, visit_reservations.inventory_pool_id, visit_reservations.date, visit_reservations.visit_type, visit_reservations.status;
@@ -6952,6 +6952,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('7'),
 ('6'),
 ('5'),
+('47'),
 ('46'),
 ('45'),
 ('44'),
