@@ -1,3 +1,7 @@
+
+-- Dumped from database version 15.14 (Homebrew)
+-- Dumped by pg_dump version 15.14 (Homebrew)
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -2972,8 +2976,8 @@ CREATE TABLE public.items (
     note text,
     name text,
     user_name character varying,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
     shelf text,
     room_id uuid NOT NULL,
     properties jsonb DEFAULT '{}'::jsonb,
@@ -6059,6 +6063,13 @@ CREATE TRIGGER update_updated_at_column_of_groups BEFORE UPDATE ON public.groups
 
 
 --
+-- Name: items update_updated_at_column_of_items; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_items BEFORE UPDATE ON public.items FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
+
+
+--
 -- Name: procurement_requests_counters update_updated_at_column_of_procurement_requests_counters; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6944,6 +6955,7 @@ ALTER TABLE ONLY public.users
 -- PostgreSQL database dump complete
 --
 
+
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
@@ -6952,6 +6964,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('7'),
 ('6'),
 ('5'),
+('48'),
 ('47'),
 ('46'),
 ('45'),

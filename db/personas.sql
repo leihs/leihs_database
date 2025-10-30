@@ -9,8 +9,9 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 15.5
--- Dumped by pg_dump version 15.5
+
+-- Dumped from database version 15.14 (Homebrew)
+-- Dumped by pg_dump version 15.14 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -15711,4 +15712,5 @@ INSERT INTO public.workdays (id, inventory_pool_id, monday, tuesday, wednesday, 
 --
 -- PostgreSQL database dump complete
 --
+
 
