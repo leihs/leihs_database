@@ -550,6 +550,15 @@ CREATE FUNCTION public.check_option_line_state_consistency() RETURNS trigger
 
 
 --
+-- Name: check_package_not_in_package_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_package_not_in_package_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$ BEGIN IF ( ( NEW.parent_id IS NOT NULL ) AND ( SELECT is_package FROM models WHERE models.id = NEW.model_id ) = TRUE ) THEN RAISE EXCEPTION 'A package cannot be added to another package'; ELSIF ( ( NEW.parent_id IS NOT NULL ) AND ( SELECT is_package FROM models WHERE models.id = NEW.parent_id ) = FALSE ) THEN RAISE EXCEPTION 'Parent item model must be of type package'; END IF; RETURN NEW; END; $$;
+
+
+--
 -- Name: check_parent_id_for_organization_id(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -5678,6 +5687,13 @@ CREATE CONSTRAINT TRIGGER check_inventory_pools_workdays_entry_t AFTER INSERT OR
 
 
 --
+-- Name: items check_package_not_in_package_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER check_package_not_in_package_t AFTER INSERT OR UPDATE ON public.items DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_package_not_in_package_f();
+
+
+--
 -- Name: users check_responsible_user_is_not_delegation_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6964,6 +6980,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('7'),
 ('6'),
 ('5'),
+('49'),
 ('48'),
 ('47'),
 ('46'),
