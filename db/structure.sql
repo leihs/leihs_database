@@ -3074,6 +3074,35 @@ CREATE TABLE public.models_compatibles (
 
 
 --
+-- Name: ms365_mailboxes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ms365_mailboxes (
+    id text NOT NULL,
+    access_token text,
+    refresh_token text,
+    token_expires_at timestamp without time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT ms365_mailboxes_id_is_email CHECK ((id ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'::text))
+);
+
+
+--
+-- Name: ms365_mailboxes_aliases; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ms365_mailboxes_aliases (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    ms365_mailbox_id text NOT NULL,
+    email text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT ms365_mailboxes_aliases_email_is_valid CHECK ((email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'::text))
+);
+
+
+--
 -- Name: orders; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3467,6 +3496,10 @@ CREATE TABLE public.smtp_settings (
     port integer,
     sender_address text,
     username text,
+    ms365_enabled boolean DEFAULT false NOT NULL,
+    ms365_client_id text,
+    ms365_tenant_id text,
+    ms365_client_secret text,
     CONSTRAINT id_is_zero CHECK ((id = 0))
 );
 
@@ -3991,6 +4024,22 @@ ALTER TABLE ONLY public.model_links
 
 ALTER TABLE ONLY public.models
     ADD CONSTRAINT models_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ms365_mailboxes_aliases ms365_mailboxes_aliases_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ms365_mailboxes_aliases
+    ADD CONSTRAINT ms365_mailboxes_aliases_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ms365_mailboxes ms365_mailboxes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ms365_mailboxes
+    ADD CONSTRAINT ms365_mailboxes_pkey PRIMARY KEY (id);
 
 
 --
@@ -4928,6 +4977,20 @@ CREATE INDEX index_models_on_type ON public.models USING btree (type);
 
 
 --
+-- Name: index_ms365_mailboxes_aliases_on_email; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_ms365_mailboxes_aliases_on_email ON public.ms365_mailboxes_aliases USING btree (email);
+
+
+--
+-- Name: index_ms365_mailboxes_aliases_on_ms365_mailbox_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ms365_mailboxes_aliases_on_ms365_mailbox_id ON public.ms365_mailboxes_aliases USING btree (ms365_mailbox_id);
+
+
+--
 -- Name: index_on_budget_period_id_and_category_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5495,6 +5558,20 @@ CREATE TRIGGER audited_change_on_languages AFTER INSERT OR DELETE OR UPDATE ON p
 --
 
 CREATE TRIGGER audited_change_on_models AFTER INSERT OR DELETE OR UPDATE ON public.models FOR EACH ROW EXECUTE FUNCTION public.audit_change();
+
+
+--
+-- Name: ms365_mailboxes audited_change_on_ms365_mailboxes; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_ms365_mailboxes AFTER INSERT OR DELETE OR UPDATE ON public.ms365_mailboxes FOR EACH ROW EXECUTE FUNCTION public.audit_change();
+
+
+--
+-- Name: ms365_mailboxes_aliases audited_change_on_ms365_mailboxes_aliases; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER audited_change_on_ms365_mailboxes_aliases AFTER INSERT OR DELETE OR UPDATE ON public.ms365_mailboxes_aliases FOR EACH ROW EXECUTE FUNCTION public.audit_change();
 
 
 --
@@ -6086,6 +6163,20 @@ CREATE TRIGGER update_updated_at_column_of_items BEFORE UPDATE ON public.items F
 
 
 --
+-- Name: ms365_mailboxes update_updated_at_column_of_ms365_mailboxes; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_ms365_mailboxes BEFORE UPDATE ON public.ms365_mailboxes FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
+
+
+--
+-- Name: ms365_mailboxes_aliases update_updated_at_column_of_ms365_mailboxes_aliases; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_ms365_mailboxes_aliases BEFORE UPDATE ON public.ms365_mailboxes_aliases FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
+
+
+--
 -- Name: procurement_requests_counters update_updated_at_column_of_procurement_requests_counters; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6317,6 +6408,14 @@ ALTER TABLE ONLY public.reservations
 
 ALTER TABLE ONLY public.model_group_links
     ADD CONSTRAINT fk_rails_48e1ccdd03 FOREIGN KEY (child_id) REFERENCES public.model_groups(id) ON DELETE CASCADE;
+
+
+--
+-- Name: ms365_mailboxes_aliases fk_rails_4a4ca9615b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ms365_mailboxes_aliases
+    ADD CONSTRAINT fk_rails_4a4ca9615b FOREIGN KEY (ms365_mailbox_id) REFERENCES public.ms365_mailboxes(id) ON DELETE CASCADE;
 
 
 --
@@ -6978,6 +7077,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('9'),
 ('8'),
 ('7'),
+('61'),
+('60'),
 ('6'),
 ('5'),
 ('49'),
