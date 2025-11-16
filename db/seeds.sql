@@ -1581,6 +1581,18 @@ Please take note of our planned holidays:
 
 
 --
+-- Data for Name: ms365_mailboxes; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Data for Name: ms365_mailboxes_aliases; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
 -- Data for Name: options; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -1717,7 +1729,7 @@ INSERT INTO public.settings (local_currency_string, contract_lending_party_strin
 -- Data for Name: smtp_settings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.smtp_settings (id, enabled, address, authentication_type, default_from_address, domain, enable_starttls_auto, openssl_verify_mode, password, port, sender_address, username) VALUES (0, false, 'localhost', 'plain', 'your.lending.desk@example.com', 'localhost', false, 'none', NULL, 25, NULL, NULL);
+INSERT INTO public.smtp_settings (id, enabled, address, authentication_type, default_from_address, domain, enable_starttls_auto, openssl_verify_mode, password, port, sender_address, username, ms365_enabled, ms365_client_id, ms365_tenant_id, ms365_client_secret) VALUES (0, false, 'localhost', 'plain', 'your.lending.desk@example.com', 'localhost', false, 'none', NULL, 25, NULL, NULL, false, NULL, NULL, NULL);
 
 
 --

@@ -15092,6 +15092,18 @@ INSERT INTO public.models_compatibles (model_id, compatible_id) VALUES ('70bc2ac
 
 
 --
+-- Data for Name: ms365_mailboxes; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
+-- Data for Name: ms365_mailboxes_aliases; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
 -- Data for Name: options; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -15663,7 +15675,7 @@ Here', 'Das PZ-leihs Team', 'http://www.zhdk.ch/?person/foto&width=100&compressi
 -- Data for Name: smtp_settings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.smtp_settings (id, enabled, address, authentication_type, default_from_address, domain, enable_starttls_auto, openssl_verify_mode, password, port, sender_address, username) VALUES (0, false, 'smtp.zhdk.ch', 'plain', 'sender@example.com', 'beta.ausleihe.zhdk.ch', false, 'none', NULL, 25, NULL, NULL);
+INSERT INTO public.smtp_settings (id, enabled, address, authentication_type, default_from_address, domain, enable_starttls_auto, openssl_verify_mode, password, port, sender_address, username, ms365_enabled, ms365_client_id, ms365_tenant_id, ms365_client_secret) VALUES (0, false, 'smtp.zhdk.ch', 'plain', 'sender@example.com', 'beta.ausleihe.zhdk.ch', false, 'none', NULL, 25, NULL, NULL, false, NULL, NULL, NULL);
 
 
 --
