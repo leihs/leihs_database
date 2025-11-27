@@ -14,5 +14,7 @@ gem "psych", "~> 3" # https://github.com/rails/rails/issues/42528
 gem "rails", "~> 7.2.0"
 gem "rspec"
 gem "sequel"
+gem "sinatra"
 gem "uuidtools"
+gem "webrick"
 gem "standard", group: [:development, :test]

@@ -138,6 +138,8 @@ GEM
       monetize (~> 1.9)
       money (~> 6.13)
       railties (>= 3.0)
+    mustermann (3.0.4)
+      ruby2_keywords (~> 0.0.1)
     net-imap (0.5.10)
       date
       net-protocol
@@ -166,6 +168,10 @@ GEM
     public_suffix (5.0.4)
     racc (1.8.1)
     rack (3.1.17)
+    rack-protection (4.2.1)
+      base64 (>= 0.1.0)
+      logger (>= 1.6.0)
+      rack (>= 3.0.0, < 4)
     rack-session (2.1.1)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
@@ -239,9 +245,17 @@ GEM
       rubocop (>= 1.72.1, < 2.0)
       rubocop-ast (>= 1.38.0, < 2.0)
     ruby-progressbar (1.13.0)
+    ruby2_keywords (0.0.5)
     securerandom (0.4.1)
     sequel (5.77.0)
       bigdecimal
+    sinatra (4.2.1)
+      logger (>= 1.6.0)
+      mustermann (~> 3.0)
+      rack (>= 3.0.0, < 4)
+      rack-protection (= 4.2.1)
+      rack-session (>= 2.0.0, < 3)
+      tilt (~> 2.0)
     standard (1.47.0)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.0)
@@ -255,6 +269,7 @@ GEM
       lint_roller (~> 1.1)
       rubocop-performance (~> 1.24.0)
     thor (1.4.0)
+    tilt (2.6.1)
     timeout (0.4.3)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
@@ -263,6 +278,7 @@ GEM
     unicode-emoji (4.0.4)
     useragent (0.16.11)
     uuidtools (2.2.0)
+    webrick (1.9.2)
     websocket-driver (0.8.0)
       base64
       websocket-extensions (>= 0.1.0)
@@ -287,8 +303,10 @@ DEPENDENCIES
   rails (~> 7.2.0)
   rspec
   sequel
+  sinatra
   standard
   uuidtools
+  webrick
 
 BUNDLED WITH
    2.5.22

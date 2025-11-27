@@ -3500,6 +3500,8 @@ CREATE TABLE public.smtp_settings (
     ms365_client_id text,
     ms365_tenant_id text,
     ms365_client_secret text,
+    m365_token_url text DEFAULT 'https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token'::text NOT NULL,
+    m365_graph_send_url text DEFAULT 'https://graph.microsoft.com/v1.0/users/{user_id}/sendMail'::text NOT NULL,
     CONSTRAINT id_is_zero CHECK ((id = 0))
 );
 
@@ -7077,6 +7079,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('9'),
 ('8'),
 ('7'),
+('62'),
 ('61'),
 ('60'),
 ('6'),
