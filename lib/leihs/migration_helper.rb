@@ -54,25 +54,26 @@ module Leihs
       end
     end
 
-    def add_auto_timestamps(table_name, created_at: true, updated_at: true, null: true)
+    def add_auto_timestamps(table_name,
+                            created_at: true, updated_at: true,
+                            created_at_null: true, updated_at_null: true,
+                            timezone: true)
       reversible do |dir|
         dir.up do
+          with_or_without_tz = timezone ? "timestamp with time zone" : "timestamp without time zone"
+
           if created_at
             unless column_exists? table_name, :created_at
-              add_column(table_name, :created_at, "timestamp with time zone", null: null)
+              add_column(table_name, :created_at, with_or_without_tz, null: null)
             end
-            # execute "UPDATE #{table_name} SET created_at = now() WHERE created_at IS NULL"
             execute "ALTER TABLE #{table_name} ALTER COLUMN created_at SET DEFAULT now()"
-            # execute "ALTER TABLE #{table_name} ALTER COLUMN created_at SET NOT NULL"
           end
 
           if updated_at
             unless column_exists? table_name, :updated_at
-              add_column(table_name, :updated_at, "timestamp with time zone", null: null)
+              add_column(table_name, :updated_at, with_or_without_tz, null: null)
             end
-            # execute "UPDATE #{table_name} SET updated_at = now() WHERE updated_at IS NULL"
             execute "ALTER TABLE #{table_name} ALTER COLUMN updated_at SET DEFAULT now()"
-            # execute "ALTER TABLE #{table_name} ALTER COLUMN updated_at SET NOT NULL"
 
             execute <<-SQL.strip_heredoc
               CREATE OR REPLACE FUNCTION update_updated_at_column()
