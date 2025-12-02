@@ -57,21 +57,22 @@ module Leihs
     def add_auto_timestamps(table_name,
                             created_at: true, updated_at: true,
                             created_at_null: true, updated_at_null: true,
-                            timezone: true)
+                            timezone: true, table_with_autogen_columns: false,
+                            updated_at_trigger: true)
       reversible do |dir|
         dir.up do
           with_or_without_tz = timezone ? "timestamp with time zone" : "timestamp without time zone"
 
           if created_at
             unless column_exists? table_name, :created_at
-              add_column(table_name, :created_at, with_or_without_tz, null: null)
+              add_column(table_name, :created_at, with_or_without_tz, null: created_at_null)
             end
             execute "ALTER TABLE #{table_name} ALTER COLUMN created_at SET DEFAULT now()"
           end
 
           if updated_at
             unless column_exists? table_name, :updated_at
-              add_column(table_name, :updated_at, with_or_without_tz, null: null)
+              add_column(table_name, :updated_at, with_or_without_tz, null: updated_at_null)
             end
             execute "ALTER TABLE #{table_name} ALTER COLUMN updated_at SET DEFAULT now()"
 
@@ -84,11 +85,15 @@ module Leihs
               END;
               $$ language 'plpgsql';
             SQL
+          end
+
+          if updated_at_trigger
+            when_clause = table_with_autogen_columns ? "" : "WHEN (OLD.* IS DISTINCT FROM NEW.*)"
 
             execute <<-SQL.strip_heredoc
               CREATE TRIGGER update_updated_at_column_of_#{table_name}
               BEFORE UPDATE ON #{table_name} FOR EACH ROW
-              WHEN (OLD.* IS DISTINCT FROM NEW.*)
+              #{when_clause}
               EXECUTE PROCEDURE
               update_updated_at_column();
             SQL

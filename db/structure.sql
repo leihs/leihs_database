@@ -2877,7 +2877,9 @@ CREATE TABLE public.options (
 CASE
     WHEN (version IS NULL) THEN (product)::text
     ELSE (((product)::text || ' '::text) || (version)::text)
-END) STORED
+END) STORED,
+    created_at timestamp without time zone DEFAULT now(),
+    updated_at timestamp without time zone DEFAULT now()
 );
 
 
@@ -2904,7 +2906,9 @@ CREATE VIEW public.inventory AS
     NULL::character varying AS inventory_code,
     NULL::numeric AS price,
     NULL::uuid AS inventory_pool_id,
-    models.cover_image_id
+    models.cover_image_id,
+    models.created_at,
+    models.updated_at
    FROM public.models
 UNION
  SELECT options.id,
@@ -2917,7 +2921,9 @@ UNION
     options.inventory_code,
     options.price,
     options.inventory_pool_id,
-    NULL::uuid AS cover_image_id
+    NULL::uuid AS cover_image_id,
+    options.created_at,
+    options.updated_at
    FROM public.options;
 
 
@@ -6086,6 +6092,20 @@ CREATE TRIGGER update_updated_at_column_of_items BEFORE UPDATE ON public.items F
 
 
 --
+-- Name: models update_updated_at_column_of_models; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_models BEFORE UPDATE ON public.models FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+
+--
+-- Name: options update_updated_at_column_of_options; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_options BEFORE UPDATE ON public.options FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+
+--
 -- Name: procurement_requests_counters update_updated_at_column_of_procurement_requests_counters; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6979,6 +6999,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('8'),
 ('7'),
 ('6'),
+('52'),
+('51'),
 ('50'),
 ('5'),
 ('49'),
