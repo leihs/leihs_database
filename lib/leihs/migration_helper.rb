@@ -55,10 +55,10 @@ module Leihs
     end
 
     def add_auto_timestamps(table_name,
-                            created_at: true, updated_at: true,
-                            created_at_null: true, updated_at_null: true,
-                            timezone: true, table_with_autogen_columns: false,
-                            updated_at_trigger: true)
+      created_at: true, updated_at: true,
+      created_at_null: true, updated_at_null: true,
+      timezone: true, table_with_autogen_columns: false,
+      updated_at_trigger: true)
       reversible do |dir|
         dir.up do
           with_or_without_tz = timezone ? "timestamp with time zone" : "timestamp without time zone"
