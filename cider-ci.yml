@@ -129,6 +129,10 @@ jobs:
         type: job
         job_key: meta
         states: [passed]
+      lints were successful:
+        type: job
+        job_key: lint
+        states: [passed]
     run_when: *GOOD_TO_MERGE_DEPENDENCIES
     context:
       task_defaults:
