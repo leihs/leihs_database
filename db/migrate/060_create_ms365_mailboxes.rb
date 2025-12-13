@@ -11,7 +11,9 @@ class CreateMs365Mailboxes < ActiveRecord::Migration[7.2]
       t.timestamp :token_expires_at
     end
 
-    add_auto_timestamps(:ms365_mailboxes, null: false)
+    add_auto_timestamps(:ms365_mailboxes,
+      created_at_null: false,
+      updated_at_null: false)
     audit_table(:ms365_mailboxes)
 
     add_check_constraint :ms365_mailboxes,
@@ -23,7 +25,9 @@ class CreateMs365Mailboxes < ActiveRecord::Migration[7.2]
       t.text :email, null: false
     end
 
-    add_auto_timestamps(:ms365_mailboxes_aliases, null: false)
+    add_auto_timestamps(:ms365_mailboxes_aliases,
+      created_at_null: false,
+      updated_at_null: false)
     audit_table(:ms365_mailboxes_aliases)
 
     add_foreign_key :ms365_mailboxes_aliases, :ms365_mailboxes,

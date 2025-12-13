@@ -15107,13 +15107,13 @@ INSERT INTO public.models_compatibles (model_id, compatible_id) VALUES ('70bc2ac
 -- Data for Name: options; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.options (id, inventory_pool_id, inventory_code, manufacturer, product, version, price) VALUES ('f816a350-d677-5a9f-b024-bed5cb135c49', '040f275a-cbc2-5c21-9e98-8613fde1ccab', 'akku-aa', NULL, 'Akku AA', '86', 82.00);
-INSERT INTO public.options (id, inventory_pool_id, inventory_code, manufacturer, product, version, price) VALUES ('ae3270e3-4d17-588a-9f18-6b41a0248305', '040f275a-cbc2-5c21-9e98-8613fde1ccab', 'akku-aaa', NULL, 'Akku AAA', '87', 1412.00);
-INSERT INTO public.options (id, inventory_pool_id, inventory_code, manufacturer, product, version, price) VALUES ('91dfd49f-3352-5ae5-99e2-becda10e07df', '040f275a-cbc2-5c21-9e98-8613fde1ccab', 'usb', NULL, 'USB Kabel', '88', 442.00);
-INSERT INTO public.options (id, inventory_pool_id, inventory_code, manufacturer, product, version, price) VALUES ('c052b263-2e6f-5132-a62c-271bfd30f015', '040f275a-cbc2-5c21-9e98-8613fde1ccab', 'sandsack123', NULL, 'Sandsack', '89', 205.00);
-INSERT INTO public.options (id, inventory_pool_id, inventory_code, manufacturer, product, version, price) VALUES ('49b9b016-7884-57ee-8b49-805ecb9dd7af', '040f275a-cbc2-5c21-9e98-8613fde1ccab', 'est1190', NULL, 'Fantastic Rubber Chair', '178', 949.00);
-INSERT INTO public.options (id, inventory_pool_id, inventory_code, manufacturer, product, version, price) VALUES ('4bcbaf59-4a83-5a01-84d2-37c462908942', '76d54c17-49f1-55e8-b6af-2e9dc0209be3', 'har9220', NULL, 'Rustic Cotton Table', '181', 1083.00);
-INSERT INTO public.options (id, inventory_pool_id, inventory_code, manufacturer, product, version, price) VALUES ('3e017b92-9e3f-5799-930f-0fd98148a28b', '040f275a-cbc2-5c21-9e98-8613fde1ccab', 'utn9723', NULL, 'Ergonomic Plastic Chair', '185', 378.00);
+INSERT INTO public.options (id, inventory_pool_id, inventory_code, manufacturer, product, version, price, created_at, updated_at) VALUES ('f816a350-d677-5a9f-b024-bed5cb135c49', '040f275a-cbc2-5c21-9e98-8613fde1ccab', 'akku-aa', NULL, 'Akku AA', '86', 82.00, NULL, NULL);
+INSERT INTO public.options (id, inventory_pool_id, inventory_code, manufacturer, product, version, price, created_at, updated_at) VALUES ('ae3270e3-4d17-588a-9f18-6b41a0248305', '040f275a-cbc2-5c21-9e98-8613fde1ccab', 'akku-aaa', NULL, 'Akku AAA', '87', 1412.00, NULL, NULL);
+INSERT INTO public.options (id, inventory_pool_id, inventory_code, manufacturer, product, version, price, created_at, updated_at) VALUES ('91dfd49f-3352-5ae5-99e2-becda10e07df', '040f275a-cbc2-5c21-9e98-8613fde1ccab', 'usb', NULL, 'USB Kabel', '88', 442.00, NULL, NULL);
+INSERT INTO public.options (id, inventory_pool_id, inventory_code, manufacturer, product, version, price, created_at, updated_at) VALUES ('c052b263-2e6f-5132-a62c-271bfd30f015', '040f275a-cbc2-5c21-9e98-8613fde1ccab', 'sandsack123', NULL, 'Sandsack', '89', 205.00, NULL, NULL);
+INSERT INTO public.options (id, inventory_pool_id, inventory_code, manufacturer, product, version, price, created_at, updated_at) VALUES ('49b9b016-7884-57ee-8b49-805ecb9dd7af', '040f275a-cbc2-5c21-9e98-8613fde1ccab', 'est1190', NULL, 'Fantastic Rubber Chair', '178', 949.00, NULL, NULL);
+INSERT INTO public.options (id, inventory_pool_id, inventory_code, manufacturer, product, version, price, created_at, updated_at) VALUES ('4bcbaf59-4a83-5a01-84d2-37c462908942', '76d54c17-49f1-55e8-b6af-2e9dc0209be3', 'har9220', NULL, 'Rustic Cotton Table', '181', 1083.00, NULL, NULL);
+INSERT INTO public.options (id, inventory_pool_id, inventory_code, manufacturer, product, version, price, created_at, updated_at) VALUES ('3e017b92-9e3f-5799-930f-0fd98148a28b', '040f275a-cbc2-5c21-9e98-8613fde1ccab', 'utn9723', NULL, 'Ergonomic Plastic Chair', '185', 378.00, NULL, NULL);
 
 
 --
