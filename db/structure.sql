@@ -3506,8 +3506,8 @@ CREATE TABLE public.smtp_settings (
     ms365_client_id text,
     ms365_tenant_id text,
     ms365_client_secret text,
-    m365_token_url text DEFAULT 'https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token'::text NOT NULL,
-    m365_graph_send_url text DEFAULT 'https://graph.microsoft.com/v1.0/users/{user_id}/sendMail'::text NOT NULL,
+    ms365_token_url text DEFAULT 'https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token'::text NOT NULL,
+    ms365_graph_send_url text DEFAULT 'https://graph.microsoft.com/v1.0/users/{user_id}/sendMail'::text NOT NULL,
     CONSTRAINT id_is_zero CHECK ((id = 0))
 );
 
@@ -4216,14 +4216,6 @@ ALTER TABLE ONLY public.reservations
 
 ALTER TABLE ONLY public.rooms
     ADD CONSTRAINT rooms_pkey PRIMARY KEY (id);
-
-
---
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
