@@ -3872,6 +3872,14 @@ ALTER TABLE ONLY public.entitlement_groups
 
 
 --
+-- Name: entitlements entitlements_group_model_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.entitlements
+    ADD CONSTRAINT entitlements_group_model_unique UNIQUE (entitlement_group_id, model_id);
+
+
+--
 -- Name: entitlements entitlements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6999,6 +7007,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('8'),
 ('7'),
 ('6'),
+('53'),
 ('52'),
 ('51'),
 ('50'),
