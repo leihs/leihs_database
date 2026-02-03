@@ -17,6 +17,7 @@
   data:
     form_name: model_id
     target_type: item
+    forPackage: true
     group: null
     label: Model
     attribute: [model, id]
