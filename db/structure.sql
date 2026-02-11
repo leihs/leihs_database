@@ -7007,6 +7007,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('8'),
 ('7'),
 ('6'),
+('54'),
 ('53'),
 ('52'),
 ('51'),
