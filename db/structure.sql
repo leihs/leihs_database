@@ -2053,6 +2053,28 @@ $$;
 
 
 --
+-- Name: retire_empty_package_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.retire_empty_package_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM items WHERE parent_id = OLD.parent_id
+  ) THEN
+    UPDATE items
+    SET retired = CURRENT_DATE,
+        retired_reason = 'package dissolved'
+    WHERE id = OLD.parent_id
+      AND retired IS NULL;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+--
 -- Name: role_agg_f(text, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -5869,6 +5891,13 @@ CREATE TRIGGER prevent_deleting_all_users_group_t BEFORE DELETE ON public.groups
 
 
 --
+-- Name: items retire_empty_package_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER retire_empty_package_t AFTER UPDATE OF parent_id ON public.items FOR EACH ROW WHEN (((old.parent_id IS NOT NULL) AND (old.parent_id IS DISTINCT FROM new.parent_id))) EXECUTE FUNCTION public.retire_empty_package_f();
+
+
+--
 -- Name: procurement_requests set_short_id_for_new_procurement_request_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -7007,6 +7036,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('8'),
 ('7'),
 ('6'),
+('55'),
 ('54'),
 ('53'),
 ('52'),
