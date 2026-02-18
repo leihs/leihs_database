@@ -15675,7 +15675,7 @@ Here', 'Das PZ-leihs Team', 'http://www.zhdk.ch/?person/foto&width=100&compressi
 -- Data for Name: smtp_settings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.smtp_settings (id, enabled, address, authentication_type, default_from_address, domain, enable_starttls_auto, openssl_verify_mode, password, port, sender_address, username, ms365_enabled, ms365_client_id, ms365_tenant_id, ms365_client_secret, m365_token_url, m365_graph_send_url) VALUES (0, false, 'smtp.zhdk.ch', 'plain', 'sender@example.com', 'beta.ausleihe.zhdk.ch', false, 'none', NULL, 25, NULL, NULL, false, NULL, NULL, NULL, 'https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token', 'https://graph.microsoft.com/v1.0/users/{user_id}/sendMail');
+INSERT INTO public.smtp_settings (id, enabled, address, authentication_type, default_from_address, domain, enable_starttls_auto, openssl_verify_mode, password, port, sender_address, username, ms365_enabled, ms365_client_id, ms365_tenant_id, ms365_client_secret, ms365_token_url, ms365_graph_send_url, ms365_auth_mode) VALUES (0, false, 'smtp.zhdk.ch', 'plain', 'sender@example.com', 'beta.ausleihe.zhdk.ch', false, 'none', NULL, 25, NULL, NULL, false, NULL, NULL, NULL, 'https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token', 'https://graph.microsoft.com/v1.0/users/{user_id}/sendMail', 'delegated');
 
 
 --

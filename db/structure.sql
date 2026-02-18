@@ -1,4 +1,3 @@
-
 -- Dumped from database version 15.14 (Homebrew)
 -- Dumped by pg_dump version 15.14 (Homebrew)
 
@@ -3508,7 +3507,9 @@ CREATE TABLE public.smtp_settings (
     ms365_client_secret text,
     ms365_token_url text DEFAULT 'https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token'::text NOT NULL,
     ms365_graph_send_url text DEFAULT 'https://graph.microsoft.com/v1.0/users/{user_id}/sendMail'::text NOT NULL,
-    CONSTRAINT id_is_zero CHECK ((id = 0))
+    ms365_auth_mode text DEFAULT 'delegated'::text NOT NULL,
+    CONSTRAINT id_is_zero CHECK ((id = 0)),
+    CONSTRAINT ms365_auth_mode_valid_values CHECK ((ms365_auth_mode = ANY (ARRAY['delegated'::text, 'rbac'::text])))
 );
 
 
@@ -4216,6 +4217,14 @@ ALTER TABLE ONLY public.reservations
 
 ALTER TABLE ONLY public.rooms
     ADD CONSTRAINT rooms_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schema_migrations
+    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -7084,13 +7093,13 @@ ALTER TABLE ONLY public.users
 -- PostgreSQL database dump complete
 --
 
-
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('9'),
 ('8'),
 ('7'),
+('63'),
 ('62'),
 ('61'),
 ('60'),
