@@ -2052,6 +2052,28 @@ $$;
 
 
 --
+-- Name: retire_empty_package_f(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.retire_empty_package_f() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM items WHERE parent_id = OLD.parent_id
+  ) THEN
+    UPDATE items
+    SET retired = CURRENT_DATE,
+        retired_reason = 'package dissolved'
+    WHERE id = OLD.parent_id
+      AND retired IS NULL;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+--
 -- Name: role_agg_f(text, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -3908,6 +3930,14 @@ ALTER TABLE ONLY public.entitlement_groups
 
 
 --
+-- Name: entitlements entitlements_group_model_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.entitlements
+    ADD CONSTRAINT entitlements_group_model_unique UNIQUE (entitlement_group_id, model_id);
+
+
+--
 -- Name: entitlements entitlements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5720,7 +5750,7 @@ CREATE CONSTRAINT TRIGGER check_consistent_user_id_for_all_contained_orders_t AF
 -- Name: contracts check_contracts_purpose_is_not_null_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER check_contracts_purpose_is_not_null_t AFTER INSERT OR UPDATE ON public.contracts FOR EACH ROW EXECUTE FUNCTION public.check_contracts_purpose_is_not_null_f();
+CREATE TRIGGER check_contracts_purpose_is_not_null_t AFTER INSERT ON public.contracts FOR EACH ROW EXECUTE FUNCTION public.check_contracts_purpose_is_not_null_f();
 
 
 --
@@ -5938,6 +5968,13 @@ CREATE TRIGGER prevent_delete_on_items_t BEFORE DELETE ON public.items FOR EACH 
 --
 
 CREATE TRIGGER prevent_deleting_all_users_group_t BEFORE DELETE ON public.groups FOR EACH ROW EXECUTE FUNCTION public.prevent_deleting_all_users_group_f();
+
+
+--
+-- Name: items retire_empty_package_t; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER retire_empty_package_t AFTER UPDATE OF parent_id ON public.items FOR EACH ROW WHEN (((old.parent_id IS NOT NULL) AND (old.parent_id IS DISTINCT FROM new.parent_id))) EXECUTE FUNCTION public.retire_empty_package_f();
 
 
 --
@@ -7104,6 +7141,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('61'),
 ('60'),
 ('6'),
+('56'),
+('55'),
+('54'),
+('53'),
 ('52'),
 ('51'),
 ('50'),
