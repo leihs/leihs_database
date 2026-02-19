@@ -5670,7 +5670,7 @@ CREATE CONSTRAINT TRIGGER check_consistent_user_id_for_all_contained_orders_t AF
 -- Name: contracts check_contracts_purpose_is_not_null_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER check_contracts_purpose_is_not_null_t AFTER INSERT OR UPDATE ON public.contracts FOR EACH ROW EXECUTE FUNCTION public.check_contracts_purpose_is_not_null_f();
+CREATE TRIGGER check_contracts_purpose_is_not_null_t AFTER INSERT ON public.contracts FOR EACH ROW EXECUTE FUNCTION public.check_contracts_purpose_is_not_null_f();
 
 
 --
@@ -7036,6 +7036,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('8'),
 ('7'),
 ('6'),
+('56'),
 ('55'),
 ('54'),
 ('53'),
