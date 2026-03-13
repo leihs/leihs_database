@@ -38,15 +38,15 @@ class AddOrdersProcessingFeature < ActiveRecord::Migration[7.2]
   end
 
   def down
+    execute <<~SQL
+      ALTER TABLE workdays
+      DROP CONSTRAINT IF EXISTS check_orders_processing
+    SQL
+
     remove_column :holidays, :orders_processing
 
     DAYS.each do |day|
       remove_column :workdays, "#{day}_orders_processing"
     end
-
-    execute <<~SQL
-      ALTER TABLE workdays
-      DROP CONSTRAINT check_orders_processing
-    SQL
   end
 end

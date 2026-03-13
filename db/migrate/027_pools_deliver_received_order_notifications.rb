@@ -8,4 +8,9 @@ class PoolsDeliverReceivedOrderNotifications < ActiveRecord::Migration[7.2]
     SQL
     remove_column :settings, :deliver_received_order_notifications
   end
+
+  def down
+    add_column :settings, :deliver_received_order_notifications, :boolean
+    remove_column :inventory_pools, :deliver_received_order_emails
+  end
 end
