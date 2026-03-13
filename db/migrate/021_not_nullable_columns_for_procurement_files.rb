@@ -13,9 +13,11 @@ class NotNullableColumnsForProcurementFiles < ActiveRecord::Migration[6.1]
 
   def up
     TABLES.each do |table|
-      execute <<~SQL
-        DELETE FROM #{table} WHERE content IS NULL
-      SQL
+      if column_exists?(table, :content)
+        execute <<~SQL
+          DELETE FROM #{table} WHERE content IS NULL
+        SQL
+      end
 
       cols = case table
       when :procurement_attachments
@@ -27,7 +29,7 @@ class NotNullableColumnsForProcurementFiles < ActiveRecord::Migration[6.1]
       end
 
       cols.each do |col|
-        change_column_null table, col, false
+        change_column_null table, col, false if column_exists?(table, col)
       end
     end
   end

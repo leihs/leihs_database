@@ -11,6 +11,8 @@ class ConvertMetadataToJson < ActiveRecord::Migration[6.1]
   end
 
   def up
+    return unless column_exists?(:procurement_attachments, :metadata)
+
     ActiveRecord::Base.transaction do
       backup_relevant_data
 
@@ -38,6 +40,8 @@ class ConvertMetadataToJson < ActiveRecord::Migration[6.1]
   end
 
   def down
+    return unless column_exists?(:procurement_attachments, :metadata)
+
     restore_metadata_data
   end
 

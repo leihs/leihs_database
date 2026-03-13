@@ -91,6 +91,8 @@ def db_clean
 end
 
 def db_restore_data data
+  sanitized_data = data.lines.reject { |line| line.lstrip.start_with?("\\") }.join
+
   database.transaction do
     # pg_dumps reset the search_path for the current session
     # we restore it to the setting before the dump was restored
@@ -99,7 +101,7 @@ def db_restore_data data
     ].first[:setting]
     database.run \
       "SET session_replication_role = REPLICA;" \
-      << data \
+      << sanitized_data \
       << "SET session_replication_role = DEFAULT;" \
       << "SET search_path = #{search_path}"
   end

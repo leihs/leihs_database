@@ -20,7 +20,7 @@ class ProcurementCascadesAndFks < ActiveRecord::Migration[6.1]
       )
     SQL
 
-    remove_foreign_key(:procurement_category_viewers, :users)
+    remove_foreign_key(:procurement_category_viewers, :users) if foreign_key_exists?(:procurement_category_viewers, :users)
     add_foreign_key(:procurement_category_viewers, :users, on_delete: :cascade)
 
     execute <<~SQL
@@ -32,13 +32,13 @@ class ProcurementCascadesAndFks < ActiveRecord::Migration[6.1]
       )
     SQL
 
-    remove_foreign_key(:procurement_category_inspectors, :users)
+    remove_foreign_key(:procurement_category_inspectors, :users) if foreign_key_exists?(:procurement_category_inspectors, :users)
     add_foreign_key(:procurement_category_inspectors, :users, on_delete: :cascade)
   end
 
   def down
-    remove_foreign_key(:procurement_requesters_organizations, :users)
-    remove_foreign_key(:procurement_category_viewers, :users)
-    remove_foreign_key(:procurement_category_inspectors, :users)
+    remove_foreign_key(:procurement_requesters_organizations, :users) if foreign_key_exists?(:procurement_requesters_organizations, :users)
+    remove_foreign_key(:procurement_category_viewers, :users) if foreign_key_exists?(:procurement_category_viewers, :users)
+    remove_foreign_key(:procurement_category_inspectors, :users) if foreign_key_exists?(:procurement_category_inspectors, :users)
   end
 end
