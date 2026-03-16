@@ -46,7 +46,7 @@ class AddOrdersProcessingFeature < ActiveRecord::Migration[7.2]
 
     execute <<~SQL
       ALTER TABLE workdays
-      DROP CONSTRAINT check_orders_processing
+      DROP CONSTRAINT IF EXISTS check_orders_processing
     SQL
   end
 end

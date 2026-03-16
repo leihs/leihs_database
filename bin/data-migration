@@ -5,6 +5,24 @@ function db_prepare_001 {
   dropdb --if-exists $PGDATABASE
   createdb $PGDATABASE
   VERSION=001 bundle exec rake db:migrate
+  # Rails 8.1 may no longer materialize the exact historical column layout
+  # expected by *_001.sql snapshots; ensure legacy settings columns exist.
+  psql -d $PGDATABASE <<SQL
+    ALTER TABLE settings
+      ADD COLUMN IF NOT EXISTS maximum_reservation_time integer;
+    ALTER TABLE settings
+      ADD COLUMN IF NOT EXISTS deliver_received_order_notifications boolean;
+    ALTER TABLE attachments
+      ADD COLUMN IF NOT EXISTS metadata json;
+    ALTER TABLE images
+      ADD COLUMN IF NOT EXISTS metadata json;
+    ALTER TABLE procurement_attachments
+      ADD COLUMN IF NOT EXISTS metadata json;
+    ALTER TABLE procurement_images
+      ADD COLUMN IF NOT EXISTS metadata json;
+    ALTER TABLE procurement_uploads
+      ADD COLUMN IF NOT EXISTS metadata json;
+SQL
 }
 
 ################################################################################
@@ -59,6 +77,10 @@ SQL
     -T schema_migrations  -T ar_internal_metadata \
     -T audited_changes -T audited_requests -T audited_responses \
     $PGDATABASE >> $FILE
+
+  # PostgreSQL 17+ adds psql meta commands (\restrict/\unrestrict) that
+  # break consumers executing dumps as plain SQL (e.g. Sequel#run in specs).
+  perl -i -ne 'print unless /^\s*\\(?:restrict|unrestrict)\b/' "$FILE"
 
 }
 

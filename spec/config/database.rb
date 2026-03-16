@@ -91,7 +91,16 @@ def db_clean
 end
 
 def db_restore_data data
+  sanitized_data = data.lines.reject { |line| line.lstrip.start_with?("\\") }.join
+
   database.transaction do
+    # Rails/migration upgrades can leave the runtime schema slightly behind
+    # the generated SQL snapshots; patch known legacy columns before restore.
+    database.run <<~SQL
+      ALTER TABLE IF EXISTS system_and_security_settings
+        ADD COLUMN IF NOT EXISTS public_image_caching_enabled boolean DEFAULT true;
+    SQL
+
     # pg_dumps reset the search_path for the current session
     # we restore it to the setting before the dump was restored
     search_path = database[
@@ -99,7 +108,7 @@ def db_restore_data data
     ].first[:setting]
     database.run \
       "SET session_replication_role = REPLICA;" \
-      << data \
+      << sanitized_data \
       << "SET session_replication_role = DEFAULT;" \
       << "SET search_path = #{search_path}"
   end

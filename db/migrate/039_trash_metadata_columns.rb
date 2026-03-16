@@ -7,7 +7,7 @@ class TrashMetadataColumns < ActiveRecord::Migration[7.2]
 
   def up
     TABLES.each do |table|
-      remove_column table, :metadata
+      remove_column table, :metadata if column_exists?(table, :metadata)
 
       [:exiftool_version, :exiftool_options].each do |column|
         if column_exists?(table, column)

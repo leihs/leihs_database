@@ -44,7 +44,7 @@ class AddSubjectToMailTemplates < ActiveRecord::Migration[7.2]
   ]
 
   def up
-    add_column :mail_templates, :subject, :text
+    add_column :mail_templates, :subject, :text unless column_exists?(:mail_templates, :subject)
 
     SUBJECTS.each do |name, subjects|
       subjects.each do |locale, subject|
