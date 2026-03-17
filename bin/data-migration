@@ -4,6 +4,10 @@ function db_prepare_001 {
   terminate_connections
   dropdb --if-exists $PGDATABASE
   createdb $PGDATABASE
+  # Pre-create empty schema_migrations so Rails 8.x skips auto-loading structure.sql
+  # (without it, db:migrate VERSION=001 on a fresh DB loads structure.sql first,
+  # sees current=57, then reverts down to 1 instead of migrating up)
+  psql -d $PGDATABASE -c "CREATE TABLE schema_migrations (version character varying NOT NULL, CONSTRAINT schema_migrations_pkey PRIMARY KEY (version));"
   VERSION=001 bundle exec rake db:migrate
 }
 
