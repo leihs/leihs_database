@@ -78,6 +78,13 @@ jobs:
                 #!/usr/bin/env bash
                 set -euo pipefail
                 ./bin/rblint
+        ruby-commited:
+          scripts:
+            test:
+              body: |
+                #!/usr/bin/env bash
+                set -euo pipefail
+                ./bin/check-ruby-commited
 
   specs:
     name: "Run specs"
