@@ -13,9 +13,9 @@ class UnaccentFieldsId < ActiveRecord::Migration[6.1]
     MigrationField.where(dynamic: true).each do |field|
       if !/#{ALLOWED_ID_REGEX}/o.match?(field.id)
         _, old_attr = field.data["attribute"]
-        new_attr = execute(<<-SQL).first["attr"]
-          SELECT lower(unaccent('#{old_attr}')) AS attr
-        SQL
+        new_attr = connection.select_value(
+          ActiveRecord::Base.sanitize_sql_array(["SELECT lower(unaccent(?::text)) AS attr", old_attr.to_s])
+        )
 
         old_data = field.data
         new_data = old_data.merge(attribute: ["properties", new_attr])
@@ -26,13 +26,18 @@ class UnaccentFieldsId < ActiveRecord::Migration[6.1]
           data: new_data,
           dynamic: true)
 
-        execute(<<-SQL)
-            UPDATE disabled_fields
-            SET field_id = '#{new_field.id}'
-            WHERE field_id = '#{field.id}'
-        SQL
+        execute(ActiveRecord::Base.sanitize_sql_array(
+          ["UPDATE disabled_fields SET field_id = ? WHERE field_id = ?",
+            new_field.id, field.id]
+        ))
 
-        MigrationItem.where("properties->'#{old_attr}' IS NOT NULL").each do |item|
+        unless old_attr.to_s.match?(/\A[a-z0-9_]+\z/)
+          raise ActiveRecord::IrreversibleMigration,
+            "unexpected JSON property key #{old_attr.inspect}"
+        end
+
+        json_key_sql = "properties->#{quote(old_attr)}"
+        MigrationItem.where(Arel.sql("#{json_key_sql} IS NOT NULL")).each do |item|
           props = item.properties
           new_props = props.transform_keys { |k| (k == old_attr) ? new_attr : k }
           item.update!(properties: new_props)

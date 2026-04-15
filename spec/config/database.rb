@@ -77,17 +77,26 @@ database.wrap_json_primitives = true
 ### helpers ###################################################################
 
 def db_clean
-  database[ <<-SQL.strip_heredoc
+  names = database[ <<-SQL.strip_heredoc
     SELECT table_name
       FROM information_schema.tables
     WHERE table_type = 'BASE TABLE'
     AND table_schema = 'public'
+    AND table_name <> 'schema_migrations'
     ORDER BY table_type, table_name;
   SQL
-  ].map { |r| r[:table_name] }.reject { |tn| tn == "schema_migrations" }
-    .join(", ").tap do |tables|
-      database.run " TRUNCATE TABLE #{tables} CASCADE; "
+  ].map { |r| r[:table_name] }
+
+  names.each do |tn|
+    unless tn.match?(/\A[a-z][a-z0-9_]*\z/)
+      raise "refusing TRUNCATE: invalid public table name #{tn.inspect}"
     end
+  end
+
+  return if names.empty?
+
+  list = names.join(", ")
+  database.run " TRUNCATE TABLE #{list} CASCADE; "
 end
 
 def db_restore_data data
@@ -97,17 +106,29 @@ def db_restore_data data
     search_path = database[
       "SELECT setting FROM pg_settings WHERE name = 'search_path'"
     ].first[:setting]
+    search_path_sql = database.literal(search_path)
     database.run \
       "SET session_replication_role = REPLICA;" \
       << data \
       << "SET session_replication_role = DEFAULT;" \
-      << "SET search_path = #{search_path}"
+      << "SET search_path = #{search_path_sql}"
   end
 end
 
+# Inserts a contract row before any reservation exists. The DB enforces that with
+# trigger_check_contract_has_at_least_one_reservation (deferred constraint trigger).
+# Historically tests used session_replication_role = replica to skip triggers during
+# that insert; current PostgreSQL versions still run this constraint trigger, so we
+# disable it explicitly for the wrapped operation only.
 def db_with_disabled_triggers
-  database.run "SET session_replication_role = REPLICA;"
-  result = yield
-  database.run "SET session_replication_role = DEFAULT;"
-  result
+  database.run <<~SQL.squish
+    ALTER TABLE contracts
+    DISABLE TRIGGER trigger_check_contract_has_at_least_one_reservation
+  SQL
+  yield
+ensure
+  database.run <<~SQL.squish
+    ALTER TABLE contracts
+    ENABLE TRIGGER trigger_check_contract_has_at_least_one_reservation
+  SQL
 end

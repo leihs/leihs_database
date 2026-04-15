@@ -6,6 +6,8 @@ class Contract < Sequel::Model
   many_to_one(:inventory_pool)
   one_to_many(:reservations)
 
+  UPDATEABLE_COLUMNS = %i[state purpose compact_id].freeze
+
   def self.create_with_disabled_triggers(id,
     user_id,
     inventory_pool_id,
@@ -13,39 +15,29 @@ class Contract < Sequel::Model
     compact_id = id,
     purpose = Faker::Lorem.word)
     db_with_disabled_triggers do
-      database.run <<-SQL
-        INSERT INTO contracts(
-          id,
-          user_id,
-          inventory_pool_id,
-          compact_id,
-          purpose,
-          created_at,
-          updated_at,
-          state
-        )
-        VALUES (
-          '#{id}',
-          '#{user_id}',
-          '#{inventory_pool_id}',
-          '#{compact_id}',
-          '#{purpose}',
-          now(),
-          now(),
-          '#{state}'
-          );
-      SQL
-    end
-
-    def self.update_with_disabled_triggers(id, column, value) # standard:disable Lint/NestedMethodDefinition
-      with_disabled_triggers do
-        database.run <<-SQL
-          UPDATE contracts SET #{column} = #{value} WHERE id = '#{id}'
-        SQL
-      end
+      db = Contract.db
+      db[:contracts].insert(
+        id: id,
+        user_id: user_id,
+        inventory_pool_id: inventory_pool_id,
+        compact_id: compact_id,
+        purpose: purpose,
+        created_at: Sequel.lit("now()"),
+        updated_at: Sequel.lit("now()"),
+        state: state.to_s
+      )
     end
 
     find(id: id)
+  end
+
+  def self.update_with_disabled_triggers(id, column, value)
+    col = column.to_sym
+    raise ArgumentError, "column not allowlisted: #{column.inspect}" unless UPDATEABLE_COLUMNS.include?(col)
+
+    db_with_disabled_triggers do
+      Contract.db[:contracts].where(id: id).update(col => value)
+    end
   end
 end
 

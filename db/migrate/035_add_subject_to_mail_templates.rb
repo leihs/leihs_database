@@ -48,11 +48,10 @@ class AddSubjectToMailTemplates < ActiveRecord::Migration[7.2]
 
     SUBJECTS.each do |name, subjects|
       subjects.each do |locale, subject|
-        execute <<~SQL
-          UPDATE mail_templates
-          SET subject = '#{subject}'
-          WHERE name = '#{name}' AND language_locale = '#{locale}';
-        SQL
+        execute(ActiveRecord::Base.sanitize_sql_array(
+          ["UPDATE mail_templates SET subject = ? WHERE name = ? AND language_locale = ?",
+            subject, name, locale.to_s]
+        ))
       end
     end
 
