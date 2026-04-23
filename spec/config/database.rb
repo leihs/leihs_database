@@ -132,3 +132,30 @@ ensure
     ENABLE TRIGGER trigger_check_contract_has_at_least_one_reservation
   SQL
 end
+
+# Runs disable/yield/enable on one connection. pg_dump seeds clear search_path; pooled
+# connections can differ, so unqualified SQL in yield must see the same session as ALTER.
+module LeihsDatabaseSpecHelpers
+  def with_disabled_trigger(table, trigger)
+    tn = table.to_s
+    unless tn.match?(/\A[a-z][a-z0-9_]*\z/)
+      raise "refusing ALTER TABLE: invalid public table name #{tn.inspect}"
+    end
+    t_sql = (trigger == :all) ? "ALL" : trigger.to_s
+    qt = "public.#{tn}"
+    database.transaction do
+      database.run "ALTER TABLE #{qt} DISABLE TRIGGER #{t_sql}"
+      begin
+        yield
+      ensure
+        database.run "ALTER TABLE #{qt} ENABLE TRIGGER #{t_sql}"
+      end
+    end
+  end
+end
+
+if defined?(RSpec)
+  RSpec.configure do |config|
+    config.include LeihsDatabaseSpecHelpers
+  end
+end
