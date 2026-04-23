@@ -144,6 +144,9 @@ module LeihsDatabaseSpecHelpers
     t_sql = (trigger == :all) ? "ALL" : trigger.to_s
     qt = "public.#{tn}"
     database.transaction do
+      # pg_dump seeds call set_config('search_path', '', false); pooled sessions can
+      # still have an empty path. SET LOCAL lasts for this transaction only.
+      database.run "SET LOCAL search_path TO public, pg_catalog"
       database.run "ALTER TABLE #{qt} DISABLE TRIGGER #{t_sql}"
       begin
         yield
