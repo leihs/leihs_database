@@ -122,13 +122,13 @@ end
 # disable it explicitly for the wrapped operation only.
 def db_with_disabled_triggers
   database.run <<~SQL.squish
-    ALTER TABLE contracts
+    ALTER TABLE IF EXISTS public.contracts
     DISABLE TRIGGER trigger_check_contract_has_at_least_one_reservation
   SQL
   yield
 ensure
   database.run <<~SQL.squish
-    ALTER TABLE contracts
+    ALTER TABLE IF EXISTS public.contracts
     ENABLE TRIGGER trigger_check_contract_has_at_least_one_reservation
   SQL
 end
