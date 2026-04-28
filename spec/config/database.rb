@@ -77,7 +77,7 @@ database.wrap_json_primitives = true
 ### helpers ###################################################################
 
 def db_clean
-  database[ <<-SQL.strip_heredoc
+  table_names = database[ <<-SQL.strip_heredoc
     SELECT table_name
       FROM information_schema.tables
     WHERE table_type = 'BASE TABLE'
@@ -85,9 +85,10 @@ def db_clean
     ORDER BY table_type, table_name;
   SQL
   ].map { |r| r[:table_name] }.reject { |tn| tn == "schema_migrations" }
-    .join(", ").tap do |tables|
-      database.run " TRUNCATE TABLE #{tables} CASCADE; "
-    end
+  return if table_names.empty?
+
+  quoted_tables = table_names.map { |tn| database.quote_identifier(tn) }.join(", ")
+  database.run "TRUNCATE TABLE #{quoted_tables} CASCADE;"
 end
 
 def db_restore_data data
@@ -97,11 +98,10 @@ def db_restore_data data
     search_path = database[
       "SELECT setting FROM pg_settings WHERE name = 'search_path'"
     ].first[:setting]
-    database.run \
-      "SET session_replication_role = REPLICA;" \
-      << data \
-      << "SET session_replication_role = DEFAULT;" \
-      << "SET search_path = #{search_path}"
+    database.run "SET session_replication_role = REPLICA;"
+    database.run data
+    database.run "SET session_replication_role = DEFAULT;"
+    database["SELECT set_config('search_path', ?, false)", search_path].first
   end
 end
 
