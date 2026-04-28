@@ -3,13 +3,13 @@ module Leihs
     extend ActiveSupport::Concern
 
     def create_trgm_index(t, c)
-      execute "CREATE INDEX ON #{t} USING gin(#{c} gin_trgm_ops);"
+      execute "CREATE INDEX ON #{quote_table_name(t)} USING gin(#{quote_column_name(c)} gin_trgm_ops);"
     end
 
     def create_text_index(t, c)
       reversible do |dir|
         dir.up do
-          execute "CREATE INDEX ON #{t} USING gin(to_tsvector('english',#{c}));"
+          execute "CREATE INDEX ON #{quote_table_name(t)} USING gin(to_tsvector('english',#{quote_column_name(c)}));"
         end
       end
     end
@@ -17,13 +17,13 @@ module Leihs
     def auto_update_searchable table_name, columns
       reversible do |dir|
         dir.up do
-          execute "ALTER TABLE #{table_name} DROP COLUMN IF EXISTS searchable;"
-          execute "ALTER TABLE #{table_name} ADD COLUMN searchable text DEFAULT ''::text NOT NULL;"
+          execute "ALTER TABLE #{quote_table_name(table_name)} DROP COLUMN IF EXISTS searchable;"
+          execute "ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN searchable text DEFAULT ''::text NOT NULL;"
 
           execute <<-SQL.strip_heredoc
-            -- ALTER TABLE #{table_name} DISABLE TRIGGER update_updated_at_column_of_#{table_name};
-            UPDATE #{table_name} SET searchable = ( #{columns.map { |c| "COALESCE(" + c.to_s + "::text, '')" }.join(" || ' ' || ")} ) ;
-            -- ALTER TABLE #{table_name}  ENABLE TRIGGER update_updated_at_column_of_#{table_name};
+            -- ALTER TABLE #{quote_table_name(table_name)} DISABLE TRIGGER update_updated_at_column_of_#{table_name};
+            UPDATE #{quote_table_name(table_name)} SET searchable = ( #{columns.map { |c| "COALESCE(" + quote_column_name(c) + "::text, '')" }.join(" || ' ' || ")} ) ;
+            -- ALTER TABLE #{quote_table_name(table_name)}  ENABLE TRIGGER update_updated_at_column_of_#{table_name};
           SQL
 
           create_trgm_index table_name, :searchable
@@ -33,7 +33,7 @@ module Leihs
             CREATE OR REPLACE FUNCTION #{table_name}_update_searchable_column()
             RETURNS TRIGGER AS $$
             BEGIN
-               NEW.searchable = #{columns.map { |c| "COALESCE(NEW." + c.to_s + "::text, '')" }.join(" || ' ' || ")} ;
+               NEW.searchable = #{columns.map { |c| "COALESCE(NEW." + quote_column_name(c) + "::text, '')" }.join(" || ' ' || ")} ;
                RETURN NEW;
             END;
             $$ language 'plpgsql';
@@ -41,15 +41,15 @@ module Leihs
 
           execute <<-SQL.strip_heredoc
             CREATE TRIGGER update_searchable_column_of_#{table_name}
-            BEFORE INSERT OR UPDATE ON #{table_name} FOR EACH ROW
-              -- WHEN ( #{columns.map { |c| "(OLD." + c.to_s + " IS DISTINCT FROM NEW." + c.to_s + ")" }.join(" OR ")} )
+            BEFORE INSERT OR UPDATE ON #{quote_table_name(table_name)} FOR EACH ROW
+              -- WHEN ( #{columns.map { |c| "(OLD." + quote_column_name(c) + " IS DISTINCT FROM NEW." + quote_column_name(c) + ")" }.join(" OR ")} )
             EXECUTE PROCEDURE
           #{table_name}_update_searchable_column();
           SQL
         end
 
         dir.down do
-          execute " DROP TRIGGER  update_searchable_column_of_#{table_name} ON #{table_name} "
+          execute " DROP TRIGGER  update_searchable_column_of_#{table_name} ON #{quote_table_name(table_name)} "
         end
       end
     end
@@ -67,14 +67,14 @@ module Leihs
             unless column_exists? table_name, :created_at
               add_column(table_name, :created_at, with_or_without_tz, null: created_at_null)
             end
-            execute "ALTER TABLE #{table_name} ALTER COLUMN created_at SET DEFAULT now()"
+            execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN created_at SET DEFAULT now()"
           end
 
           if updated_at
             unless column_exists? table_name, :updated_at
               add_column(table_name, :updated_at, with_or_without_tz, null: updated_at_null)
             end
-            execute "ALTER TABLE #{table_name} ALTER COLUMN updated_at SET DEFAULT now()"
+            execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN updated_at SET DEFAULT now()"
 
             execute <<-SQL.strip_heredoc
               CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -92,7 +92,7 @@ module Leihs
 
             execute <<-SQL.strip_heredoc
               CREATE TRIGGER update_updated_at_column_of_#{table_name}
-              BEFORE UPDATE ON #{table_name} FOR EACH ROW
+              BEFORE UPDATE ON #{quote_table_name(table_name)} FOR EACH ROW
               #{when_clause}
               EXECUTE PROCEDURE
               update_updated_at_column();
@@ -101,7 +101,7 @@ module Leihs
         end
 
         dir.down do
-          execute " DROP TRIGGER IF EXISTS update_updated_at_column_of_#{table_name} ON #{table_name} "
+          execute " DROP TRIGGER IF EXISTS update_updated_at_column_of_#{table_name} ON #{quote_table_name(table_name)} "
           if created_at
             remove_column(table_name, :created_at)
           end
@@ -116,9 +116,9 @@ module Leihs
       reversible do |dir|
         dir.up do
           %w[created_at updated_at].each do |col|
-            execute "ALTER TABLE #{table_name} ALTER COLUMN #{col} TYPE TIMESTAMP WITH TIME ZONE USING #{col}"
+            execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{col} TYPE TIMESTAMP WITH TIME ZONE USING #{col}"
             # execute "ALTER TABLE #{table_name} ALTER COLUMN #{col} TYPE TIMESTAMP WITH TIME ZONE USING #{col} AT TIME ZONE 'UTC'"
-            execute "ALTER TABLE #{table_name} ALTER COLUMN #{col} SET DEFAULT now()"
+            execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{col} SET DEFAULT now()"
           end
         end
       end
@@ -129,7 +129,7 @@ module Leihs
         dir.up do
           execute <<-SQL.strip_heredoc
             CREATE TRIGGER audited_change_on_#{table_name}
-              AFTER DELETE OR INSERT OR UPDATE ON #{table_name}
+              AFTER DELETE OR INSERT OR UPDATE ON #{quote_table_name(table_name)}
               FOR EACH ROW 
               EXECUTE PROCEDURE audit_change();
           SQL
