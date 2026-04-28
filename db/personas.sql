@@ -9,9 +9,8 @@
 -- PostgreSQL database dump
 --
 
-
--- Dumped from database version 15.14 (Homebrew)
--- Dumped by pg_dump version 15.14 (Homebrew)
+-- Dumped from database version 15.15 (Homebrew)
+-- Dumped by pg_dump version 15.15 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -15666,9 +15665,9 @@ INSERT INTO public.reservations (id, contract_id, inventory_pool_id, user_id, de
 -- Data for Name: settings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.settings (local_currency_string, contract_lending_party_string, email_signature, user_image_url, ldap_config, logo_url, time_zone, text, timeout_minutes, custom_head_tag, documentation_link, id, created_at, updated_at, lending_terms_acceptance_required_for_order, lending_terms_url, include_customer_email_in_contracts, show_contact_details_on_customer_order, home_page_image_url) VALUES ('CHF', 'Your
+INSERT INTO public.settings (local_currency_string, contract_lending_party_string, email_signature, user_image_url, ldap_config, logo_url, time_zone, text, timeout_minutes, custom_head_tag, documentation_link, id, created_at, updated_at, lending_terms_acceptance_required_for_order, lending_terms_url, include_customer_email_in_contracts, show_contact_details_on_customer_order, home_page_image_url, logo_light, logo_dark) VALUES ('CHF', 'Your
 Address
-Here', 'Das PZ-leihs Team', 'http://www.zhdk.ch/?person/foto&width=100&compressionlevel=0&id={:id}', NULL, '/assets/image-logo-zhdk.png', 'Bern', NULL, 30, NULL, '', 0, NULL, NULL, false, NULL, false, false, NULL);
+Here', 'Das PZ-leihs Team', 'http://www.zhdk.ch/?person/foto&width=100&compressionlevel=0&id={:id}', NULL, '/assets/image-logo-zhdk.png', 'Bern', NULL, 30, NULL, '', 0, NULL, NULL, false, NULL, false, false, NULL, NULL, NULL);
 
 
 --
@@ -15724,5 +15723,3 @@ INSERT INTO public.workdays (id, inventory_pool_id, monday, tuesday, wednesday, 
 --
 -- PostgreSQL database dump complete
 --
-
-

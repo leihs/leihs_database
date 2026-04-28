@@ -9,8 +9,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 15.14 (Homebrew)
--- Dumped by pg_dump version 15.14 (Homebrew)
+-- Dumped from database version 15.15 (Homebrew)
+-- Dumped by pg_dump version 15.15 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1721,7 +1721,7 @@ Please take note of our planned holidays:
 -- Data for Name: settings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.settings (local_currency_string, contract_lending_party_string, email_signature, user_image_url, ldap_config, logo_url, time_zone, text, timeout_minutes, custom_head_tag, documentation_link, id, created_at, updated_at, lending_terms_acceptance_required_for_order, lending_terms_url, include_customer_email_in_contracts, show_contact_details_on_customer_order, home_page_image_url) VALUES ('GBP', NULL, 'Cheers,', NULL, NULL, NULL, 'Bern', NULL, 30, NULL, NULL, 0, '2020-11-05 12:50:29.190792+00', '2020-11-05 12:50:29.190792+00', false, NULL, false, false, NULL);
+INSERT INTO public.settings (local_currency_string, contract_lending_party_string, email_signature, user_image_url, ldap_config, logo_url, time_zone, text, timeout_minutes, custom_head_tag, documentation_link, id, created_at, updated_at, lending_terms_acceptance_required_for_order, lending_terms_url, include_customer_email_in_contracts, show_contact_details_on_customer_order, home_page_image_url, logo_light, logo_dark) VALUES ('GBP', NULL, 'Cheers,', NULL, NULL, NULL, 'Bern', NULL, 30, NULL, NULL, 0, '2020-11-05 12:50:29.190792+00', '2020-11-05 12:50:29.190792+00', false, NULL, false, false, NULL, NULL, NULL);
 
 
 --
