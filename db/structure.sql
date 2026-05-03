@@ -2063,10 +2063,12 @@ BEGIN
     SELECT 1 FROM items WHERE parent_id = OLD.parent_id
   ) THEN
     UPDATE items
-    SET retired = CURRENT_DATE,
-        retired_reason = 'package dissolved'
-    WHERE id = OLD.parent_id
-      AND retired IS NULL;
+    SET retired = COALESCE(retired, CURRENT_DATE),
+        retired_reason = CASE
+          WHEN retired_reason IS NULL OR retired_reason = '' THEN 'package dissolved'
+          ELSE retired_reason
+        END
+    WHERE id = OLD.parent_id;
   END IF;
   RETURN NEW;
 END;
@@ -5974,7 +5976,7 @@ CREATE TRIGGER prevent_deleting_all_users_group_t BEFORE DELETE ON public.groups
 -- Name: items retire_empty_package_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER retire_empty_package_t AFTER UPDATE OF parent_id ON public.items FOR EACH ROW WHEN (((old.parent_id IS NOT NULL) AND (old.parent_id IS DISTINCT FROM new.parent_id))) EXECUTE FUNCTION public.retire_empty_package_f();
+CREATE CONSTRAINT TRIGGER retire_empty_package_t AFTER UPDATE OF parent_id ON public.items DEFERRABLE INITIALLY DEFERRED FOR EACH ROW WHEN (((old.parent_id IS NOT NULL) AND (old.parent_id IS DISTINCT FROM new.parent_id))) EXECUTE FUNCTION public.retire_empty_package_f();
 
 
 --
@@ -7136,11 +7138,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('9'),
 ('8'),
 ('7'),
-('63'),
-('62'),
-('61'),
 ('60'),
 ('6'),
+('59'),
+('58'),
+('57'),
 ('56'),
 ('55'),
 ('54'),

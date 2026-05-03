@@ -3,6 +3,7 @@ class Item < Sequel::Model
   many_to_one(:inventory_pool)
   many_to_one(:owner, class: :InventoryPool, key: :owner_id)
   many_to_one(:room)
+  many_to_one(:supplier)
   one_to_many(:reservations)
 end
 
