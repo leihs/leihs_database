@@ -3475,7 +3475,11 @@ CREATE TABLE public.settings (
     include_customer_email_in_contracts boolean DEFAULT false NOT NULL,
     show_contact_details_on_customer_order boolean DEFAULT false,
     home_page_image_url character varying(2000),
+    logo_light text,
+    logo_dark text,
     CONSTRAINT id_is_zero CHECK ((id = 0)),
+    CONSTRAINT logo_dark_max_size CHECK ((octet_length(logo_dark) <= 1572864)),
+    CONSTRAINT logo_light_max_size CHECK ((octet_length(logo_light) <= 1572864)),
     CONSTRAINT no_whitespace_characters_for_home_page_image_url_check CHECK (((home_page_image_url)::text !~ '^\s*$'::text))
 );
 
@@ -7038,6 +7042,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('8'),
 ('7'),
 ('6'),
+('59'),
 ('58'),
 ('57'),
 ('56'),
