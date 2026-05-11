@@ -9,7 +9,7 @@ scripts:
       set -euo pipefail
       unset PGPORT
       unset PGUSER
-      createdb -p "${PG15PORT}" -U "${PG15USER}" "$LEIHS_DATABASE_NAME"
+      ${LEIHS_DATABASE_DIR}/bin/create-db -p "${PG15PORT}" -U "${PG15USER}" "$LEIHS_DATABASE_NAME"
 
   test:
     start_when:

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+createdb \
+  --locale-provider=icu \
+  --icu-locale=de-CH \
+  --encoding=UTF8 \
+  --template=template0 \
+  "$@"

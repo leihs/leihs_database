@@ -10,11 +10,13 @@ fi
 DBCONFIG=$(RAILS_ENV=$RAILS_ENV bundle exec rails runner "print(ActiveRecord::Base.connection_db_config.configuration_hash.to_json) & STDOUT.flush" 2>/dev/null | ruby -e "lines = STDIN.read.lines; abort('Could not extract JSON database config from rails runner output') if lines.empty?; print(lines.last)")
 export PGDATABASE=$(echo $DBCONFIG | jq -r .database)
 export DB_NAME=$PGDATABASE
+PGHOST=$(echo $DBCONFIG | jq -r .host)
 PGPORT=$(echo $DBCONFIG | jq -r .port)
 PGUSER=$(echo $DBCONFIG | jq -r .username)
 PGPASSWORD=$(echo $DBCONFIG | jq -r .password)
 J=$(ruby -e "require 'etc'; print((Etc.nprocessors/2.0).ceil) & STDOUT.flush")
 echo "PGDATABASE=$PGDATABASE"
+echo "PGHOST=$PGHOST"
 echo "PGPORT=$PGPORT"
 echo "PGUSER=$PGUSER"
 echo "PGPASSWORD=$PGPASSWORD"
