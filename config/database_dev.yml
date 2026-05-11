@@ -2,7 +2,7 @@
  
 pg: &default
   adapter: postgresql
-  host: localhost
+  host: <%= ENV['DB_HOST'].presence || ENV['PGHOST'].presence || 'localhost' %>
   port: <%= ENV['DB_PORT'].presence || ENV['PGPORT'].presence || 5415 %>
   pool: 5
   encoding: unicode

@@ -50,7 +50,7 @@ fi
 terminate_connections
 
 dropdb --if-exists $PGDATABASE
-createdb $PGDATABASE
+./bin/create-db $PGDATABASE
 
 cd $START_DIR
 

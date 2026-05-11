@@ -3,7 +3,7 @@
 function db_prepare_001 {
   terminate_connections
   dropdb --if-exists $PGDATABASE
-  createdb $PGDATABASE
+  ./bin/create-db $PGDATABASE
   # Pre-create empty schema_migrations so Rails 8.x skips auto-loading structure.sql
   # (without it, db:migrate VERSION=001 on a fresh DB loads structure.sql first,
   # sees current=57, then reverts down to 1 instead of migrating up)
@@ -78,7 +78,7 @@ function db_check_migrated {
 
   terminate_connections
   dropdb --if-exists $PGDATABASE
-  createdb $PGDATABASE
+  ./bin/create-db $PGDATABASE
 
   pg_restore  "$FILE" -d $PGDATABASE \
     --no-owner --no-privileges \
