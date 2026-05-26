@@ -5187,6 +5187,27 @@ CREATE INDEX index_reservations_on_option_id ON public.reservations USING btree 
 
 
 --
+-- Name: index_reservations_on_order_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_reservations_on_order_id ON public.reservations USING btree (order_id);
+
+
+--
+-- Name: index_reservations_on_order_id_and_end_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_reservations_on_order_id_and_end_date ON public.reservations USING btree (order_id, end_date);
+
+
+--
+-- Name: index_reservations_on_order_id_and_start_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_reservations_on_order_id_and_start_date ON public.reservations USING btree (order_id, start_date);
+
+
+--
 -- Name: index_reservations_on_returned_date_and_contract_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7139,6 +7160,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('9'),
 ('8'),
 ('7'),
+('62'),
 ('61'),
 ('60'),
 ('6'),
