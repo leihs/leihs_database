@@ -3144,7 +3144,8 @@ CREATE TABLE public.orders (
     customer_order_id uuid NOT NULL,
     lending_terms_accepted boolean,
     CONSTRAINT check_state_and_reject_reason_consistency CHECK ((((state = ANY (ARRAY['submitted'::text, 'rejected'::text, 'canceled'::text, 'approved'::text])) AND (reject_reason IS NULL)) OR ((state = 'rejected'::text) AND (reject_reason IS NOT NULL)))),
-    CONSTRAINT check_valid_state CHECK ((state = ANY (ARRAY['submitted'::text, 'rejected'::text, 'canceled'::text, 'approved'::text])))
+    CONSTRAINT check_valid_state CHECK ((state = ANY (ARRAY['submitted'::text, 'rejected'::text, 'canceled'::text, 'approved'::text]))),
+    CONSTRAINT reject_reason_not_blank CHECK (((reject_reason IS NULL) OR ((reject_reason)::text !~ '^ *$'::text)))
 );
 
 
@@ -7160,6 +7161,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('9'),
 ('8'),
 ('7'),
+('63'),
 ('62'),
 ('61'),
 ('60'),
