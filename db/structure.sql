@@ -6262,6 +6262,13 @@ CREATE TRIGGER update_updated_at_column_of_options BEFORE UPDATE ON public.optio
 
 
 --
+-- Name: orders update_updated_at_column_of_orders; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_orders BEFORE UPDATE ON public.orders FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
+
+
+--
 -- Name: procurement_requests_counters update_updated_at_column_of_procurement_requests_counters; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -7161,6 +7168,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('9'),
 ('8'),
 ('7'),
+('64'),
 ('63'),
 ('62'),
 ('61'),
