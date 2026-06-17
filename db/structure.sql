@@ -2695,17 +2695,14 @@ CREATE TABLE public.emails (
     body text NOT NULL,
     from_address text NOT NULL,
     trials integer DEFAULT 0 NOT NULL,
-    code integer,
-    error text,
-    message text,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     to_address text,
     inventory_pool_id uuid,
     template text,
-    CONSTRAINT check_code CHECK ((((trials = 0) AND (code IS NULL)) OR ((trials <> 0) AND (code IS NOT NULL)))),
-    CONSTRAINT check_error CHECK ((((trials = 0) AND (error IS NULL)) OR ((trials <> 0) AND (code IS NOT NULL)))),
-    CONSTRAINT check_message CHECK ((((trials = 0) AND (message IS NULL)) OR ((trials <> 0) AND (code IS NOT NULL)))),
+    is_successful boolean,
+    error_message text,
+    CONSTRAINT check_trial_success_or_error CHECK ((((trials = 0) AND (is_successful IS NULL) AND (error_message IS NULL)) OR ((trials > 0) AND (((is_successful = true) AND (error_message IS NULL)) OR ((is_successful = false) AND (error_message IS NOT NULL)))))),
     CONSTRAINT check_user_id_or_inventory_pool_id_not_null CHECK (((user_id IS NOT NULL) OR (inventory_pool_id IS NOT NULL)))
 );
 
@@ -7169,6 +7166,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('9'),
 ('8'),
 ('7'),
+('66'),
 ('65'),
 ('64'),
 ('63'),
