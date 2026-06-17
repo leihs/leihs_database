@@ -372,22 +372,6 @@ $$;
 
 
 --
--- Name: check_emails_to_address_not_null_f(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.check_emails_to_address_not_null_f() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-      BEGIN
-        IF ( NEW.to_address IS NULL ) THEN
-          RAISE EXCEPTION 'to_address cannot be null';
-        END IF;
-        RETURN NEW;
-      END;
-      $$;
-
-
---
 -- Name: check_exactly_one_default_language(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -2695,17 +2679,14 @@ CREATE TABLE public.emails (
     body text NOT NULL,
     from_address text NOT NULL,
     trials integer DEFAULT 0 NOT NULL,
-    code integer,
-    error text,
-    message text,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    to_address text,
+    to_address text NOT NULL,
     inventory_pool_id uuid,
     template text,
-    CONSTRAINT check_code CHECK ((((trials = 0) AND (code IS NULL)) OR ((trials <> 0) AND (code IS NOT NULL)))),
-    CONSTRAINT check_error CHECK ((((trials = 0) AND (error IS NULL)) OR ((trials <> 0) AND (code IS NOT NULL)))),
-    CONSTRAINT check_message CHECK ((((trials = 0) AND (message IS NULL)) OR ((trials <> 0) AND (code IS NOT NULL)))),
+    is_successful boolean,
+    error_message text,
+    CONSTRAINT check_trial_success_or_error CHECK ((((trials = 0) AND (is_successful IS NULL) AND (error_message IS NULL)) OR ((trials > 0) AND (((is_successful = true) AND (error_message IS NULL)) OR ((is_successful = false) AND (error_message IS NOT NULL)))))),
     CONSTRAINT check_user_id_or_inventory_pool_id_not_null CHECK (((user_id IS NOT NULL) OR (inventory_pool_id IS NOT NULL)))
 );
 
@@ -5801,13 +5782,6 @@ CREATE CONSTRAINT TRIGGER check_delegations_responsible_user_is_not_null_t AFTER
 
 
 --
--- Name: emails check_emails_to_address_not_null_t; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE CONSTRAINT TRIGGER check_emails_to_address_not_null_t AFTER INSERT OR UPDATE ON public.emails NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION public.check_emails_to_address_not_null_f();
-
-
---
 -- Name: delegations_direct_users check_if_responsible_user_after_delete_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -7169,6 +7143,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('9'),
 ('8'),
 ('7'),
+('67'),
+('66'),
 ('65'),
 ('64'),
 ('63'),
