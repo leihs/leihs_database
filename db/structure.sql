@@ -3060,7 +3060,8 @@ CREATE TABLE public.model_group_links (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     parent_id uuid NOT NULL,
     child_id uuid NOT NULL,
-    label character varying
+    label character varying,
+    CONSTRAINT model_group_links_label_not_blank CHECK (((label IS NULL) OR ((label)::text !~ '^ *$'::text)))
 );
 
 
@@ -7161,6 +7162,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('9'),
 ('8'),
 ('7'),
+('68'),
 ('63'),
 ('62'),
 ('61'),
