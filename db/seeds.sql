@@ -1604,6 +1604,12 @@ Please take note of our planned holidays:
 
 
 --
+-- Data for Name: pickup_locations; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
 -- Data for Name: procurement_admins; Type: TABLE DATA; Schema: public; Owner: -
 --
 

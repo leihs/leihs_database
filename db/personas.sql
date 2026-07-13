@@ -15186,6 +15186,12 @@ INSERT INTO public.orders (id, user_id, inventory_pool_id, purpose, state, creat
 
 
 --
+-- Data for Name: pickup_locations; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
 -- Data for Name: procurement_admins; Type: TABLE DATA; Schema: public; Owner: -
 --
 

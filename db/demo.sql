@@ -169243,6 +169243,12 @@ INSERT INTO public.model_links (id, model_group_id, model_id, quantity) VALUES (
 
 
 --
+-- Data for Name: pickup_locations; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+
+
+--
 -- Data for Name: procurement_admins; Type: TABLE DATA; Schema: public; Owner: -
 --
 

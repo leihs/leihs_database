@@ -3151,6 +3151,20 @@ CREATE TABLE public.orders (
 
 
 --
+-- Name: pickup_locations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pickup_locations (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    inventory_pool_id uuid NOT NULL,
+    name text NOT NULL,
+    description text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: procurement_admins; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4100,6 +4114,14 @@ ALTER TABLE ONLY public.options
 
 ALTER TABLE ONLY public.orders
     ADD CONSTRAINT orders_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pickup_locations pickup_locations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pickup_locations
+    ADD CONSTRAINT pickup_locations_pkey PRIMARY KEY (id);
 
 
 --
@@ -5081,6 +5103,13 @@ CREATE INDEX index_orders_on_state ON public.orders USING btree (state);
 --
 
 CREATE INDEX index_orders_on_user_id ON public.orders USING btree (user_id);
+
+
+--
+-- Name: index_pickup_locations_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pickup_locations_on_inventory_pool_id ON public.pickup_locations USING btree (inventory_pool_id);
 
 
 --
@@ -6270,6 +6299,13 @@ CREATE TRIGGER update_updated_at_column_of_orders BEFORE UPDATE ON public.orders
 
 
 --
+-- Name: pickup_locations update_updated_at_column_of_pickup_locations; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_pickup_locations BEFORE UPDATE ON public.pickup_locations FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
+
+
+--
 -- Name: procurement_requests_counters update_updated_at_column_of_procurement_requests_counters; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6669,6 +6705,14 @@ ALTER TABLE ONLY public.reservations
 
 ALTER TABLE ONLY public.attachments
     ADD CONSTRAINT fk_rails_753607b7c1 FOREIGN KEY (item_id) REFERENCES public.items(id) ON DELETE CASCADE;
+
+
+--
+-- Name: pickup_locations fk_rails_78079391a1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pickup_locations
+    ADD CONSTRAINT fk_rails_78079391a1 FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id) ON DELETE CASCADE;
 
 
 --
@@ -7167,6 +7211,7 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('9'),
+('80'),
 ('8'),
 ('7'),
 ('65'),
