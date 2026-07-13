@@ -2968,7 +2968,10 @@ CREATE TABLE public.inventory_pools (
     borrow_maximum_reservation_duration integer,
     deliver_received_order_emails boolean DEFAULT false NOT NULL,
     email_signature text,
-    contact text
+    contact text,
+    transfer_buffer_before_pick_up integer,
+    transfer_buffer_after_drop_off integer,
+    default_pickup_location_name text
 );
 
 
@@ -7214,6 +7217,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('80'),
 ('8'),
 ('7'),
+('67'),
 ('65'),
 ('64'),
 ('63'),
