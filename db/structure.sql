@@ -690,6 +690,30 @@ CREATE FUNCTION public.check_reservation_order_user_id_consistency() RETURNS tri
 
 
 --
+-- Name: check_reservation_pickup_location_inventory_pool_id_consistency(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_reservation_pickup_location_inventory_pool_id_consistency() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+      IF (
+        NEW.pickup_location_id IS NOT NULL
+        AND NEW.inventory_pool_id != (
+          SELECT inventory_pool_id
+          FROM pickup_locations
+          WHERE id = NEW.pickup_location_id)
+      )
+      THEN
+        RAISE EXCEPTION 'inventory_pool_id between reservation and pickup_location is inconsistent';
+      END IF;
+
+      RETURN NEW;
+    END;
+    $$;
+
+
+--
 -- Name: check_reservations_contracts_state_consistency(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -3462,6 +3486,11 @@ CREATE TABLE public.reservations (
     updated_at timestamp without time zone NOT NULL,
     order_id uuid,
     line_purpose text,
+    pickup_location_id uuid,
+    sent_to_pickup_location_at timestamp(6) without time zone,
+    sent_to_pickup_location_by_user_id uuid,
+    sent_back_to_main_location_at timestamp(6) without time zone,
+    sent_back_to_main_location_by_user_id uuid,
     CONSTRAINT check_allowed_statuses CHECK ((status = ANY (ARRAY['draft'::text, 'unsubmitted'::text, 'submitted'::text, 'canceled'::text, 'rejected'::text, 'approved'::text, 'signed'::text, 'closed'::text]))),
     CONSTRAINT check_model_id_or_option_id_on_reservations CHECK (((model_id IS NOT NULL) OR (option_id IS NOT NULL))),
     CONSTRAINT check_non_null_end_date CHECK ((((status = 'draft'::text) AND ((end_date IS NULL) OR (end_date IS NOT NULL))) OR (end_date IS NOT NULL))),
@@ -5242,6 +5271,13 @@ CREATE INDEX index_reservations_on_order_id_and_start_date ON public.reservation
 
 
 --
+-- Name: index_reservations_on_pickup_location_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_reservations_on_pickup_location_id ON public.reservations USING btree (pickup_location_id);
+
+
+--
 -- Name: index_reservations_on_returned_date_and_contract_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6127,6 +6163,13 @@ CREATE CONSTRAINT TRIGGER trigger_check_reservation_order_user_id_consistency AF
 
 
 --
+-- Name: reservations trigger_check_reservation_pickup_location_inventory_pool_id; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER trigger_check_reservation_pickup_location_inventory_pool_id AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_reservation_pickup_location_inventory_pool_id_consistency();
+
+
+--
 -- Name: contracts trigger_check_reservations_contracts_state_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6551,6 +6594,14 @@ ALTER TABLE ONLY public.ms365_mailboxes_aliases
 
 
 --
+-- Name: reservations fk_rails_4b24af1398; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT fk_rails_4b24af1398 FOREIGN KEY (pickup_location_id) REFERENCES public.pickup_locations(id);
+
+
+--
 -- Name: procurement_requests fk_rails_4c51bafad3; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6644,6 +6695,14 @@ ALTER TABLE ONLY public.entitlement_groups_direct_users
 
 ALTER TABLE ONLY public.models_compatibles
     ADD CONSTRAINT fk_rails_5c311e46b1 FOREIGN KEY (model_id) REFERENCES public.models(id);
+
+
+--
+-- Name: reservations fk_rails_5ca4dbe05a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT fk_rails_5ca4dbe05a FOREIGN KEY (sent_to_pickup_location_by_user_id) REFERENCES public.users(id);
 
 
 --
@@ -7055,6 +7114,14 @@ ALTER TABLE ONLY public.procurement_templates
 
 
 --
+-- Name: reservations fk_rails_e7e11392e9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT fk_rails_e7e11392e9 FOREIGN KEY (sent_back_to_main_location_by_user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: accessories_inventory_pools fk_rails_e9daa88f6c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7214,6 +7281,7 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('9'),
+('81'),
 ('80'),
 ('8'),
 ('7'),
