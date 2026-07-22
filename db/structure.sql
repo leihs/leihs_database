@@ -2686,8 +2686,19 @@ CREATE TABLE public.emails (
     template text,
     is_successful boolean,
     error_message text,
+    source_pool_id uuid,
     CONSTRAINT check_trial_success_or_error CHECK ((((trials = 0) AND (is_successful IS NULL) AND (error_message IS NULL)) OR ((trials > 0) AND (((is_successful = true) AND (error_message IS NULL)) OR ((is_successful = false) AND (error_message IS NOT NULL)))))),
     CONSTRAINT check_user_id_or_inventory_pool_id_not_null CHECK (((user_id IS NOT NULL) OR (inventory_pool_id IS NOT NULL)))
+);
+
+
+--
+-- Name: emails_visits; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.emails_visits (
+    email_id uuid NOT NULL,
+    visit_id uuid NOT NULL
 );
 
 
@@ -3893,6 +3904,14 @@ ALTER TABLE ONLY public.emails
 
 
 --
+-- Name: emails_visits emails_visits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.emails_visits
+    ADD CONSTRAINT emails_visits_pkey PRIMARY KEY (email_id, visit_id);
+
+
+--
 -- Name: entitlement_groups_direct_users entitlement_groups_direct_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4692,6 +4711,13 @@ CREATE UNIQUE INDEX index_disabled_fields_on_field_id_and_inventory_pool_id ON p
 --
 
 CREATE INDEX index_disabled_fields_on_inventory_pool_id ON public.disabled_fields USING btree (inventory_pool_id);
+
+
+--
+-- Name: index_emails_visits_on_visit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_emails_visits_on_visit_id ON public.emails_visits USING btree (visit_id);
 
 
 --
@@ -6663,6 +6689,14 @@ ALTER TABLE ONLY public.procurement_admins
 
 
 --
+-- Name: emails_visits fk_rails_82661879b0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.emails_visits
+    ADD CONSTRAINT fk_rails_82661879b0 FOREIGN KEY (email_id) REFERENCES public.emails(id) ON DELETE CASCADE;
+
+
+--
 -- Name: groups_users fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7144,6 +7178,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('9'),
 ('8'),
 ('7'),
+('69'),
 ('68'),
 ('67'),
 ('66'),
