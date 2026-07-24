@@ -2902,7 +2902,8 @@ CREATE TABLE public.models (
 CASE
     WHEN (version IS NULL) THEN (product)::text
     ELSE (((product)::text || ' '::text) || (version)::text)
-END) STORED
+END) STORED,
+    transportable boolean DEFAULT true NOT NULL
 );
 
 
@@ -4306,14 +4307,6 @@ ALTER TABLE ONLY public.reservations
 
 ALTER TABLE ONLY public.rooms
     ADD CONSTRAINT rooms_pkey PRIMARY KEY (id);
-
-
---
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -7281,6 +7274,7 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('9'),
+('82'),
 ('81'),
 ('80'),
 ('8'),
