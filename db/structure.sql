@@ -372,22 +372,6 @@ $$;
 
 
 --
--- Name: check_emails_to_address_not_null_f(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.check_emails_to_address_not_null_f() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-      BEGIN
-        IF ( NEW.to_address IS NULL ) THEN
-          RAISE EXCEPTION 'to_address cannot be null';
-        END IF;
-        RETURN NEW;
-      END;
-      $$;
-
-
---
 -- Name: check_exactly_one_default_language(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -2719,18 +2703,26 @@ CREATE TABLE public.emails (
     body text NOT NULL,
     from_address text NOT NULL,
     trials integer DEFAULT 0 NOT NULL,
-    code integer,
-    error text,
-    message text,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    to_address text,
+    to_address text NOT NULL,
     inventory_pool_id uuid,
     template text,
-    CONSTRAINT check_code CHECK ((((trials = 0) AND (code IS NULL)) OR ((trials <> 0) AND (code IS NOT NULL)))),
-    CONSTRAINT check_error CHECK ((((trials = 0) AND (error IS NULL)) OR ((trials <> 0) AND (code IS NOT NULL)))),
-    CONSTRAINT check_message CHECK ((((trials = 0) AND (message IS NULL)) OR ((trials <> 0) AND (code IS NOT NULL)))),
+    is_successful boolean,
+    error_message text,
+    source_pool_id uuid,
+    CONSTRAINT check_trial_success_or_error CHECK ((((trials = 0) AND (is_successful IS NULL) AND (error_message IS NULL)) OR ((trials > 0) AND (((is_successful = true) AND (error_message IS NULL)) OR ((is_successful = false) AND (error_message IS NOT NULL)))))),
     CONSTRAINT check_user_id_or_inventory_pool_id_not_null CHECK (((user_id IS NOT NULL) OR (inventory_pool_id IS NOT NULL)))
+);
+
+
+--
+-- Name: emails_visits; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.emails_visits (
+    email_id uuid NOT NULL,
+    visit_id uuid NOT NULL
 );
 
 
@@ -3089,7 +3081,8 @@ CREATE TABLE public.model_group_links (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     parent_id uuid NOT NULL,
     child_id uuid NOT NULL,
-    label character varying
+    label character varying,
+    CONSTRAINT model_group_links_label_not_blank CHECK (((label IS NULL) OR ((label)::text !~ '^ *$'::text)))
 );
 
 
@@ -3958,6 +3951,14 @@ ALTER TABLE ONLY public.emails
 
 
 --
+-- Name: emails_visits emails_visits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.emails_visits
+    ADD CONSTRAINT emails_visits_pkey PRIMARY KEY (email_id, visit_id);
+
+
+--
 -- Name: entitlement_groups_direct_users entitlement_groups_direct_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4307,6 +4308,14 @@ ALTER TABLE ONLY public.reservations
 
 ALTER TABLE ONLY public.rooms
     ADD CONSTRAINT rooms_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schema_migrations
+    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -4757,6 +4766,13 @@ CREATE UNIQUE INDEX index_disabled_fields_on_field_id_and_inventory_pool_id ON p
 --
 
 CREATE INDEX index_disabled_fields_on_inventory_pool_id ON public.disabled_fields USING btree (inventory_pool_id);
+
+
+--
+-- Name: index_emails_visits_on_visit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_emails_visits_on_visit_id ON public.emails_visits USING btree (visit_id);
 
 
 --
@@ -5862,13 +5878,6 @@ CREATE CONSTRAINT TRIGGER check_delegations_responsible_user_is_not_null_t AFTER
 
 
 --
--- Name: emails check_emails_to_address_not_null_t; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE CONSTRAINT TRIGGER check_emails_to_address_not_null_t AFTER INSERT OR UPDATE ON public.emails NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION public.check_emails_to_address_not_null_f();
-
-
---
 -- Name: delegations_direct_users check_if_responsible_user_after_delete_t; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6787,6 +6796,14 @@ ALTER TABLE ONLY public.procurement_admins
 
 
 --
+-- Name: emails_visits fk_rails_82661879b0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.emails_visits
+    ADD CONSTRAINT fk_rails_82661879b0 FOREIGN KEY (email_id) REFERENCES public.emails(id) ON DELETE CASCADE;
+
+
+--
 -- Name: groups_users fk_rails_8546c71994; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7278,8 +7295,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('81'),
 ('80'),
 ('8'),
+('79'),
 ('7'),
+('69'),
+('68'),
 ('67'),
+('66'),
 ('65'),
 ('64'),
 ('63'),
