@@ -2986,9 +2986,10 @@ CREATE TABLE public.inventory_pools (
     deliver_received_order_emails boolean DEFAULT false NOT NULL,
     email_signature text,
     contact text,
-    transfer_buffer_before_pick_up integer,
-    transfer_buffer_after_drop_off integer,
-    default_pickup_location_name text
+    transfer_buffer_before_pick_up integer DEFAULT 1 NOT NULL,
+    transfer_buffer_after_drop_off integer DEFAULT 1 NOT NULL,
+    default_pickup_location_name text DEFAULT 'Hauptlager'::text NOT NULL,
+    enable_alternative_pickup_locations boolean DEFAULT false NOT NULL
 );
 
 
@@ -3181,7 +3182,8 @@ CREATE TABLE public.pickup_locations (
     name text NOT NULL,
     description text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    active boolean DEFAULT true NOT NULL
 );
 
 
@@ -7291,6 +7293,9 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('9'),
+('85'),
+('84'),
+('83'),
 ('82'),
 ('81'),
 ('80'),
