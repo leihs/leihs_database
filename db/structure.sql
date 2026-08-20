@@ -6445,7 +6445,7 @@ ALTER TABLE ONLY public.entitlement_groups_groups
 --
 
 ALTER TABLE ONLY public.entitlement_groups_groups
-    ADD CONSTRAINT fk_rails_35f9f6c9e0 FOREIGN KEY (group_id) REFERENCES public.groups(id);
+    ADD CONSTRAINT fk_rails_35f9f6c9e0 FOREIGN KEY (group_id) REFERENCES public.groups(id) ON DELETE CASCADE;
 
 
 --
@@ -7177,6 +7177,7 @@ SET search_path TO "$user", public;
 INSERT INTO "schema_migrations" (version) VALUES
 ('9'),
 ('8'),
+('70'),
 ('7'),
 ('69'),
 ('68'),
