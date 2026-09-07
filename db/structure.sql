@@ -3009,7 +3009,8 @@ CREATE TABLE public.items (
     shelf text,
     room_id uuid NOT NULL,
     properties jsonb DEFAULT '{}'::jsonb,
-    item_version character varying
+    item_version character varying,
+    CONSTRAINT inventory_code_not_blank CHECK (((inventory_code)::text !~ '^ *$'::text))
 );
 
 
@@ -7177,6 +7178,7 @@ SET search_path TO "$user", public;
 INSERT INTO "schema_migrations" (version) VALUES
 ('9'),
 ('8'),
+('71'),
 ('70'),
 ('7'),
 ('69'),
