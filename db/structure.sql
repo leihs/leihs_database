@@ -3038,7 +3038,8 @@ CREATE TABLE public.items (
     shelf text,
     room_id uuid NOT NULL,
     properties jsonb DEFAULT '{}'::jsonb,
-    item_version character varying
+    item_version character varying,
+    CONSTRAINT inventory_code_not_blank CHECK (((inventory_code)::text !~ '^ *$'::text))
 );
 
 
@@ -6530,7 +6531,7 @@ ALTER TABLE ONLY public.entitlement_groups_groups
 --
 
 ALTER TABLE ONLY public.entitlement_groups_groups
-    ADD CONSTRAINT fk_rails_35f9f6c9e0 FOREIGN KEY (group_id) REFERENCES public.groups(id);
+    ADD CONSTRAINT fk_rails_35f9f6c9e0 FOREIGN KEY (group_id) REFERENCES public.groups(id) ON DELETE CASCADE;
 
 
 --
@@ -7301,6 +7302,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('80'),
 ('8'),
 ('79'),
+('72'),
+('71'),
+('70'),
 ('7'),
 ('69'),
 ('68'),
