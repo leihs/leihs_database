@@ -62,7 +62,8 @@ SQL
     --no-owner --no-privileges \
     -T schema_migrations  -T ar_internal_metadata \
     -T audited_changes -T audited_requests -T audited_responses \
-    $PGDATABASE >> $FILE
+    $PGDATABASE \
+    | grep -v $'^\\\\'  >> $FILE
 
 }
 

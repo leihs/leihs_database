@@ -67,6 +67,8 @@ jobs:
         exclude_match: "^.*(no-ci|hotspot).*$"
     context:
       task_defaults:
+        traits:
+          Ruby: true
         git_options:
           submodules:
             include_match: ^.*$
