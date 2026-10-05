@@ -65,3 +65,19 @@ echo '# The database has been adjusted for debugging and development'
 echo '# SMPT sending is turned off; the external_base_url is set to http://localhost:3200'
 echo "# you can sign in as 'root@localhost' with the password 'secret' "
 }
+
+function scrub_secrets {
+psql -d $PGDATABASE <<SQL
+  UPDATE authentication_systems SET internal_private_key = NULL;
+  UPDATE authentication_systems_users SET data = NULL;
+  DELETE FROM api_tokens;
+  DELETE FROM user_sessions;
+  DELETE FROM user_password_resets;
+  UPDATE smtp_settings
+    SET password = NULL, username = NULL, ms365_client_secret = NULL;
+  UPDATE ms365_mailboxes
+    SET access_token = NULL, refresh_token = NULL, token_expires_at = NULL;
+  TRUNCATE audited_changes, audited_requests, audited_responses;
+SQL
+echo '# Credentials, tokens, sessions and audits have been scrubbed'
+}

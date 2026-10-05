@@ -61,7 +61,9 @@ if [ $SPARSE == "YES" ]; then
   pg_restore --disable-triggers -j $J -x -O -d $PGDATABASE --data-only \
     -L <(pg_restore -l ${FILE} | grep -v -E -e 'attachments|audited|audits') $FILE
 
-  echo "WARNING some tables have been skipped, set SPRASE=NO to avoid this"
+  scrub_secrets
+
+  echo "WARNING some tables have been skipped and secrets scrubbed, set SPARSE=NO to avoid this"
 
 else
   pg_restore --disable-triggers -j $J -x -O -d $PGDATABASE --data-only $FILE
