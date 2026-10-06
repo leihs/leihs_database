@@ -52,7 +52,9 @@ scripts:
       unset PGPORT unset PGUSER
       export PGUSER="${PG15USER}"; export PGPORT="${PG15PORT}"
       export SECRET_KEY_BASE_DUMMY=1
-      dropdb "$LEIHS_DATABASE_NAME"
+      # --force terminates sessions a just-stopped service may still hold
+      # ("database ... is being accessed by other users" after a passing test)
+      dropdb --force "$LEIHS_DATABASE_NAME"
     start_when:
       test is in terminal state:
         script_key: test
