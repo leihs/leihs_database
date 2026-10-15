@@ -61,18 +61,20 @@ def database_port
   )
 end
 
-def database
-  @database ||= Sequel.postgres(
-    database: database_name,
-    user: database_user,
-    password: database_password,
-    host: database_host,
-    port: database_port
-  )
-end
+# one connection for the whole run, not one per example instance
+DATABASE = Sequel.postgres(
+  database: database_name,
+  user: database_user,
+  password: database_password,
+  host: database_host,
+  port: database_port
+)
+DATABASE.extension :pg_json
+DATABASE.wrap_json_primitives = true
 
-database.extension :pg_json
-database.wrap_json_primitives = true
+def database
+  DATABASE
+end
 
 ### helpers ###################################################################
 
