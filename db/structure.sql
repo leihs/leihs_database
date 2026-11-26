@@ -674,6 +674,30 @@ CREATE FUNCTION public.check_reservation_order_user_id_consistency() RETURNS tri
 
 
 --
+-- Name: check_reservation_pickup_location_inventory_pool_id_consistency(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.check_reservation_pickup_location_inventory_pool_id_consistency() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+    BEGIN
+      IF (
+        NEW.pickup_location_id IS NOT NULL
+        AND NEW.inventory_pool_id != (
+          SELECT inventory_pool_id
+          FROM pickup_locations
+          WHERE id = NEW.pickup_location_id)
+      )
+      THEN
+        RAISE EXCEPTION 'inventory_pool_id between reservation and pickup_location is inconsistent';
+      END IF;
+
+      RETURN NEW;
+    END;
+    $$;
+
+
+--
 -- Name: check_reservations_contracts_state_consistency(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -2871,6 +2895,7 @@ CASE
     WHEN (version IS NULL) THEN (product)::text
     ELSE (((product)::text || ' '::text) || (version)::text)
 END) STORED,
+    transportable boolean DEFAULT true NOT NULL,
     CONSTRAINT models_version_not_blank CHECK (((version IS NULL) OR ((version)::text !~ '^\s*$'::text)))
 );
 
@@ -2962,7 +2987,11 @@ CREATE TABLE public.inventory_pools (
     borrow_maximum_reservation_duration integer,
     deliver_received_order_emails boolean DEFAULT false NOT NULL,
     email_signature text,
-    contact text
+    contact text,
+    transfer_buffer_before_pick_up integer DEFAULT 1 NOT NULL,
+    transfer_buffer_after_drop_off integer DEFAULT 1 NOT NULL,
+    default_pickup_location_name text DEFAULT 'Hauptlager'::text NOT NULL,
+    enable_alternative_pickup_locations boolean DEFAULT false NOT NULL
 );
 
 
@@ -3143,6 +3172,21 @@ CREATE TABLE public.orders (
     CONSTRAINT check_state_and_reject_reason_consistency CHECK ((((state = ANY (ARRAY['submitted'::text, 'rejected'::text, 'canceled'::text, 'approved'::text])) AND (reject_reason IS NULL)) OR ((state = 'rejected'::text) AND (reject_reason IS NOT NULL)))),
     CONSTRAINT check_valid_state CHECK ((state = ANY (ARRAY['submitted'::text, 'rejected'::text, 'canceled'::text, 'approved'::text]))),
     CONSTRAINT reject_reason_not_blank CHECK (((reject_reason IS NULL) OR ((reject_reason)::text !~ '^ *$'::text)))
+);
+
+
+--
+-- Name: pickup_locations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pickup_locations (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    inventory_pool_id uuid NOT NULL,
+    name text NOT NULL,
+    description text,
+    active boolean DEFAULT true NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -3441,6 +3485,11 @@ CREATE TABLE public.reservations (
     updated_at timestamp without time zone NOT NULL,
     order_id uuid,
     line_purpose text,
+    pickup_location_id uuid,
+    sent_to_pickup_location_at timestamp(6) without time zone,
+    sent_to_pickup_location_by_user_id uuid,
+    sent_back_to_main_location_at timestamp(6) without time zone,
+    sent_back_to_main_location_by_user_id uuid,
     CONSTRAINT check_allowed_statuses CHECK ((status = ANY (ARRAY['draft'::text, 'unsubmitted'::text, 'submitted'::text, 'canceled'::text, 'rejected'::text, 'approved'::text, 'signed'::text, 'closed'::text]))),
     CONSTRAINT check_model_id_or_option_id_on_reservations CHECK (((model_id IS NOT NULL) OR (option_id IS NOT NULL))),
     CONSTRAINT check_non_null_end_date CHECK ((((status = 'draft'::text) AND ((end_date IS NULL) OR (end_date IS NOT NULL))) OR (end_date IS NOT NULL))),
@@ -4104,6 +4153,14 @@ ALTER TABLE ONLY public.options
 
 ALTER TABLE ONLY public.orders
     ADD CONSTRAINT orders_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pickup_locations pickup_locations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pickup_locations
+    ADD CONSTRAINT pickup_locations_pkey PRIMARY KEY (id);
 
 
 --
@@ -5095,6 +5152,13 @@ CREATE INDEX index_orders_on_user_id ON public.orders USING btree (user_id);
 
 
 --
+-- Name: index_pickup_locations_on_inventory_pool_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_pickup_locations_on_inventory_pool_id ON public.pickup_locations USING btree (inventory_pool_id);
+
+
+--
 -- Name: index_procurement_admins_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5218,6 +5282,13 @@ CREATE INDEX index_reservations_on_order_id_and_end_date ON public.reservations 
 --
 
 CREATE INDEX index_reservations_on_order_id_and_start_date ON public.reservations USING btree (order_id, start_date);
+
+
+--
+-- Name: index_reservations_on_pickup_location_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_reservations_on_pickup_location_id ON public.reservations USING btree (pickup_location_id);
 
 
 --
@@ -6099,6 +6170,13 @@ CREATE CONSTRAINT TRIGGER trigger_check_reservation_order_user_id_consistency AF
 
 
 --
+-- Name: reservations trigger_check_reservation_pickup_location_inventory_pool_id; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER trigger_check_reservation_pickup_location_inventory_pool_id AFTER INSERT OR UPDATE ON public.reservations DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.check_reservation_pickup_location_inventory_pool_id_consistency();
+
+
+--
 -- Name: contracts trigger_check_reservations_contracts_state_consistency; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6271,6 +6349,13 @@ CREATE TRIGGER update_updated_at_column_of_options BEFORE UPDATE ON public.optio
 --
 
 CREATE TRIGGER update_updated_at_column_of_orders BEFORE UPDATE ON public.orders FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
+
+
+--
+-- Name: pickup_locations update_updated_at_column_of_pickup_locations; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_pickup_locations BEFORE UPDATE ON public.pickup_locations FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
 
 
 --
@@ -6516,6 +6601,14 @@ ALTER TABLE ONLY public.ms365_mailboxes_aliases
 
 
 --
+-- Name: reservations fk_rails_4b24af1398; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT fk_rails_4b24af1398 FOREIGN KEY (pickup_location_id) REFERENCES public.pickup_locations(id);
+
+
+--
 -- Name: procurement_requests fk_rails_4c51bafad3; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6612,6 +6705,14 @@ ALTER TABLE ONLY public.models_compatibles
 
 
 --
+-- Name: reservations fk_rails_5ca4dbe05a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT fk_rails_5ca4dbe05a FOREIGN KEY (sent_to_pickup_location_by_user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: reservations fk_rails_5cc2043d96; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6673,6 +6774,14 @@ ALTER TABLE ONLY public.reservations
 
 ALTER TABLE ONLY public.attachments
     ADD CONSTRAINT fk_rails_753607b7c1 FOREIGN KEY (item_id) REFERENCES public.items(id) ON DELETE CASCADE;
+
+
+--
+-- Name: pickup_locations fk_rails_78079391a1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pickup_locations
+    ADD CONSTRAINT fk_rails_78079391a1 FOREIGN KEY (inventory_pool_id) REFERENCES public.inventory_pools(id) ON DELETE CASCADE;
 
 
 --
@@ -7020,6 +7129,14 @@ ALTER TABLE ONLY public.procurement_templates
 
 
 --
+-- Name: reservations fk_rails_e7e11392e9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reservations
+    ADD CONSTRAINT fk_rails_e7e11392e9 FOREIGN KEY (sent_back_to_main_location_by_user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: accessories_inventory_pools fk_rails_e9daa88f6c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7180,6 +7297,7 @@ SET search_path TO "$user", public;
 INSERT INTO "schema_migrations" (version) VALUES
 ('9'),
 ('8'),
+('74'),
 ('73'),
 ('72'),
 ('71'),
