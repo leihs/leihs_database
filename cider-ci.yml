@@ -129,6 +129,7 @@ jobs:
       This job depends on all other tests and checks
       and it will pass if and only if all dependencies have passed.
       Status of this job is **used by github's "branch protection"**!
+    priority: 999
     depends_on: &GOOD_TO_MERGE_DEPENDENCIES
       specs were successful:
         type: job
